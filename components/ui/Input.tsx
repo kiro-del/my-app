@@ -1,0 +1,231 @@
+// components/ui/Input.tsx
+// Built on top of design-tokens.ts — all values reference tokens, never hardcoded
+// Icon specs confirmed from Figma plugin API:
+//   leading icon:  24×24, color gray/400 (#9ca3af) — baked into SVG export
+//   tailing icon:  24×24, color gray/900 (#111827) — baked into SVG export
+//   error icon:    16×16, built-in (not from library)
+//   gap:           8px (spacing[2])
+//   alignment:     items-center
+
+import React, { forwardRef, useState } from "react";
+import tokens from "@/styles/design-tokens";
+
+// ---------------------------------------------------------------------------
+// Types
+// ---------------------------------------------------------------------------
+export type InputSize = "Default" | "large";
+
+export interface InputProps extends Omit<React.InputHTMLAttributes<HTMLInputElement>, "size"> {
+  label?:           string;
+  placeholder?:     string;
+  supportMessage?:  string;
+  showSupportIcon?: boolean;
+  errorMessage?:    string;
+  leadingIcon?:     React.ReactNode;
+  tailingIcon?:     React.ReactNode;
+  inputSize?:       InputSize;
+}
+
+// ---------------------------------------------------------------------------
+// Built-in status icons — not from icon library
+// ---------------------------------------------------------------------------
+
+// Error indicator — 16px, uses bg/red token
+const ErrorIcon = () => (
+  <svg width="16" height="16" viewBox="0 0 16 16" fill="none" aria-hidden>
+    <circle cx="8" cy="8" r="6.5" stroke={tokens.color.bg.red} strokeWidth="1.3" />
+    <rect x="7.25" y="4.5" width="1.5" height="4.5" rx="0.75" fill={tokens.color.bg.red} />
+    <circle cx="8" cy="11" r="0.75" fill={tokens.color.bg.red} />
+  </svg>
+);
+
+// Support lightbulb — 16px, uses fg/support token
+const LightbulbIcon = () => (
+  <svg width="16" height="16" viewBox="0 0 16 16" fill="none" aria-hidden>
+    <path d="M8 2a4 4 0 0 1 2.4 7.2V11H5.6V9.2A4 4 0 0 1 8 2z"
+      stroke={tokens.color.fg.support} strokeWidth="1.2" fill="none" />
+    <path d="M6 12.5h4M6.5 14h3"
+      stroke={tokens.color.fg.support} strokeWidth="1.2" strokeLinecap="round" />
+  </svg>
+);
+
+// ---------------------------------------------------------------------------
+// Component
+// ---------------------------------------------------------------------------
+export const Input = forwardRef<HTMLInputElement, InputProps>(({
+  label,
+  placeholder     = "Placeholder",
+  supportMessage,
+  showSupportIcon = false,
+  errorMessage,
+  leadingIcon,
+  tailingIcon,
+  inputSize       = "Default",
+  disabled,
+  onFocus,
+  onBlur,
+  ...rest
+}, ref) => {
+  const [isFocused, setIsFocused] = useState(false);
+
+  const isDisabled = disabled;
+  const isError    = !!errorMessage;
+
+  // ---------------------------------------------------------------------------
+  // Border — confirmed from Figma
+  // default:  1px divider/frame
+  // focus:    2px divider/blue  (indigo-500 #6366f1)
+  // error:    2px bg/red        (#ef4444)
+  // disabled: 1px divider/frame, bg bg/lightBg
+  // ---------------------------------------------------------------------------
+  const borderStyle: React.CSSProperties = isError
+    ? { border: `2px solid ${tokens.color.bg.red}` }
+    : isDisabled
+    ? { border: `1px solid ${tokens.color.divider.frame}`, background: tokens.color.bg.lightBg }
+    : isFocused
+    ? { border: `2px solid ${tokens.color.divider.blue}` }
+    : { border: `1px solid ${tokens.color.divider.frame}` };
+
+  // Height — confirmed from Figma node 1313:2941: h-[40px] items-center
+  // large = 80px min-height, items-start (textarea-style)
+  const heightStyle: React.CSSProperties = inputSize === "large"
+    ? { minHeight: "80px", alignItems: "flex-start",
+        paddingTop: tokens.spacing[2.5], paddingBottom: tokens.spacing[2.5] }
+    : { height: "40px", alignItems: "center" };
+
+  const wrapperStyle: React.CSSProperties = {
+    display:       "flex",
+    flexDirection: "row",
+    gap:           tokens.spacing[2],       // 8px — confirmed from Figma
+    paddingLeft:   tokens.spacing[2.5],     // 10px
+    paddingRight:  tokens.spacing[2.5],     // 10px
+    borderRadius:  tokens.borderRadius.md,  // 6px
+    background:    borderStyle.background || tokens.color.base.white,
+    overflow:      "hidden",
+    width:         "100%",
+    boxSizing:     "border-box" as const,
+    boxShadow:     tokens.shadows.sm,
+    transition:    "border-color 150ms ease, box-shadow 150ms ease",
+    ...borderStyle,
+    ...heightStyle,
+  };
+
+  return (
+    <div style={{ display: "flex", flexDirection: "column", gap: tokens.spacing[1], width: "100%" }}>
+
+      {/* Label — Inter Medium 500 14px fg/primary — confirmed Figma node 148:1525 */}
+      {label && (
+        <label style={{
+          fontFamily: tokens.fontFamily.sans,
+          fontSize:   tokens.fontSize.body,      // 14px
+          fontWeight: tokens.fontWeight.medium,  // 500
+          lineHeight: tokens.lineHeight.body,    // 20px
+          color:      tokens.color.fg.primary,   // #111827
+        }}>
+          {label}
+        </label>
+      )}
+
+      {/* Input wrapper */}
+      <div style={wrapperStyle}>
+
+        {/* Leading icon — 24×24
+            Color is baked into the SVG export as gray/400 (#9ca3af).
+            No CSS color override needed — the icon from the library
+            already has the correct color applied in Figma. */}
+        {leadingIcon && (
+          <span style={{
+            width:          "24px",
+            height:         "24px",
+            display:        "flex",
+            alignItems:     "center",
+            justifyContent: "center",
+            flexShrink:     0,
+          }} aria-hidden>
+            {leadingIcon}
+          </span>
+        )}
+
+        {/* Native input — Inter Regular 400 14px */}
+        <input
+          ref={ref}
+          disabled={isDisabled}
+          placeholder={placeholder}
+          style={{
+            flex:       1,
+            minWidth:   0,
+            background: "transparent",
+            border:     "none",
+            outline:    "none",
+            fontFamily: tokens.fontFamily.sans,
+            fontSize:   tokens.fontSize.body,       // 14px
+            fontWeight: tokens.fontWeight.regular,  // 400
+            lineHeight: tokens.lineHeight.body,     // 20px
+            color:      isDisabled
+                          ? tokens.color.fg.disabled  // #9ca3af
+                          : tokens.color.fg.primary,  // #111827
+            cursor:     isDisabled ? "not-allowed" : "text",
+          }}
+          onFocus={(e) => { setIsFocused(true);  onFocus?.(e); }}
+          onBlur={(e)  => { setIsFocused(false); onBlur?.(e);  }}
+          {...rest}
+        />
+
+        {/* Error icon (16px built-in) — replaces tailing icon when error */}
+        {isError ? (
+          <span style={{
+            display:        "flex",
+            alignItems:     "center",
+            justifyContent: "center",
+            flexShrink:     0,
+            width:          "16px",
+            height:         "16px",
+          }} aria-hidden>
+            <ErrorIcon />
+          </span>
+        ) : tailingIcon ? (
+          /* Tailing icon — 24×24
+             Color is baked into the SVG export as gray/900 (#111827).
+             No CSS color override needed — the icon from the library
+             already has the correct color applied in Figma. */
+          <span style={{
+            width:          "24px",
+            height:         "24px",
+            display:        "flex",
+            alignItems:     "center",
+            justifyContent: "center",
+            flexShrink:     0,
+          }} aria-hidden>
+            {tailingIcon}
+          </span>
+        ) : null}
+      </div>
+
+      {/* Support / error message */}
+      {(errorMessage || supportMessage) && (
+        <div style={{ display: "flex", alignItems: "center", gap: tokens.spacing[1] }}>
+          {showSupportIcon && !isError && (
+            <span style={{ flexShrink: 0 }} aria-hidden>
+              <LightbulbIcon />
+            </span>
+          )}
+          <p style={{
+            fontFamily: tokens.fontFamily.sans,
+            fontSize:   tokens.fontSize.bodySmall,    // 12px
+            fontWeight: tokens.fontWeight.regular,    // 400
+            lineHeight: tokens.lineHeight.bodySmall,  // 16px
+            color:      isError
+                          ? tokens.color.fg.red       // #b91c1c
+                          : tokens.color.fg.support,  // #6b7280
+            margin:     0,
+          }}>
+            {isError ? errorMessage : supportMessage}
+          </p>
+        </div>
+      )}
+    </div>
+  );
+});
+
+Input.displayName = "Input";
+export default Input;

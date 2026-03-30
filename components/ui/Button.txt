@@ -1,0 +1,173 @@
+================================================================================
+BUTTON COMPONENT — Scannable Design System
+Figma source: node 21:2928
+File: components/ui/Button.tsx
+================================================================================
+
+OVERVIEW
+--------
+A fully accessible, multi-variant button component built directly from the
+Scannable Figma design system. Supports 5 priority levels, 2 sizes, icon
+positions, and a loading state.
+
+
+VARIANTS (priority prop)
+------------------------
+primary     — Lime (#CCFF00) background. Main call-to-action.
+secondary   — White background, grey border. Secondary actions.
+tertiary    — No background, underlined indigo text. Inline/low-emphasis actions.
+destructive — Red (#EF4444) background. Irreversible or dangerous actions.
+disabled    — Grey background, muted text. Non-interactive state.
+
+
+SIZES
+-----
+default  — 40px height, 16px horizontal padding, 14px font
+large    — 48px height, 16px horizontal padding, 14px font
+
+
+TYPES (buttonType prop)
+-----------------------
+text  — Shows a text label, optionally with a leading or tailing icon
+icon  — Icon-only button (no label), square padding
+
+
+ICON POSITIONS (withIcon prop)
+------------------------------
+none     — No icon
+heading  — Icon appears before (left of) the label
+tailing  — Icon appears after (right of) the label
+
+
+INTERACTIVE STATES
+------------------
+default  — Base appearance
+hover    — Slightly darker background + subtle shadow (CSS :hover)
+focus    — Coloured focus ring using box-shadow (lime/grey/red depending on variant)
+loading  — Replaces label with "Loading…", disables click interaction
+disabled — Grey appearance, cursor:not-allowed, aria-disabled="true"
+
+
+DESIGN TOKENS USED
+------------------
+Colors:
+  brand color/lime     #CCFF00  — Primary background
+  divider/lime         #C1EB00  — Primary border + hover bg
+  bg/red               #EF4444  — Destructive background
+  Interact state/hover/red  #991B1B  — Destructive hover
+  bg/dark-bg           #E5E7EB  — Disabled background
+  divider/frame        #D1D5DB  — Secondary/disabled border
+  fg/disabled          #9CA3AF  — Disabled text
+  fg/primary           #111827  — Default text
+  fg/blue              #4338CA  — Tertiary text
+  Interact state/hover/blue  #3730A3  — Tertiary hover
+  Interact state/pressed/blue  #312E81  — Tertiary focus
+
+Shadows:
+  shadow/sm     — Hover elevation: 0 1px 4px rgba(0,0,0,0.05)
+  focus:ring/lime  — 0 0 0 2px white, 0 0 0 4px #CCFF00
+  focus:ring/grey  — 0 0 0 2px white, 0 0 0 4px #D1D5DB
+  focus:ring/red   — 0 0 0 2px white, 0 0 0 4px #EF4444
+
+Typography:
+  body/body-M   — Inter Medium, 14px, 20px line height
+
+Border Radius:
+  rounded-s-md  — 6px
+
+
+USAGE EXAMPLES
+--------------
+
+// Basic primary button
+<Button label="Save changes" />
+
+// Secondary with leading icon
+<Button
+  priority="secondary"
+  label="Add item"
+  withIcon="heading"
+  icon={<PlusIcon />}
+/>
+
+// Destructive with tailing icon
+<Button
+  priority="destructive"
+  label="Delete"
+  withIcon="tailing"
+  icon={<TrashIcon />}
+/>
+
+// Icon-only button
+<Button
+  priority="primary"
+  buttonType="icon"
+  icon={<DotsIcon />}
+  aria-label="More options"
+/>
+
+// Large size
+<Button
+  priority="primary"
+  size="large"
+  label="Get started"
+/>
+
+// Form submit
+<Button
+  priority="primary"
+  type="submit"
+  label="Submit"
+/>
+
+// Loading state
+<Button
+  priority="primary"
+  loading={isSubmitting}
+  label="Save"
+/>
+
+// Tertiary link-style
+<Button
+  priority="tertiary"
+  label="View details"
+  withIcon="tailing"
+  icon={<ArrowRightIcon />}
+/>
+
+
+PROPS REFERENCE
+---------------
+prop          type                                              default
+----------    -----------------------------------------------   -------
+priority      "primary"|"secondary"|"tertiary"|                 "primary"
+              "destructive"|"disabled"
+size          "default"|"large"                                 "default"
+buttonType    "text"|"icon"                                     "text"
+withIcon      "none"|"heading"|"tailing"                        "none"
+icon          ReactNode                                         undefined
+label         string                                            "Button"
+loading       boolean                                           false
+type          "button"|"submit"|"reset"                         "button"
+className     string                                            ""
+...rest       All standard HTML button attributes
+
+
+ACCESSIBILITY
+-------------
+- Uses native <button> element
+- aria-disabled set when priority="disabled" or loading=true
+- Keyboard focusable with visible focus ring
+- Icon-only buttons should always include aria-label
+- Loading state announced via text change to "Loading…"
+
+
+PREVIEW
+-------
+Visit localhost:3000/styleguide/components to see:
+  - Live interactive playground with all prop controls
+  - All variant combinations side by side
+  - Size comparisons
+  - Props reference table
+
+================================================================================
