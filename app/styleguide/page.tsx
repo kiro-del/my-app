@@ -52,7 +52,7 @@ const ICONS_24: { name: string; nodeId: string }[] = [
   { name: "folder",                nodeId: "220:465" },
   { name: "add folder",            nodeId: "1608:856" },
   { name: "doc bar chart",         nodeId: "94:534" },
-  { name: "clipboard",             nodeId: "2782:10219" },
+  { name: "clipboard",             nodeId: "92:1270" },
   { name: "specs",                 nodeId: "131:1374" },
   { name: "components",            nodeId: "131:1373" },
   { name: "history",               nodeId: "131:1375" },
@@ -64,6 +64,7 @@ const ICONS_24: { name: string; nodeId: string }[] = [
   { name: "product",               nodeId: "58:222" },
   { name: "product-check",         nodeId: "3606:10279" },
   { name: "product-x",             nodeId: "1762:9428" },
+  { name: "product&sku",           nodeId: "3628:9947" },
   { name: "package",               nodeId: "2204:3423" },
   { name: "tag",                   nodeId: "55:224" },
   { name: "add tag",               nodeId: "1657:817" },
@@ -276,21 +277,21 @@ function PaletteRow({ label, colorMap }: { label: string; colorMap: Record<strin
 // ---------------------------------------------------------------------------
 
 const typographyEntries = [
-  { key: "display"    as const, label: "Display — 32px / Medium",          sample: "Scannable Design" },
-  { key: "h1"         as const, label: "H1 — 28px / Medium",               sample: "Heading One" },
-  { key: "h2"         as const, label: "H2 — 24px / Medium",               sample: "Heading Two" },
-  { key: "h3"         as const, label: "H3 — 20px / SemiBold",             sample: "Heading Three" },
-  { key: "h4"         as const, label: "H4 — 18px / Medium",               sample: "Heading Four" },
-  { key: "h5"         as const, label: "H5 — 16px / SemiBold",             sample: "Heading Five" },
-  { key: "bodySB"     as const, label: "Body SemiBold — 14px",             sample: "The quick brown fox jumps over the lazy dog" },
-  { key: "bodyM"      as const, label: "Body Medium — 14px",               sample: "The quick brown fox jumps over the lazy dog" },
-  { key: "bodyR"      as const, label: "Body Regular — 14px",              sample: "The quick brown fox jumps over the lazy dog" },
-  { key: "smallBodySB" as const, label: "Small SemiBold — 12px",          sample: "The quick brown fox jumps over the lazy dog" },
-  { key: "smallBodyM"  as const, label: "Small Medium — 12px",            sample: "The quick brown fox jumps over the lazy dog" },
-  { key: "smallBodyR"  as const, label: "Small Regular — 12px",           sample: "The quick brown fox jumps over the lazy dog" },
-  { key: "linkM"       as const, label: "Link Medium — 14px",             sample: "View details →" },
-  { key: "linkSmallM"  as const, label: "Small Link Medium — 12px",       sample: "View details →" },
-  { key: "linkSmallR"  as const, label: "Small Link Regular — 12px",      sample: "View details →" },
+  { key: "display"     as const, label: "Display — 32px / Medium",           sample: "Scannable Design" },
+  { key: "h1"          as const, label: "H1 — 28px / Semi Bold",             sample: "Heading One" },
+  { key: "h2"          as const, label: "H2 — 24px / Medium",                sample: "Heading Two" },
+  { key: "h3"          as const, label: "H3 — 20px / Medium",                sample: "Heading Three" },
+  { key: "h4"          as const, label: "H4 — 18px / Medium",                sample: "Heading Four" },
+  { key: "h5"          as const, label: "H5 — 16px / Medium",                sample: "Heading Five" },
+  { key: "bodySB"      as const, label: "Body Semi Bold — 14px / 20px",      sample: "The quick brown fox jumps over the lazy dog" },
+  { key: "bodyM"       as const, label: "Body Medium — 14px / 20px",         sample: "The quick brown fox jumps over the lazy dog" },
+  { key: "bodyR"       as const, label: "Body Regular — 14px / 20px",        sample: "The quick brown fox jumps over the lazy dog" },
+  { key: "smallBodySB" as const, label: "Small Semi Bold — 12px / 18px",     sample: "The quick brown fox jumps over the lazy dog" },
+  { key: "smallBodyM"  as const, label: "Small Medium — 12px / 18px",        sample: "The quick brown fox jumps over the lazy dog" },
+  { key: "smallBodyR"  as const, label: "Small Regular — 12px / 18px",       sample: "The quick brown fox jumps over the lazy dog" },
+  { key: "linkM"       as const, label: "Link Medium — 14px / 20px",         sample: "View details →" },
+  { key: "linkSmallM"  as const, label: "Small Link Medium — 12px / 18px",   sample: "View details →" },
+  { key: "linkSmallR"  as const, label: "Small Link Regular — 12px / 18px",  sample: "View details →" },
 ];
 
 // ---------------------------------------------------------------------------
@@ -323,26 +324,62 @@ function IconCard({ name, svgUrl, size }: { name: string; svgUrl?: string; size:
 // Page
 // ---------------------------------------------------------------------------
 
-const NAV_ITEMS = ["Colors", "Typography", "Spacing", "Border Radius", "Shadows", "Icons"];
+// ---------------------------------------------------------------------------
+// Deco icon variants
+// ---------------------------------------------------------------------------
+const DECO_VARIANTS: { size: string; tone: string; nodeId: string }[] = [
+  { size: "40",  tone: "info",            nodeId: "216:871"    },
+  { size: "40",  tone: "info reverse",    nodeId: "216:1184"   },
+  { size: "40",  tone: "success",         nodeId: "2204:3387"  },
+  { size: "40",  tone: "success-reverse", nodeId: "2204:3397"  },
+  { size: "40",  tone: "error",           nodeId: "216:1193"   },
+  { size: "40",  tone: "error-reverse",   nodeId: "2236:2941"  },
+  { size: "40",  tone: "warning",         nodeId: "216:1196"   },
+  { size: "40",  tone: "disabled",        nodeId: "216:1199"   },
+  { size: "40",  tone: "brand",           nodeId: "216:1202"   },
+  { size: "40",  tone: "highlight",       nodeId: "220:2721"   },
+  { size: "64",  tone: "brand",           nodeId: "1098:8734"  },
+  { size: "64",  tone: "info",            nodeId: "4409:13196" },
+  { size: "64",  tone: "loading",         nodeId: "1767:2252"  },
+  { size: "96",  tone: "info",            nodeId: "2365:1748"  },
+  { size: "96",  tone: "success",         nodeId: "2365:1843"  },
+  { size: "96",  tone: "disabled",        nodeId: "2365:1826"  },
+  { size: "136", tone: "success",         nodeId: "1732:9725"  },
+  { size: "136", tone: "disabled",        nodeId: "1114:2158"  },
+  { size: "136", tone: "loading",         nodeId: "1738:2243"  },
+];
+
+const DECO_SIZES = ["40", "64", "96", "136"] as const;
+
+function decoRadius(size: string) {
+  return parseInt(size) >= 96 ? tokens.borderRadius["2xl"] : tokens.borderRadius.lg;
+}
+
+const NAV_ITEMS = ["Colors", "Typography", "Spacing", "Border Radius", "Shadows", "Icons", "Deco Icons", "Components", "Patterns"];
 
 export default function StyleguidePage() {
   const [svgs24, setSvgs24] = useState<Record<string, string>>({});
   const [svgs16, setSvgs16] = useState<Record<string, string>>({});
+  const [decoSvgs, setDecoSvgs] = useState<Record<string, string>>({});
   const [iconTab, setIconTab] = useState<"24" | "16">("24");
   const [iconQuery, setIconQuery] = useState("");
   const [iconsLoading, setIconsLoading] = useState(true);
+  const [decoLoading, setDecoLoading] = useState(true);
   const [svgError, setSvgError] = useState(false);
 
   useEffect(() => {
     const load = async () => {
-      const [r24, r16] = await Promise.all([
+      const [r24, r16, rDeco] = await Promise.all([
         fetchSvgs(ICONS_24.map(i => i.nodeId)),
         fetchSvgs(ICONS_16.map(i => i.nodeId)),
+        fetchSvgs(DECO_VARIANTS.map(v => v.nodeId)),
       ]);
       setSvgs24(r24);
       setSvgs16(r16);
+      setDecoSvgs(rDeco);
       setSvgError(Object.keys(r24).length === 0);
       setIconsLoading(false);
+      setDecoLoading(false);
     };
     load();
   }, []);
@@ -371,11 +408,16 @@ export default function StyleguidePage() {
       {/* ── Sticky nav ── */}
       <div style={{ background: tokens.color.base.white, borderBottom: `1px solid ${tokens.color.divider.frame}`, position: "sticky", top: 0, zIndex: 10 }}>
         <div style={{ maxWidth: "1200px", margin: "0 auto", padding: "0 40px", display: "flex", gap: "4px", overflowX: "auto" as const }}>
-          {NAV_ITEMS.map(item => (
-            <a key={item} href={`#${item.toLowerCase().replace(" ", "-")}`} style={{ display: "inline-block", padding: "12px 16px", fontSize: tokens.fontSize.bodySmall, fontWeight: tokens.fontWeight.medium, color: tokens.color.fg.support, textDecoration: "none", whiteSpace: "nowrap" as const }}>
-              {item}
-            </a>
-          ))}
+          {NAV_ITEMS.map(item => {
+            const href = item === "Components" ? "/styleguide/components"
+              : item === "Patterns" ? "/styleguide/patterns"
+              : `#${item.toLowerCase().replace(/ /g, "-")}`;
+            return (
+              <a key={item} href={href} style={{ display: "inline-block", padding: "12px 16px", fontSize: tokens.fontSize.bodySmall, fontWeight: tokens.fontWeight.medium, color: tokens.color.fg.support, textDecoration: "none", whiteSpace: "nowrap" as const }}>
+                {item}
+              </a>
+            );
+          })}
         </div>
       </div>
 
@@ -406,7 +448,7 @@ export default function StyleguidePage() {
         <Section id="typography" title="Typography">
           <div style={{ display: "grid", gridTemplateColumns: "repeat(3,1fr)", gap: "12px", marginBottom: "32px", padding: "16px", background: tokens.color.base.white, borderRadius: tokens.borderRadius.lg, border: `1px solid ${tokens.color.divider.border}` }}>
             <div><Label>Font Family</Label><p style={{ fontSize: tokens.fontSize.body, fontFamily: tokens.fontFamily.sans, color: tokens.color.fg.primary, marginTop: "4px" }}>Inter</p></div>
-            <div><Label>Weights</Label><p style={{ fontSize: tokens.fontSize.body, fontFamily: tokens.fontFamily.sans, color: tokens.color.fg.primary, marginTop: "4px" }}>400 · 500 · 600</p></div>
+            <div><Label>Weights</Label><p style={{ fontSize: tokens.fontSize.body, fontFamily: tokens.fontFamily.sans, color: tokens.color.fg.primary, marginTop: "4px" }}>Regular 400 · Medium 500 · Semi Bold 600</p></div>
             <div><Label>Sizes</Label><p style={{ fontSize: tokens.fontSize.body, fontFamily: tokens.fontFamily.sans, color: tokens.color.fg.primary, marginTop: "4px" }}>12 · 14 · 16 · 18 · 20 · 24 · 28 · 32px</p></div>
           </div>
           <div style={{ background: tokens.color.base.white, borderRadius: tokens.borderRadius.lg, border: `1px solid ${tokens.color.divider.border}`, overflow: "hidden" }}>
@@ -502,6 +544,34 @@ export default function StyleguidePage() {
           {!iconsLoading && filteredIcons.length === 0 && (
             <p style={{ textAlign: "center", padding: "40px 0", color: tokens.color.fg.support, fontSize: tokens.fontSize.body }}>No icons matching "{iconQuery}"</p>
           )}
+        </Section>
+
+        {/* DECO ICONS */}
+        <Section id="deco-icons" title="Deco Icons">
+          {DECO_SIZES.map(size => {
+            const variants = DECO_VARIANTS.filter(v => v.size === size);
+            const px = parseInt(size);
+            const radius = decoRadius(size);
+            return (
+              <div key={size} style={{ marginBottom: "32px" }}>
+                <p style={{ fontSize: tokens.fontSize.bodySmall, fontWeight: tokens.fontWeight.semiBold, color: tokens.color.fg.primary, fontFamily: tokens.fontFamily.sans, marginBottom: "12px" }}>{size}px</p>
+                <div style={{ display: "flex", flexWrap: "wrap" as const, gap: "12px" }}>
+                  {variants.map(v => (
+                    <div key={v.nodeId} style={{ display: "flex", flexDirection: "column", alignItems: "center", gap: "8px" }}>
+                      {decoLoading ? (
+                        <div style={{ width: `${px}px`, height: `${px}px`, background: tokens.color.bg.darkBg, borderRadius: radius, opacity: 0.4 }} />
+                      ) : decoSvgs[v.nodeId] ? (
+                        <img src={decoSvgs[v.nodeId]} width={px} height={px} alt={`${size}px ${v.tone}`} style={{ display: "block", borderRadius: radius }} />
+                      ) : (
+                        <div style={{ width: `${px}px`, height: `${px}px`, background: tokens.color.bg.darkBg, borderRadius: radius, opacity: 0.4 }} />
+                      )}
+                      <span style={{ fontSize: "10px", fontFamily: tokens.fontFamily.sans, color: tokens.color.fg.support, textAlign: "center" as const }}>{v.tone}</span>
+                    </div>
+                  ))}
+                </div>
+              </div>
+            );
+          })}
         </Section>
 
         {/* Footer */}

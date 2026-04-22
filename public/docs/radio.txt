@@ -1,0 +1,163 @@
+================================================================================
+RADIO COMPONENT — Scannable Design System
+File: components/ui/Radio.tsx
+Figma: node 35:1161 (Radio buttons) · node 2172:2525 (Radio inputs)
+================================================================================
+
+OVERVIEW
+--------
+Three exports for building radio selection UI:
+
+  RadioButton   — Standalone 20×20 circle control with native <input type="radio">
+  RadioInput    — RadioButton + label + optional description (most common)
+  RadioGroup    — Managed list of RadioInputs with shared name + value state
+
+All styles reference design-tokens.ts exclusively — no hardcoded colours.
+
+
+VISUAL SPECIFICATIONS
+---------------------
+Control size:   20×20 px
+Border-radius:  full (9999px) — circle
+Border:         1.5px solid
+Inner dot:      8×8 px white circle (visible when checked)
+
+State         Background         Border              Inner dot
+─────────────────────────────────────────────────────────────
+default       base.white         divider.frame       —
+hover         bg.lightBg         fg.support          —
+focus         base.white         divider.frame       —  + focusBlue ring
+checked       bg.blue (#6366f1)  bg.blue             white #ffffff
+checked hover bg.blue            bg.blue             white (no change)
+disabled      bg.bg (#f3f4f6)   divider.frame       —
+dis+checked   bg.bg              divider.frame       fg.disabled (#9ca3af)
+
+Focus ring: shadows.focusBlue = "0 0 0 2px #fff, 0 0 0 4px #6366f1, 0 1px 2px rgba(0,0,0,.05)"
+
+
+TYPOGRAPHY (label / description)
+---------------------------------
+Label:        Inter Medium 500 · 14px / 20px · fg.primary (#111827)
+Description:  Inter Regular 400 · 12px / 16px · fg.support (#6b7280)
+Disabled:     both colours → fg.disabled (#9ca3af)
+
+
+SPACING
+-------
+Gap (control ↔ label):  spacing[2]  = 8px
+Label → description:    spacing[0.5] = 2px (margin-top)
+RadioGroup vertical:    spacing[3]  = 12px between items
+RadioGroup horizontal:  spacing[6]  = 24px between items
+
+
+USAGE EXAMPLES
+--------------
+
+1. Simple RadioButton (control only):
+
+   import { RadioButton } from "@/components/ui/Radio";
+
+   <RadioButton
+     name="payment"
+     value="card"
+     checked={selected === "card"}
+     onChange={() => setSelected("card")}
+   />
+
+2. RadioInput (recommended for forms):
+
+   import { RadioInput } from "@/components/ui/Radio";
+
+   <RadioInput
+     name="plan"
+     value="pro"
+     label="Pro plan"
+     description="Up to 25 users · 100 GB storage"
+     checked={plan === "pro"}
+     onChange={() => setPlan("pro")}
+   />
+
+3. RadioGroup (easiest for complete groups):
+
+   import { RadioGroup } from "@/components/ui/Radio";
+
+   const [selected, setSelected] = useState("monthly");
+
+   <RadioGroup
+     name="billing"
+     value={selected}
+     onChange={setSelected}
+     direction="vertical"          // "vertical" | "horizontal"
+     options={[
+       { value: "monthly", label: "Monthly",  description: "Billed each month" },
+       { value: "annual",  label: "Annual",   description: "Save 20% — billed yearly" },
+       { value: "trial",   label: "Free trial", disabled: true },
+     ]}
+   />
+
+4. Disabled group:
+
+   <RadioGroup
+     name="size"
+     value={size}
+     onChange={setSize}
+     disabled           // disables all options
+     options={options}
+   />
+
+
+PROPS — RadioButton
+-------------------
+Prop         Type                       Default    Description
+───────────────────────────────────────────────────────────────
+checked      boolean                    false      Selected state
+disabled     boolean                    false      Non-interactive
+name         string                     —          Groups radios (HTML)
+value        string                     —          HTML value
+id           string                     —          HTML id (for <label>)
+onChange     (checked: boolean) => void —          Fired on selection
+aria-label   string                     —          For icon-only usage
+
+
+PROPS — RadioInput
+------------------
+All RadioButton props, plus:
+
+Prop         Type     Default  Description
+──────────────────────────────────────────
+label        string   —        Primary label — Inter Medium 14px
+description  string   —        Secondary text — Inter Regular 12px
+
+
+PROPS — RadioGroup
+------------------
+Prop       Type                     Default     Description
+────────────────────────────────────────────────────────────
+name       string                   required    HTML name shared by all radios
+value      string                   —           Currently selected value
+onChange   (value: string) => void  —           Fired when selection changes
+options    RadioOption[]            required    See shape below
+direction  "vertical"|"horizontal"  "vertical"  Layout direction
+disabled   boolean                  false       Disables all options
+
+RadioOption shape:
+  { value: string; label: string; description?: string; disabled?: boolean }
+
+
+ACCESSIBILITY
+-------------
+- Native <input type="radio"> is used — keyboard navigation works out of the box
+- RadioGroup renders role="radiogroup"
+- Focus ring matches WCAG 2.1 AA contrast requirements
+- Disabled inputs use aria-disabled semantics via the HTML disabled attribute
+- Labels are connected via htmlFor / id pairs
+
+
+INTERNAL EXPORT — RadioIndicator
+---------------------------------
+RadioIndicator is a purely visual component (no <input>) exported for use
+inside SelectionCard. Do not use it directly in forms — use RadioButton.
+
+  import { RadioIndicator } from "@/components/ui/Radio";
+
+  <RadioIndicator checked hovered focused disabled />

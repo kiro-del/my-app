@@ -24,6 +24,19 @@ export interface InputProps extends Omit<React.InputHTMLAttributes<HTMLInputElem
   leadingIcon?:     React.ReactNode;
   tailingIcon?:     React.ReactNode;
   inputSize?:       InputSize;
+  /**
+   * Inline action button rendered flush at the right edge of the input border.
+   * When set, paddingRight becomes 0 and the error icon is suppressed
+   * (error state is indicated by the red border only).
+   * Pass a fully-styled <button> element — it will be separated by a 1px divider.
+   */
+  inlineButton?:    React.ReactNode;
+  /**
+   * When provided, a × clear button appears to the left of inlineButton
+   * whenever the input has a non-empty value. Only meaningful when
+   * inlineButton is also set.
+   */
+  onClear?:         () => void;
 }
 
 // ---------------------------------------------------------------------------
@@ -36,6 +49,13 @@ const ErrorIcon = () => (
     <circle cx="8" cy="8" r="6.5" stroke={tokens.color.bg.red} strokeWidth="1.3" />
     <rect x="7.25" y="4.5" width="1.5" height="4.5" rx="0.75" fill={tokens.color.bg.red} />
     <circle cx="8" cy="11" r="0.75" fill={tokens.color.bg.red} />
+  </svg>
+);
+
+// Clear × — 14px, tinted to fg/support; used by inlineButton variant
+const ClearXIcon = () => (
+  <svg width="14" height="14" viewBox="0 0 14 14" fill="none" aria-hidden>
+    <path d="M3 3l8 8M11 3l-8 8" stroke="currentColor" strokeWidth="1.4" strokeLinecap="round"/>
   </svg>
 );
 
@@ -61,6 +81,8 @@ export const Input = forwardRef<HTMLInputElement, InputProps>(({
   leadingIcon,
   tailingIcon,
   inputSize       = "Default",
+  inlineButton,
+  onClear,
   disabled,
   onFocus,
   onBlur,
@@ -93,12 +115,17 @@ export const Input = forwardRef<HTMLInputElement, InputProps>(({
         paddingTop: tokens.spacing[2.5], paddingBottom: tokens.spacing[2.5] }
     : { height: "40px", alignItems: "center" };
 
+  const hasInlineBtn = !!inlineButton;
+  // Show clear × only in inline-button mode when the input has a value
+  const showClear = hasInlineBtn && !!onClear && !!rest.value;
+
   const wrapperStyle: React.CSSProperties = {
     display:       "flex",
     flexDirection: "row",
     gap:           tokens.spacing[2],       // 8px — confirmed from Figma
     paddingLeft:   tokens.spacing[2.5],     // 10px
-    paddingRight:  tokens.spacing[2.5],     // 10px
+    // No right padding when inlineButton is present — button is flush to the edge
+    paddingRight:  hasInlineBtn ? 0 : tokens.spacing[2.5],
     borderRadius:  tokens.borderRadius.md,  // 6px
     background:    borderStyle.background || tokens.color.base.white,
     overflow:      "hidden",
@@ -129,76 +156,85 @@ export const Input = forwardRef<HTMLInputElement, InputProps>(({
       {/* Input wrapper */}
       <div style={wrapperStyle}>
 
-        {/* Leading icon — 24×24
-            Color is baked into the SVG export as gray/400 (#9ca3af).
-            No CSS color override needed — the icon from the library
-            already has the correct color applied in Figma. */}
-        {leadingIcon && (
-          <span style={{
-            width:          "24px",
-            height:         "24px",
-            display:        "flex",
-            alignItems:     "center",
-            justifyContent: "center",
-            flexShrink:     0,
-          }} aria-hidden>
-            {leadingIcon}
-          </span>
+        {hasInlineBtn ? (
+          // ── Inline-button layout: two groups so the button has zero gap ──
+          <>
+            {/* Left group: icon + input + optional clear × */}
+            <div style={{ display: "flex", flex: 1, alignItems: "center", gap: tokens.spacing[2], minWidth: 0 }}>
+              {leadingIcon && (
+                <span style={{ width: "24px", height: "24px", display: "flex", alignItems: "center", justifyContent: "center", flexShrink: 0 }} aria-hidden>
+                  {leadingIcon}
+                </span>
+              )}
+              <input
+                ref={ref}
+                disabled={isDisabled}
+                placeholder={placeholder}
+                style={{
+                  flex: 1, minWidth: 0, background: "transparent", border: "none", outline: "none",
+                  fontFamily: tokens.fontFamily.sans, fontSize: tokens.fontSize.body,
+                  fontWeight: tokens.fontWeight.regular, lineHeight: tokens.lineHeight.body,
+                  color:  isDisabled ? tokens.color.fg.disabled : tokens.color.fg.primary,
+                  cursor: isDisabled ? "not-allowed" : "text",
+                }}
+                onFocus={(e) => { setIsFocused(true);  onFocus?.(e); }}
+                onBlur={(e)  => { setIsFocused(false); onBlur?.(e);  }}
+                {...rest}
+              />
+              {/* Clear × — appears when input has a value */}
+              {showClear && (
+                <button type="button" onClick={onClear} aria-label="Clear"
+                  style={{ display: "flex", alignItems: "center", padding: "0 2px", background: "transparent", border: "none", cursor: isDisabled ? "not-allowed" : "pointer", flexShrink: 0, color: isDisabled ? tokens.color.fg.disabled : tokens.color.fg.support }}
+                >
+                  <ClearXIcon />
+                </button>
+              )}
+            </div>
+
+            {/* Right group: inline button, flush to right edge, no gap.
+                alignSelf: stretch overrides the wrapper's alignItems: center
+                so the span (and button inside) fill the full input height. */}
+            <span style={{ display: "flex", alignItems: "stretch", alignSelf: "stretch", flexShrink: 0, borderLeft: `1px solid ${tokens.color.divider.frame}` }}>
+              {inlineButton}
+            </span>
+          </>
+        ) : (
+          // ── Standard layout ───────────────────────────────────────────────
+          <>
+            {leadingIcon && (
+              <span style={{ width: "24px", height: "24px", display: "flex", alignItems: "center", justifyContent: "center", flexShrink: 0 }} aria-hidden>
+                {leadingIcon}
+              </span>
+            )}
+
+            <input
+              ref={ref}
+              disabled={isDisabled}
+              placeholder={placeholder}
+              style={{
+                flex: 1, minWidth: 0, background: "transparent", border: "none", outline: "none",
+                fontFamily: tokens.fontFamily.sans, fontSize: tokens.fontSize.body,
+                fontWeight: tokens.fontWeight.regular, lineHeight: tokens.lineHeight.body,
+                color:  isDisabled ? tokens.color.fg.disabled : tokens.color.fg.primary,
+                cursor: isDisabled ? "not-allowed" : "text",
+              }}
+              onFocus={(e) => { setIsFocused(true);  onFocus?.(e); }}
+              onBlur={(e)  => { setIsFocused(false); onBlur?.(e);  }}
+              {...rest}
+            />
+
+            {/* Error icon (16px built-in) — replaces tailing icon when error */}
+            {isError ? (
+              <span style={{ display: "flex", alignItems: "center", justifyContent: "center", flexShrink: 0, width: "16px", height: "16px" }} aria-hidden>
+                <ErrorIcon />
+              </span>
+            ) : tailingIcon ? (
+              <span style={{ width: "24px", height: "24px", display: "flex", alignItems: "center", justifyContent: "center", flexShrink: 0 }} aria-hidden>
+                {tailingIcon}
+              </span>
+            ) : null}
+          </>
         )}
-
-        {/* Native input — Inter Regular 400 14px */}
-        <input
-          ref={ref}
-          disabled={isDisabled}
-          placeholder={placeholder}
-          style={{
-            flex:       1,
-            minWidth:   0,
-            background: "transparent",
-            border:     "none",
-            outline:    "none",
-            fontFamily: tokens.fontFamily.sans,
-            fontSize:   tokens.fontSize.body,       // 14px
-            fontWeight: tokens.fontWeight.regular,  // 400
-            lineHeight: tokens.lineHeight.body,     // 20px
-            color:      isDisabled
-                          ? tokens.color.fg.disabled  // #9ca3af
-                          : tokens.color.fg.primary,  // #111827
-            cursor:     isDisabled ? "not-allowed" : "text",
-          }}
-          onFocus={(e) => { setIsFocused(true);  onFocus?.(e); }}
-          onBlur={(e)  => { setIsFocused(false); onBlur?.(e);  }}
-          {...rest}
-        />
-
-        {/* Error icon (16px built-in) — replaces tailing icon when error */}
-        {isError ? (
-          <span style={{
-            display:        "flex",
-            alignItems:     "center",
-            justifyContent: "center",
-            flexShrink:     0,
-            width:          "16px",
-            height:         "16px",
-          }} aria-hidden>
-            <ErrorIcon />
-          </span>
-        ) : tailingIcon ? (
-          /* Tailing icon — 24×24
-             Color is baked into the SVG export as gray/900 (#111827).
-             No CSS color override needed — the icon from the library
-             already has the correct color applied in Figma. */
-          <span style={{
-            width:          "24px",
-            height:         "24px",
-            display:        "flex",
-            alignItems:     "center",
-            justifyContent: "center",
-            flexShrink:     0,
-          }} aria-hidden>
-            {tailingIcon}
-          </span>
-        ) : null}
       </div>
 
       {/* Support / error message */}

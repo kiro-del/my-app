@@ -1,0 +1,234 @@
+================================================================================
+SELECTION CARD COMPONENT — Scannable Design System
+File: components/ui/SelectionCard.tsx
+Figma: node 2448:1886 (Radio and checkbox input cards)
+================================================================================
+
+OVERVIEW
+--------
+Two exports for building card-based selection UI:
+
+  SelectionCard       — Single card with embedded radio or checkbox control
+  SelectionCardGroup  — CSS-grid group of SelectionCards (1–3 columns)
+
+SelectionCard is ideal for plan selection, feature toggles, or any choice
+where you want richer visual context than a bare radio/checkbox.
+
+All styles reference design-tokens.ts exclusively — no hardcoded colours.
+
+
+VISUAL SPECIFICATIONS
+---------------------
+Padding:       spacing[4] = 16px (all sides)
+Border-radius: borderRadius.lg = 8px
+Border:        1.5px solid
+
+State           Background           Border              Shadow
+──────────────────────────────────────────────────────────────────
+default         base.white           divider.border      none
+hover           bg.lightBg           divider.frame       shadows.sm
+checked/radio   tint.blue (#eef2ff)  divider.blue        shadows.sm
+checked/chkbx   tint.blue            divider.blue        shadows.sm
+indeterminate   tint.blue            divider.blue        shadows.sm
+disabled        bg.lightBg           divider.border      none
+
+Transition: background, border-color, box-shadow — all 150ms ease
+
+
+LAYOUT INSIDE CARD
+------------------
+The card uses flexbox: [indicator] [text block] [trailing icon?]
+
+Indicator gap:       spacing[3] = 12px
+Indicator (radio):   20×20 px RadioIndicator (circle)
+Indicator (chkbx):   16×16 px CheckboxIndicator (square, 4px radius)
+Indicator alignment: flex-start + 2px paddingTop when description is present,
+                     center when label-only
+
+Text block (flex: 1):
+  Label:        Inter Medium 500 · 14px / 20px · fg.primary
+  Description:  Inter Regular 400 · 12px / 16px · fg.support
+                marginTop spacing[0.5] = 2px
+  Disabled:     both → fg.disabled (#9ca3af)
+
+Trailing icon (optional):
+  flexShrink: 0, opacity 0.4 when disabled
+
+
+INDICATOR COLOUR STATES
+-----------------------
+The indicator inside the card inherits all states from RadioIndicator /
+CheckboxIndicator (see radio.txt / checkbox.txt for detailed tables).
+The card's own hover state is passed to the indicator so both animate together.
+
+
+USAGE EXAMPLES
+--------------
+
+1. Single card (controlled):
+
+   import { SelectionCard } from "@/components/ui/SelectionCard";
+
+   <SelectionCard
+     type="radio"
+     name="plan"
+     value="pro"
+     label="Pro"
+     description="Up to 25 users · 100 GB storage"
+     checked={plan === "pro"}
+     onChange={() => setPlan("pro")}
+   />
+
+2. Checkbox card with indeterminate:
+
+   <SelectionCard
+     type="checkbox"
+     label="Enable NFC scanning"
+     description="Scan NFC tags with your phone"
+     checked={nfcEnabled}
+     indeterminate={nfcPartial}
+     onChange={setNfcEnabled}
+   />
+
+3. Card with trailing icon:
+
+   import { SelectionCard } from "@/components/ui/SelectionCard";
+   // Assuming you have an SVG icon component
+   import StarIcon from "@/components/icons/star";
+
+   <SelectionCard
+     type="radio"
+     name="tier"
+     value="enterprise"
+     label="Enterprise"
+     description="Custom contract · Unlimited everything"
+     checked={tier === "enterprise"}
+     onChange={() => setTier("enterprise")}
+     trailingIcon={<StarIcon width={24} height={24} />}
+   />
+
+4. Radio group — 1 column (default):
+
+   import { SelectionCardGroup } from "@/components/ui/SelectionCard";
+
+   const [plan, setPlan] = useState("pro");
+
+   <SelectionCardGroup
+     type="radio"
+     name="plan"
+     value={plan}
+     onChange={(val) => setPlan(val)}
+     options={[
+       { value: "starter",    label: "Starter",    description: "Up to 5 users" },
+       { value: "pro",        label: "Pro",         description: "Up to 25 users" },
+       { value: "enterprise", label: "Enterprise",  description: "Unlimited", disabled: true },
+     ]}
+   />
+
+5. Radio group — 2 columns:
+
+   <SelectionCardGroup
+     type="radio"
+     name="plan"
+     value={plan}
+     onChange={(val) => setPlan(val)}
+     columns={2}
+     options={options}
+   />
+
+6. Checkbox group — multi-select:
+
+   const [features, setFeatures] = useState<string[]>(["nfc"]);
+
+   function toggle(val: string, checked: boolean) {
+     setFeatures(prev =>
+       checked ? [...prev, val] : prev.filter(v => v !== val)
+     );
+   }
+
+   <SelectionCardGroup
+     type="checkbox"
+     name="features"
+     value={features}             // string[] — checked values
+     onChange={toggle}
+     columns={2}
+     options={[
+       { value: "nfc",     label: "NFC scanning",  description: "Scan NFC tags" },
+       { value: "bulk",    label: "Bulk import",   description: "Import assets at once" },
+       { value: "reports", label: "Custom reports", disabled: true },
+     ]}
+   />
+
+7. Entire group disabled:
+
+   <SelectionCardGroup
+     type="radio"
+     name="plan"
+     value={plan}
+     onChange={setPlan}
+     disabled                     // all cards non-interactive
+     options={options}
+   />
+
+
+PROPS — SelectionCard
+---------------------
+Prop           Type                       Default   Description
+───────────────────────────────────────────────────────────────────
+type           "radio"|"checkbox"          "radio"   Indicator shown inside the card
+checked        boolean                    false     Whether this card is selected
+indeterminate  boolean                    false     Checkbox only — mixed state (dash)
+disabled       boolean                    false     Gray bg, not interactive
+label          string                     required  Primary label — Inter Medium 14px
+description    string                     —         Secondary text — Inter Regular 12px
+trailingIcon   ReactNode                  —         Optional icon at right edge
+name           string                     —         HTML name (groups radios)
+value          string                     —         HTML value attribute
+id             string                     —         HTML id override
+onChange       (checked: boolean) => void —         Fired when user selects this card
+
+
+PROPS — SelectionCardGroup
+--------------------------
+Prop       Type                               Default   Description
+────────────────────────────────────────────────────────────────────
+type       "radio"|"checkbox"                 "radio"   Control type for all cards
+name       string                             required  Shared HTML name attribute
+value      string | string[]                 —         string for radio, string[] for checkbox
+onChange   (val: string, checked: bool) => void —       Fired per card interaction
+options    SelectionCardOption[]              required  See shape below
+columns    1 | 2 | 3                          1         CSS grid columns
+disabled   boolean                            false     Disables all cards
+
+SelectionCardOption shape:
+  {
+    value:        string;
+    label:        string;
+    description?: string;
+    trailingIcon?: ReactNode;
+    disabled?:    boolean;
+  }
+
+
+WHEN TO USE SELECTION CARDS VS PLAIN RADIO/CHECKBOX
+----------------------------------------------------
+Use SelectionCard when:
+  - Each option needs a description or additional context
+  - The selection has high visual importance (plan selection, onboarding)
+  - You want a more prominent tap/click target on mobile
+
+Use RadioInput / CheckboxInput when:
+  - Space is constrained (compact forms, filter panels)
+  - There are many options (>5)
+  - The options are self-explanatory without description
+
+
+ACCESSIBILITY
+-------------
+- Native <input> (radio or checkbox) is used inside each card
+- The <label> wraps the entire card, making the full card surface clickable
+- Keyboard: Tab to focus, Space to select/toggle, Arrow keys navigate radio groups
+- aria-checked="mixed" is set automatically for indeterminate checkboxes
+- Disabled cards use HTML disabled attribute, not just visual styling
+- Focus ring on the native input is visually suppressed by opacity: 0, but
+  the indicator shows focusBlue ring to provide the visible focus cue

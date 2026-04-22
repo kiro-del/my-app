@@ -1,0 +1,300 @@
+/*
+ * scannable-tokens.css
+ * Scannable Design System — CSS Custom Properties
+ * Generated from styles/design-tokens.ts
+ *
+ * Usage in Claude Design (or any HTML/CSS project):
+ *   <link rel="stylesheet" href="scannable-tokens.css">
+ *   Then reference variables like: color: var(--fg-primary);
+ */
+
+/* ============================================================
+   GOOGLE FONTS — Inter
+   ============================================================ */
+@import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600&display=swap');
+
+:root {
+
+  /* ==========================================================
+     FOREGROUND COLORS
+     ========================================================== */
+  --fg-primary:          #111827;
+  --fg-support:          #6b7280;
+  --fg-disabled:         #9ca3af;
+  --fg-blue:             #4338ca;
+  --fg-red:              #b91c1c;
+  --fg-amber:            #b45309;
+  --fg-green:            #166534;
+
+  /* Reverse (on dark backgrounds) */
+  --fg-reverse-primary:  #f9fafb;
+  --fg-reverse-support:  #e5e7eb;
+  --fg-reverse-blue:     #a5b4fc;
+
+  /* ==========================================================
+     BACKGROUND COLORS
+     ========================================================== */
+  --bg:                  #f3f4f6;
+  --bg-light:            #f9fafb;
+  --bg-dark:             #e5e7eb;
+  --bg-blue:             #6366f1;
+  --bg-red:              #ef4444;
+  --bg-amber:            #f59e0b;
+  --bg-green:            #22c55e;
+
+  /* ==========================================================
+     BRAND COLORS
+     ========================================================== */
+  --brand-lime:          #ccff00;
+  --brand-dark-grey:     #201b30;
+  --brand-dark-purple:   #2c2258;
+
+  /* ==========================================================
+     DIVIDER / BORDER COLORS
+     ========================================================== */
+  --divider-frame:       #d1d5db;
+  --divider-border:      #e5e7eb;
+  --divider-reverse:     #374151;
+  --divider-blue:        #6366f1;
+  --divider-red:         #ef4444;
+  --divider-lime:        #c1eb00;
+
+  /* ==========================================================
+     TINT (light background washes)
+     ========================================================== */
+  --tint-blue:           #eef2ff;
+  --tint-red:            #fef2f2;
+  --tint-green:          #dcfce7;
+  --tint-yellow:         #fffbeb;
+
+  /* ==========================================================
+     HOVER STATES
+     ========================================================== */
+  --hover-blue:          #3730a3;
+  --hover-amber:         #92400e;
+  --hover-green:         #14532d;
+  --hover-red:           #991b1b;
+  --hover-lime:          #c1eb00;
+
+  /* ==========================================================
+     PRESSED STATES
+     ========================================================== */
+  --pressed-blue:        #312e81;
+  --pressed-red:         #7f1d1d;
+  --pressed-amber:       #78350f;
+  --pressed-green:       #14532d;
+  --pressed-lime:        #a3d400;
+
+  /* ==========================================================
+     BASE
+     ========================================================== */
+  --base-white:          #ffffff;
+  --base-black:          #000000;
+  --base-overlay:        rgba(0, 0, 0, 0.5);
+
+  /* ==========================================================
+     GRAY PALETTE
+     ========================================================== */
+  --gray-50:             #f9fafb;
+  --gray-100:            #f3f4f6;
+  --gray-200:            #e5e7eb;
+  --gray-300:            #d1d5db;
+  --gray-400:            #9ca3af;
+  --gray-500:            #6b7280;
+  --gray-600:            #4b5563;
+  --gray-700:            #374151;
+  --gray-800:            #1f2937;
+  --gray-900:            #111827;
+
+  /* ==========================================================
+     INDIGO PALETTE
+     ========================================================== */
+  --indigo-50:           #eef2ff;
+  --indigo-100:          #e0e7ff;
+  --indigo-200:          #c7d2fe;
+  --indigo-300:          #a5b4fc;
+  --indigo-400:          #818cf8;
+  --indigo-500:          #6366f1;
+  --indigo-600:          #4f46e5;
+  --indigo-700:          #4338ca;
+  --indigo-800:          #3730a3;
+  --indigo-900:          #312e81;
+
+  /* ==========================================================
+     RED PALETTE
+     ========================================================== */
+  --red-50:              #fef2f2;
+  --red-100:             #fee2e2;
+  --red-200:             #fecaca;
+  --red-300:             #fca5a5;
+  --red-400:             #f87171;
+  --red-500:             #ef4444;
+  --red-600:             #dc2626;
+  --red-700:             #b91c1c;
+  --red-800:             #991b1b;
+  --red-900:             #7f1d1d;
+
+  /* ==========================================================
+     LIME PALETTE
+     ========================================================== */
+  --lime-50:             #f9ffe7;
+  --lime-100:            #f0ffc2;
+  --lime-200:            #e4fe98;
+  --lime-300:            #d8fd69;
+  --lime-400:            #cdfa3f;
+  --lime-500:            #ccff00;
+  --lime-600:            #c1eb00;
+  --lime-700:            #a3d400;
+  --lime-800:            #84bb00;
+  --lime-900:            #719300;
+
+  /* ==========================================================
+     GREEN PALETTE
+     ========================================================== */
+  --green-50:            #f0fdf4;
+  --green-100:           #dcfce7;
+  --green-200:           #bbf7d0;
+  --green-300:           #86efac;
+  --green-400:           #4ade80;
+  --green-500:           #22c55e;
+  --green-600:           #16a34a;
+  --green-700:           #15803d;
+  --green-800:           #166534;
+  --green-900:           #14532d;
+
+  /* ==========================================================
+     AMBER PALETTE
+     ========================================================== */
+  --amber-50:            #fffbeb;
+  --amber-100:           #fef3c7;
+  --amber-200:           #fde68a;
+  --amber-300:           #fcd34d;
+  --amber-400:           #fbbf24;
+  --amber-500:           #f59e0b;
+  --amber-600:           #d97706;
+  --amber-700:           #b45309;
+  --amber-800:           #92400e;
+  --amber-900:           #78350f;
+
+  /* ==========================================================
+     TYPOGRAPHY
+     ========================================================== */
+  --font-sans:           'Inter', ui-sans-serif, system-ui, -apple-system, sans-serif;
+
+  --font-weight-regular:   400;
+  --font-weight-medium:    500;
+  --font-weight-semibold:  600;
+
+  --font-size-display:   32px;
+  --font-size-h1:        28px;
+  --font-size-h2:        24px;
+  --font-size-h3:        20px;
+  --font-size-h4:        18px;
+  --font-size-h5:        16px;
+  --font-size-body:      14px;
+  --font-size-small:     12px;
+
+  --line-height-loose:   140%;
+  --line-height-h3:      28px;
+  --line-height-h4:      24px;
+  --line-height-h5:      22px;
+  --line-height-body:    20px;
+  --line-height-small:   18px;
+
+  /* ==========================================================
+     SPACING (Tailwind-aligned, 4px base unit)
+     ========================================================== */
+  --space-0:             0px;
+  --space-0-5:           2px;
+  --space-1:             4px;
+  --space-1-5:           6px;
+  --space-2:             8px;
+  --space-2-5:           10px;
+  --space-3:             12px;
+  --space-3-5:           14px;
+  --space-4:             16px;
+  --space-5:             20px;
+  --space-6:             24px;
+  --space-7:             28px;
+  --space-8:             32px;
+  --space-9:             36px;
+  --space-10:            40px;
+  --space-11:            44px;
+  --space-12:            48px;
+  --space-14:            56px;
+  --space-16:            64px;
+  --space-20:            80px;
+  --space-24:            96px;
+
+  /* ==========================================================
+     BORDER RADIUS
+     ========================================================== */
+  --radius-sm:           4px;
+  --radius-md:           6px;
+  --radius-lg:           8px;
+  --radius-2xl:          16px;
+  --radius-3xl:          24px;
+  --radius-full:         9999px;
+
+  /* ==========================================================
+     SHADOWS
+     ========================================================== */
+  --shadow-sm:           0 1px 4px rgba(0,0,0,0.05);
+  --shadow-md:           0 2px 4px rgba(0,0,0,0.06), 0 4px 6px rgba(0,0,0,0.06);
+  --shadow-lg:           0 4px 6px rgba(0,0,0,0.05), 0 10px 15px rgba(0,0,0,0.10);
+  --shadow-up-sm:        0 -1px 2px rgba(0,0,0,0.05);
+  --shadow-up-md:        0 -2px 4px rgba(0,0,0,0.06), 0 -4px 6px rgba(0,0,0,0.10);
+  --shadow-up-lg:        0 -4px 6px rgba(0,0,0,0.05), 0 -10px 15px rgba(0,0,0,0.10);
+  --shadow-ring-sm:      0 0 0 1px rgba(0,0,0,0.05), 0 0 2px rgba(0,0,0,0.05);
+  --shadow-ring-md:      0 0 0 1px rgba(0,0,0,0.05), 0 0 4px rgba(0,0,0,0.06), 0 0 10px rgba(0,0,0,0.10);
+  --shadow-ring-lg:      0 0 0 1px rgba(0,0,0,0.05), 0 0 6px rgba(0,0,0,0.05), 0 0 15px rgba(0,0,0,0.10);
+  --shadow-focus-lime:   0 0 0 2px #ffffff, 0 0 0 4px #ccff00, 0 1px 2px rgba(0,0,0,0.05);
+  --shadow-focus-grey:   0 0 0 2px #ffffff, 0 0 0 4px #d1d5db, 0 1px 2px rgba(0,0,0,0.05);
+  --shadow-focus-blue:   0 0 0 2px #ffffff, 0 0 0 4px #6366f1, 0 1px 2px rgba(0,0,0,0.05);
+  --shadow-focus-red:    0 0 0 2px #ffffff, 0 0 0 4px #ef4444, 0 1px 2px rgba(0,0,0,0.05);
+}
+
+/* ============================================================
+   BASE RESETS — apply Scannable defaults to all elements
+   ============================================================ */
+*, *::before, *::after {
+  box-sizing: border-box;
+}
+
+body {
+  font-family:      var(--font-sans);
+  font-size:        var(--font-size-body);
+  font-weight:      var(--font-weight-regular);
+  line-height:      var(--line-height-body);
+  color:            var(--fg-primary);
+  background-color: var(--bg-light);
+  -webkit-font-smoothing: antialiased;
+  margin: 0;
+}
+
+/* ============================================================
+   TYPOGRAPHY UTILITY CLASSES
+   ============================================================ */
+
+/* Headings */
+.text-display { font-size: var(--font-size-display); font-weight: var(--font-weight-medium);   line-height: var(--line-height-loose); }
+.text-h1      { font-size: var(--font-size-h1);      font-weight: var(--font-weight-semibold); line-height: var(--line-height-loose); }
+.text-h2      { font-size: var(--font-size-h2);      font-weight: var(--font-weight-medium);   line-height: var(--line-height-loose); }
+.text-h3      { font-size: var(--font-size-h3);      font-weight: var(--font-weight-medium);   line-height: var(--line-height-h3);   }
+.text-h4      { font-size: var(--font-size-h4);      font-weight: var(--font-weight-medium);   line-height: var(--line-height-h4);   }
+.text-h5      { font-size: var(--font-size-h5);      font-weight: var(--font-weight-medium);   line-height: var(--line-height-h5);   }
+
+/* Body */
+.text-body-sb { font-size: var(--font-size-body);  font-weight: var(--font-weight-semibold); line-height: var(--line-height-body);  }
+.text-body-m  { font-size: var(--font-size-body);  font-weight: var(--font-weight-medium);   line-height: var(--line-height-body);  }
+.text-body-r  { font-size: var(--font-size-body);  font-weight: var(--font-weight-regular);  line-height: var(--line-height-body);  }
+
+/* Small body */
+.text-small-sb { font-size: var(--font-size-small); font-weight: var(--font-weight-semibold); line-height: var(--line-height-small); }
+.text-small-m  { font-size: var(--font-size-small); font-weight: var(--font-weight-medium);   line-height: var(--line-height-small); }
+.text-small-r  { font-size: var(--font-size-small); font-weight: var(--font-weight-regular);  line-height: var(--line-height-small); }
+
+/* Links */
+.text-link-m       { font-size: var(--font-size-body);  font-weight: var(--font-weight-medium); line-height: var(--line-height-body);  text-decoration: underline; }
+.text-link-small-m { font-size: var(--font-size-small); font-weight: var(--font-weight-medium); line-height: var(--line-height-small); text-decoration: underline; }
+.text-link-small-r { font-size: var(--font-size-small); font-weight: var(--font-weight-regular);line-height: var(--line-height-small); text-decoration: underline; }

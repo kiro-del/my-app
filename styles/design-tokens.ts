@@ -135,22 +135,22 @@ export const fontSize = {
 
 export const lineHeight = {
   loose: "140%", h3: "28px", h4: "24px", h5: "22px",
-  body: "20px", bodySmall: "16px", linkSmall: "18px",
+  body: "20px", bodySmall: "18px", linkSmall: "18px",
 } as const;
 
 export const typography = {
   display: { fontSize: "32px", fontWeight: "500", lineHeight: "140%", fontFamily: "Inter, ui-sans-serif, system-ui, -apple-system, sans-serif" },
-  h1:      { fontSize: "28px", fontWeight: "500", lineHeight: "140%", fontFamily: "Inter, ui-sans-serif, system-ui, -apple-system, sans-serif" },
+  h1:      { fontSize: "28px", fontWeight: "600", lineHeight: "140%", fontFamily: "Inter, ui-sans-serif, system-ui, -apple-system, sans-serif" },
   h2:      { fontSize: "24px", fontWeight: "500", lineHeight: "140%", fontFamily: "Inter, ui-sans-serif, system-ui, -apple-system, sans-serif" },
-  h3:      { fontSize: "20px", fontWeight: "600", lineHeight: "28px", fontFamily: "Inter, ui-sans-serif, system-ui, -apple-system, sans-serif" },
+  h3:      { fontSize: "20px", fontWeight: "500", lineHeight: "28px", fontFamily: "Inter, ui-sans-serif, system-ui, -apple-system, sans-serif" },
   h4:      { fontSize: "18px", fontWeight: "500", lineHeight: "24px", fontFamily: "Inter, ui-sans-serif, system-ui, -apple-system, sans-serif" },
-  h5:      { fontSize: "16px", fontWeight: "600", lineHeight: "22px", fontFamily: "Inter, ui-sans-serif, system-ui, -apple-system, sans-serif" },
+  h5:      { fontSize: "16px", fontWeight: "500", lineHeight: "22px", fontFamily: "Inter, ui-sans-serif, system-ui, -apple-system, sans-serif" },
   bodySB:  { fontSize: "14px", fontWeight: "600", lineHeight: "20px", fontFamily: "Inter, ui-sans-serif, system-ui, -apple-system, sans-serif" },
   bodyM:   { fontSize: "14px", fontWeight: "500", lineHeight: "20px", fontFamily: "Inter, ui-sans-serif, system-ui, -apple-system, sans-serif" },
   bodyR:   { fontSize: "14px", fontWeight: "400", lineHeight: "20px", fontFamily: "Inter, ui-sans-serif, system-ui, -apple-system, sans-serif" },
-  smallBodySB: { fontSize: "12px", fontWeight: "600", lineHeight: "16px", fontFamily: "Inter, ui-sans-serif, system-ui, -apple-system, sans-serif" },
-  smallBodyM:  { fontSize: "12px", fontWeight: "500", lineHeight: "16px", fontFamily: "Inter, ui-sans-serif, system-ui, -apple-system, sans-serif" },
-  smallBodyR:  { fontSize: "12px", fontWeight: "400", lineHeight: "16px", fontFamily: "Inter, ui-sans-serif, system-ui, -apple-system, sans-serif" },
+  smallBodySB: { fontSize: "12px", fontWeight: "600", lineHeight: "18px", fontFamily: "Inter, ui-sans-serif, system-ui, -apple-system, sans-serif" },
+  smallBodyM:  { fontSize: "12px", fontWeight: "500", lineHeight: "18px", fontFamily: "Inter, ui-sans-serif, system-ui, -apple-system, sans-serif" },
+  smallBodyR:  { fontSize: "12px", fontWeight: "400", lineHeight: "18px", fontFamily: "Inter, ui-sans-serif, system-ui, -apple-system, sans-serif" },
   linkM:       { fontSize: "14px", fontWeight: "500", lineHeight: "20px", fontFamily: "Inter, ui-sans-serif, system-ui, -apple-system, sans-serif", textDecoration: "underline" },
   linkSmallM:  { fontSize: "12px", fontWeight: "500", lineHeight: "18px", fontFamily: "Inter, ui-sans-serif, system-ui, -apple-system, sans-serif", textDecoration: "underline" },
   linkSmallR:  { fontSize: "12px", fontWeight: "400", lineHeight: "18px", fontFamily: "Inter, ui-sans-serif, system-ui, -apple-system, sans-serif", textDecoration: "underline" },
