@@ -1544,6 +1544,21 @@ function ContextMenuTab() {
               />
             </div>
           </Row>
+          <Row label="With support text + divider (Figma 5744:11135)">
+            <div style={{ width: "280px" }}>
+              <ContextMenuItem
+                label="Preview"
+                supportText="View this batch in read-only mode."
+                divider
+                icon={
+                  <svg width="24" height="24" viewBox="0 0 24 24" fill="none">
+                    <path d="M2 12s3.5-7 10-7 10 7 10 7-3.5 7-10 7S2 12 2 12z" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round"/>
+                    <circle cx="12" cy="12" r="3" stroke="currentColor" strokeWidth="1.5"/>
+                  </svg>
+                }
+              />
+            </div>
+          </Row>
         </div>
       </Section>
 

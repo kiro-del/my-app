@@ -167,6 +167,13 @@ const TrashIcon = () => (
     <path d="M10 11v6M14 11v6" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round"/>
   </svg>
 );
+// Figma: node 5744:11135 — preview icon (eye with document)
+const PreviewIcon = () => (
+  <svg width="24" height="24" viewBox="0 0 24 24" fill="none">
+    <path d="M2 12s3.5-7 10-7 10 7 10 7-3.5 7-10 7S2 12 2 12z" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round"/>
+    <circle cx="12" cy="12" r="3" stroke="currentColor" strokeWidth="1.5"/>
+  </svg>
+);
 
 // ---------------------------------------------------------------------------
 // Types
@@ -636,6 +643,13 @@ function ViewSerialsPanel({
             onToggleChange={setAvailableToCapture}
           />
           <ContextMenuItem
+            label="Preview"
+            supportText="View this batch in read-only mode."
+            icon={<PreviewIcon />}
+            divider
+            onClick={() => setOptionsOpen(false)}
+          />
+          <ContextMenuItem
             label="Capture serials"
             icon={<CaptureSerialIcon />}
             onClick={() => setOptionsOpen(false)}
@@ -1056,6 +1070,13 @@ export default function SerialisationPage() {
                     width={240}
                     floatingStyle={{ top: "calc(100% + 4px)", right: 0 }}
                   >
+                    <ContextMenuItem
+                      label="Preview"
+                      supportText="View this batch in read-only mode."
+                      icon={<PreviewIcon />}
+                      divider
+                      onClick={() => setSerialsMenuOpen(false)}
+                    />
                     <ContextMenuItem
                       label="Create serials"
                       supportText="Generate IDs using Scannable's sequencer."

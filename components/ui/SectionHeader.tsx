@@ -68,10 +68,8 @@ export function SectionHeader({
 }: SectionHeaderProps) {
   const hasSubtitle = Boolean(subtitle);
   const hasDecoIcon = Boolean(decoIcon);
-  // Compact vertical padding when subtitle or deco icon adds height
-  const verticalPadding = hasSubtitle || hasDecoIcon
-    ? tokens.spacing[3]   // 12px
-    : tokens.spacing[6];  // 24px
+  // Figma node 171:383 — all variants use spacing-5 (20px) vertical padding
+  const verticalPadding = tokens.spacing[5]; // 20px
 
   return (
     <div

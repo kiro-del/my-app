@@ -212,7 +212,7 @@ export function RadioInput({
               style={{
                 fontFamily: tokens.fontFamily.sans,
                 fontSize: tokens.fontSize.body,        // 14px
-                fontWeight: tokens.fontWeight.medium,  // 500
+                fontWeight: tokens.fontWeight.regular, // 400
                 lineHeight: tokens.lineHeight.body,    // 20px
                 color: disabled ? tokens.color.fg.disabled : tokens.color.fg.primary,
               }}

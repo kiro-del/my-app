@@ -42,7 +42,7 @@ export function ToggleInput({
             display:    "block",
             fontFamily: tokens.fontFamily.sans,
             fontSize:   tokens.fontSize.body,
-            fontWeight: tokens.fontWeight.medium,
+            fontWeight: tokens.fontWeight.regular,
             lineHeight: tokens.lineHeight.body,
             color:      disabled ? tokens.color.fg.disabled : tokens.color.fg.primary,
             cursor:     disabled ? "not-allowed" : "pointer",
