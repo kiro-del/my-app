@@ -68,7 +68,8 @@ export function RadioIndicator({
     ? tokens.color.bg.blue           // indigo-500 #6366f1
     : tokens.color.base.white;
 
-  const border = (disabled || checked) ? "none" : `1.5px solid ${tokens.color.divider.frame}`;
+  // Figma 35:1161 — disabled+unchecked still shows gray-300 border (opacity 0.5 on whole indicator)
+  const border = checked ? "none" : `1.5px solid ${tokens.color.divider.frame}`;
   const opacity = (disabled && !checked) ? 0.5 : 1;
 
   // Focus ring

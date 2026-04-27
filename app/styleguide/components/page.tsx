@@ -6,8 +6,8 @@
 import { useState, useEffect } from "react";
 import { Button, ButtonType, ButtonSize, ButtonWithIcon } from "@/components/ui/Button";
 import { Input } from "@/components/ui/Input";
-import { RadioButton, RadioInput, RadioGroup } from "@/components/ui/Radio";
-import { Checkbox, CheckboxInput, CheckboxGroup } from "@/components/ui/Checkbox";
+import { RadioIndicator, RadioButton, RadioInput, RadioGroup } from "@/components/ui/Radio";
+import { CheckboxIndicator, Checkbox, CheckboxInput, CheckboxGroup } from "@/components/ui/Checkbox";
 import { Sidebar } from "@/components/ui/Sidebar";
 import { SidebarNavItem } from "@/components/ui/SidebarNavItem";
 import { SelectionCard, SelectionCardGroup } from "@/components/ui/SelectionCard";
@@ -534,12 +534,28 @@ function RadioTab() {
       {/* All States */}
       <Section title="All States">
         <div style={{ background: tokens.color.base.white, border: `1px solid ${tokens.color.divider.border}`, borderRadius: tokens.borderRadius.lg, padding: "24px" }}>
-          <Row label="RadioButton — unchecked / checked / disabled unchecked / disabled checked">
-            <RadioButton checked={false} />
-            <RadioButton checked={true}  onChange={() => {}} />
-            <RadioButton checked={false} disabled />
-            <RadioButton checked={true}  disabled />
+
+          {/* ── Indicator state grid (Figma 35:1161) ── */}
+          <Row label="Indicator — 8 states (Figma 35:1161)">
+            <div style={{ display: "grid", gridTemplateColumns: "repeat(8, 40px)", gap: "8px", alignItems: "center" }}>
+              {[
+                { label: "unsel\ndefault",  checked: false, hovered: false, focused: false, disabled: false },
+                { label: "sel\ndefault",    checked: true,  hovered: false, focused: false, disabled: false },
+                { label: "unsel\nhover",    checked: false, hovered: true,  focused: false, disabled: false },
+                { label: "sel\nhover",      checked: true,  hovered: true,  focused: false, disabled: false },
+                { label: "unsel\nfocus",    checked: false, hovered: false, focused: true,  disabled: false },
+                { label: "sel\nfocus",      checked: true,  hovered: false, focused: true,  disabled: false },
+                { label: "unsel\ndisabled", checked: false, hovered: false, focused: false, disabled: true  },
+                { label: "sel\ndisabled",   checked: true,  hovered: false, focused: false, disabled: true  },
+              ].map((s, i) => (
+                <div key={i} style={{ display: "flex", flexDirection: "column", alignItems: "center", gap: "6px" }}>
+                  <RadioIndicator checked={s.checked} hovered={s.hovered} focused={s.focused} disabled={s.disabled} />
+                  <span style={{ fontSize: "10px", color: tokens.color.fg.support, textAlign: "center", whiteSpace: "pre", lineHeight: "14px", fontFamily: tokens.fontFamily.sans }}>{s.label}</span>
+                </div>
+              ))}
+            </div>
           </Row>
+
           <Row label="RadioInput — unchecked">
             <RadioInput name="s1" value="a" label="Label" onChange={() => {}} />
           </Row>
@@ -592,7 +608,7 @@ function RadioTab() {
       <PropsTable rows={[
         { prop: "checked",     type: "boolean",                    def: "false",      desc: "Whether this option is selected" },
         { prop: "disabled",    type: "boolean",                    def: "false",      desc: "Non-interactive — gray fill, gray border" },
-        { prop: "label",       type: "string",                     def: "—",          desc: "Primary label — Inter Medium 14px" },
+        { prop: "label",       type: "string",                     def: "—",          desc: "Primary label — Inter Regular 14px" },
         { prop: "description", type: "string",                     def: "—",          desc: "Secondary description — Inter Regular 12px gray/500" },
         { prop: "name",        type: "string",                     def: "—",          desc: "HTML name attribute — groups radios together" },
         { prop: "value",       type: "string",                     def: "—",          desc: "HTML value attribute" },
@@ -684,6 +700,33 @@ function CheckboxTab() {
       {/* All States */}
       <Section title="All States">
         <div style={{ background: tokens.color.base.white, border: `1px solid ${tokens.color.divider.border}`, borderRadius: tokens.borderRadius.lg, padding: "24px" }}>
+
+          {/* ── Indicator state grid (Figma 35:1151) ── */}
+          <Row label="Indicator — 12 states (Figma 35:1151)">
+            <div style={{ display: "flex", flexDirection: "column", gap: "16px" }}>
+              {[
+                { rowLabel: "default",  hovered: false, focused: false, disabled: false },
+                { rowLabel: "hover",    hovered: true,  focused: false, disabled: false },
+                { rowLabel: "focus",    hovered: false, focused: true,  disabled: false },
+                { rowLabel: "disabled", hovered: false, focused: false, disabled: true  },
+              ].map((row) => (
+                <div key={row.rowLabel} style={{ display: "flex", alignItems: "center", gap: "24px" }}>
+                  <span style={{ fontSize: "11px", color: tokens.color.fg.support, fontFamily: tokens.fontFamily.sans, width: "48px", flexShrink: 0 }}>{row.rowLabel}</span>
+                  {[
+                    { type: "unselected" as const,     checked: false, indeterminate: false },
+                    { type: "selected" as const,       checked: true,  indeterminate: false },
+                    { type: "indeterminate" as const,  checked: false, indeterminate: true  },
+                  ].map((col) => (
+                    <div key={col.type} style={{ display: "flex", flexDirection: "column", alignItems: "center", gap: "4px" }}>
+                      <CheckboxIndicator checked={col.checked} indeterminate={col.indeterminate} hovered={row.hovered} focused={row.focused} disabled={row.disabled} />
+                      <span style={{ fontSize: "10px", color: tokens.color.fg.support, fontFamily: tokens.fontFamily.sans }}>{col.type}</span>
+                    </div>
+                  ))}
+                </div>
+              ))}
+            </div>
+          </Row>
+
           <Row label="Checkbox control — unchecked / checked / indeterminate / disabled-unchecked / disabled-checked">
             <Checkbox checked={false} />
             <Checkbox checked={true}         onChange={() => {}} />
@@ -733,7 +776,7 @@ function CheckboxTab() {
         { prop: "checked",       type: "boolean",                    def: "false", desc: "Whether the checkbox is checked" },
         { prop: "indeterminate", type: "boolean",                    def: "false", desc: "Mixed state — shows dash — use for parent of partial group" },
         { prop: "disabled",      type: "boolean",                    def: "false", desc: "Non-interactive — gray fill, gray border" },
-        { prop: "label",         type: "string",                     def: "—",     desc: "Primary label — Inter Medium 14px" },
+        { prop: "label",         type: "string",                     def: "—",     desc: "Primary label — Inter Regular 14px" },
         { prop: "description",   type: "string",                     def: "—",     desc: "Secondary description — Inter Regular 12px gray/500" },
         { prop: "name",          type: "string",                     def: "—",     desc: "HTML name attribute" },
         { prop: "value",         type: "string",                     def: "—",     desc: "HTML value attribute" },

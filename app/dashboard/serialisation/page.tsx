@@ -1098,7 +1098,10 @@ export default function SerialisationPage() {
                     <ContextMenuItem
                       label="Create rope serials"
                       iconUrl={icons[MENU_ICON_IDS.ropeSerials]}
-                      onClick={() => setSerialsMenuOpen(false)}
+                      onClick={() => {
+                        setSerialsMenuOpen(false);
+                        router.push("/dashboard/create-rope-serials");
+                      }}
                     />
                   </ContextMenu>
                 </div>

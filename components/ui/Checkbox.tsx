@@ -101,11 +101,15 @@ export function CheckboxIndicator({
 
   const opacity = (disabled && !isActive) ? 0.5 : 1;
 
-  // Focus ring: checked+focused → blue ring, unchecked+(hover||focus) → grey ring
+  // Figma 35:1151 — focus ring rules:
+  //   checked/indeterminate + focus → blue ring
+  //   unchecked + focus             → blue ring  (checkbox differs from radio here)
+  //   unchecked + hover             → grey ring
+  //   checked/indeterminate + hover → no ring
   let shadow: string | undefined;
   if (!disabled) {
-    if (isActive && focused)                    shadow = tokens.shadows.focusBlue;
-    else if (!isActive && (hovered || focused)) shadow = tokens.shadows.focusGrey;
+    if (focused)                   shadow = tokens.shadows.focusBlue;
+    else if (!isActive && hovered) shadow = tokens.shadows.focusGrey;
   }
 
   return (
