@@ -116,9 +116,9 @@ export function ModalHeader({
           style={{
             margin:      0,
             fontFamily:  tokens.fontFamily.sans,
-            fontSize:    tokens.fontSize.h4,       // 18px
-            fontWeight:  tokens.fontWeight.semiBold, // 600
-            lineHeight:  tokens.lineHeight.h4,     // 24px
+            fontSize:    tokens.fontSize.h3,       // 20px
+            fontWeight:  tokens.fontWeight.medium, // 500
+            lineHeight:  tokens.lineHeight.h3,     // 28px
             color:       tokens.color.fg.primary,
             textAlign:   isCentered ? "center" : "left",
           }}
