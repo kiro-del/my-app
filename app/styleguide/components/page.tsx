@@ -19,6 +19,11 @@ import { ContextMenuItem } from "@/components/ui/ContextMenuItem";
 import { ContextMenu } from "@/components/ui/ContextMenu";
 import { Alert, AlertTone, AlertType } from "@/components/ui/Alert";
 import { SectionHeader } from "@/components/ui/SectionHeader";
+import { GloryItem } from "@/components/ui/GloryItems";
+import { ModalFooter } from "@/components/ui/ModalFooter";
+import { ModalHeader } from "@/components/ui/ModalHeader";
+import { ActionCard, ActionCardGroup } from "@/components/ui/ActionCard";
+import { DateInput, CalendarIcon } from "@/components/ui/Input";
 import tokens from "@/styles/design-tokens";
 
 const FILE_KEY = "j8hy0yzSKPyh1yRKOh4tuU";
@@ -1965,6 +1970,346 @@ function SectionHeaderTab() {
 }
 
 // ---------------------------------------------------------------------------
+// GloryItems tab
+// ---------------------------------------------------------------------------
+function GloryItemsTab() {
+  return (
+    <div>
+      <div style={{ marginBottom: "8px" }}>
+        <code style={{ fontSize: "12px", fontFamily: "monospace", background: tokens.color.bg.darkBg, padding: "2px 8px", borderRadius: tokens.borderRadius.sm, color: tokens.color.fg.support }}>components/ui/GloryItems.tsx</code>
+        <span style={{ fontSize: "12px", color: tokens.color.fg.disabled, marginLeft: "8px" }}>Figma node 3450:9507</span>
+      </div>
+      <p style={{ fontSize: "14px", color: tokens.color.fg.support, marginBottom: "32px", fontFamily: tokens.fontFamily.sans }}>Decorative pill with pink gradient border and sparkle star icon — button (larger) and chip (smaller) variants</p>
+
+      <Section title="Variants">
+        <Row label="button — larger pill (3px border, px-16 py-8)">
+          <GloryItem type="button" label="Glory feature" />
+          <GloryItem type="button" label="New" />
+          <GloryItem type="button" label="AI powered" />
+        </Row>
+        <Row label="chip — smaller pill (2px border, px-8 py-2)">
+          <GloryItem type="chip" label="New" />
+          <GloryItem type="chip" label="Beta" />
+          <GloryItem type="chip" label="Preview" />
+        </Row>
+      </Section>
+
+      <PropsTable rows={[
+        { prop: "type",   type: '"button" | "chip"',  def: '"button"', desc: "button = larger pill with 3px border; chip = smaller pill with 2px border" },
+        { prop: "label",  type: "string",              def: '"Glory"',  desc: "Text label displayed next to the sparkle star icon" },
+        { prop: "onClick",type: "() => void",           def: "undefined",desc: "Makes the pill interactive with pointer cursor" },
+        { prop: "style",  type: "React.CSSProperties", def: "undefined",desc: "Extra inline styles on the outer container" },
+      ]} />
+    </div>
+  );
+}
+
+// ---------------------------------------------------------------------------
+// DateInput tab
+// ---------------------------------------------------------------------------
+function DateInputTab() {
+  const [val, setVal] = useState("");
+  return (
+    <div>
+      <div style={{ marginBottom: "8px" }}>
+        <code style={{ fontSize: "12px", fontFamily: "monospace", background: tokens.color.bg.darkBg, padding: "2px 8px", borderRadius: tokens.borderRadius.sm, color: tokens.color.fg.support }}>components/ui/Input.tsx → DateInput, CalendarIcon</code>
+        <span style={{ fontSize: "12px", color: tokens.color.fg.disabled, marginLeft: "8px" }}>Figma nodes 51:990 · 1313:2919 · 2150:1814</span>
+      </div>
+      <p style={{ fontSize: "14px", color: tokens.color.fg.support, marginBottom: "32px", fontFamily: tokens.fontFamily.sans }}>DateInput = Input pre-wired with CalendarIcon as the tailing icon. CalendarIcon is also exported standalone.</p>
+
+      <Section title="DateInput variants">
+        <Row label="Default">
+          <div style={{ width: "280px" }}>
+            <DateInput label="Date" placeholder="DD/MM/YYYY" value={val} onChange={(e) => setVal(e.target.value)} />
+          </div>
+        </Row>
+        <Row label="With support message">
+          <div style={{ width: "280px" }}>
+            <DateInput label="Inspection date" placeholder="DD/MM/YYYY" supportMessage="Select a date for the next inspection" />
+          </div>
+        </Row>
+        <Row label="Error state">
+          <div style={{ width: "280px" }}>
+            <DateInput label="Date of purchase" placeholder="DD/MM/YYYY" errorMessage="Please enter a valid date" />
+          </div>
+        </Row>
+        <Row label="Disabled">
+          <div style={{ width: "280px" }}>
+            <DateInput label="Date" placeholder="DD/MM/YYYY" disabled />
+          </div>
+        </Row>
+      </Section>
+
+      <Section title="CalendarIcon standalone">
+        <Row label="24px at various colours">
+          <CalendarIcon />
+          <CalendarIcon color={tokens.color.fg.primary} />
+          <CalendarIcon color={tokens.color.fg.blue} />
+          <CalendarIcon color={tokens.color.fg.disabled} />
+        </Row>
+      </Section>
+
+      <CodeSnippet code={`import { DateInput, CalendarIcon } from "@/components/ui/Input";
+
+// DateInput — drop-in replacement for date fields
+<DateInput label="Date" placeholder="DD/MM/YYYY" />
+
+// CalendarIcon standalone
+<CalendarIcon color={tokens.color.fg.support} />`} />
+
+      <PropsTable rows={[
+        { prop: "label",        type: "string",              def: "undefined",     desc: "Field label above the input" },
+        { prop: "placeholder",  type: "string",              def: '"DD/MM/YYYY"',  desc: "Placeholder text inside the input" },
+        { prop: "iconColor",    type: "string",              def: "fg.support",    desc: "Override the CalendarIcon stroke colour" },
+        { prop: "errorMessage", type: "string",              def: "undefined",     desc: "Shows red border + error text below" },
+        { prop: "supportMessage",type:"string",              def: "undefined",     desc: "Shows grey helper text below the input" },
+        { prop: "disabled",     type: "boolean",             def: "false",         desc: "Disables interaction and dims the field" },
+        { prop: "...rest",      type: "InputHTMLAttributes", def: "—",             desc: "All native <input> props are forwarded" },
+      ]} />
+    </div>
+  );
+}
+
+// ---------------------------------------------------------------------------
+// Modal tab (ModalHeader + ModalFooter)
+// ---------------------------------------------------------------------------
+function ModalTab() {
+  const [backBtn,  setBackBtn]  = useState(false);
+  const [mainBtn,  setMainBtn]  = useState<"1"|"2">("1");
+  const [withBadge,setWithBadge]= useState(false);
+  const [withBody, setWithBody] = useState(true);
+
+  return (
+    <div>
+      <div style={{ marginBottom: "8px" }}>
+        <code style={{ fontSize: "12px", fontFamily: "monospace", background: tokens.color.bg.darkBg, padding: "2px 8px", borderRadius: tokens.borderRadius.sm, color: tokens.color.fg.support }}>components/ui/ModalHeader.tsx · components/ui/ModalFooter.tsx</code>
+        <span style={{ fontSize: "12px", color: tokens.color.fg.disabled, marginLeft: "8px" }}>Figma nodes 2103:2361 · 2205:556</span>
+      </div>
+      <p style={{ fontSize: "14px", color: tokens.color.fg.support, marginBottom: "32px", fontFamily: tokens.fontFamily.sans }}>Modal shell components — header with title/badge/description + footer with Back/Cancel/Submit buttons</p>
+
+      <div style={{ background: tokens.color.base.white, border: `1px solid ${tokens.color.divider.border}`, borderRadius: tokens.borderRadius.lg, padding: "24px", marginBottom: "40px" }}>
+        <p style={{ fontSize: tokens.fontSize.h5, fontWeight: tokens.fontWeight.semiBold, color: tokens.color.fg.primary, fontFamily: tokens.fontFamily.sans, marginBottom: "20px" }}>Live Playground</p>
+        <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: "32px" }}>
+          {/* Controls */}
+          <div style={{ display: "flex", flexDirection: "column", gap: "16px" }}>
+            <div>
+              <p style={{ fontSize: "12px", color: tokens.color.fg.support, fontFamily: tokens.fontFamily.sans, marginBottom: "8px", fontWeight: "600" }}>ModalHeader options</p>
+              <div style={{ display: "flex", flexWrap: "wrap", gap: "8px" }}>
+                <PillToggle active={withBadge} label="withBadge" onClick={() => setWithBadge(!withBadge)} />
+                <PillToggle active={withBody}  label="withBodyText" onClick={() => setWithBody(!withBody)} />
+              </div>
+            </div>
+            <div>
+              <p style={{ fontSize: "12px", color: tokens.color.fg.support, fontFamily: tokens.fontFamily.sans, marginBottom: "8px", fontWeight: "600" }}>ModalFooter options</p>
+              <div style={{ display: "flex", flexWrap: "wrap", gap: "8px" }}>
+                <PillToggle active={backBtn}   label="backBtn" onClick={() => setBackBtn(!backBtn)} />
+                <Pill val="1" cur={mainBtn} onClick={() => setMainBtn("1")} />
+                <Pill val="2" cur={mainBtn} onClick={() => setMainBtn("2")} />
+              </div>
+            </div>
+          </div>
+          {/* Preview */}
+          <div>
+            <p style={{ fontSize: "12px", fontWeight: "600", color: tokens.color.fg.primary, fontFamily: tokens.fontFamily.sans, marginBottom: "8px" }}>Preview</p>
+            <div style={{ border: `1px solid ${tokens.color.divider.border}`, borderRadius: tokens.borderRadius.lg, overflow: "hidden", width: "512px", maxWidth: "100%" }}>
+              <ModalHeader
+                title="Create serial numbers"
+                bodyText={withBody ? "Configure the serial number format and quantity for this batch." : undefined}
+                withBadge={withBadge}
+                badgeLabel="New"
+                onClose={() => {}}
+              />
+              <div style={{ padding: "24px", background: tokens.color.bg.lightBg, minHeight: "80px", display: "flex", alignItems: "center", justifyContent: "center" }}>
+                <p style={{ fontSize: "13px", color: tokens.color.fg.disabled, fontFamily: tokens.fontFamily.sans, margin: 0 }}>Modal body content</p>
+              </div>
+              <ModalFooter backBtn={backBtn} mainBtn={mainBtn} submitLabel="Create" onBack={() => {}} onCancel={() => {}} onSecondary={() => {}} onSubmit={() => {}} />
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <Section title="ModalHeader variants">
+        <div style={{ display: "flex", flexDirection: "column", gap: "16px" }}>
+          {[
+            { withBadge: false, bodyText: undefined,       label: "Title only" },
+            { withBadge: false, bodyText: "Configure the serial number format and quantity for this batch.", label: "Title + body text" },
+            { withBadge: true,  bodyText: "Configure the serial number format and quantity for this batch.", label: "Badge + title + body text (centred)" },
+          ].map(({ withBadge: wb, bodyText: bt, label: lbl }) => (
+            <div key={lbl}>
+              <p style={{ fontSize: "12px", color: tokens.color.fg.support, fontFamily: tokens.fontFamily.sans, marginBottom: "4px" }}>{lbl}</p>
+              <div style={{ border: `1px solid ${tokens.color.divider.border}`, borderRadius: tokens.borderRadius.lg, overflow: "hidden", width: "512px" }}>
+                <ModalHeader title="Create serial numbers" bodyText={bt} withBadge={wb} badgeLabel="New" onClose={() => {}} />
+              </div>
+            </div>
+          ))}
+        </div>
+      </Section>
+
+      <Section title="ModalFooter variants">
+        <div style={{ display: "flex", flexDirection: "column", gap: "8px" }}>
+          {[
+            { backBtn: false, mainBtn: "1" as const, label: "No back · 1 primary btn" },
+            { backBtn: true,  mainBtn: "1" as const, label: "Back · 1 primary btn" },
+            { backBtn: false, mainBtn: "2" as const, label: "No back · 2 primary btns" },
+            { backBtn: true,  mainBtn: "2" as const, label: "Back · 2 primary btns" },
+          ].map(({ backBtn: bb, mainBtn: mb, label: lbl }) => (
+            <div key={lbl}>
+              <p style={{ fontSize: "12px", color: tokens.color.fg.support, fontFamily: tokens.fontFamily.sans, marginBottom: "4px" }}>{lbl}</p>
+              <div style={{ border: `1px solid ${tokens.color.divider.border}`, borderRadius: tokens.borderRadius.lg, overflow: "hidden" }}>
+                <ModalFooter backBtn={bb} mainBtn={mb} submitLabel="Create" onBack={() => {}} onCancel={() => {}} onSecondary={() => {}} onSubmit={() => {}} />
+              </div>
+            </div>
+          ))}
+        </div>
+      </Section>
+
+      <PropsTable rows={[
+        { prop: "title",       type: "string",              def: "required",   desc: "(ModalHeader) Heading text" },
+        { prop: "bodyText",    type: "string",              def: "undefined",  desc: "(ModalHeader) Description text below the title" },
+        { prop: "withBadge",   type: "boolean",             def: "false",      desc: "(ModalHeader) Shows GloryItem chip above title and centres content" },
+        { prop: "badgeLabel",  type: "string",              def: '"New"',      desc: "(ModalHeader) Label for the badge chip (withBadge only)" },
+        { prop: "onClose",     type: "() => void",          def: "undefined",  desc: "(ModalHeader) Shows × close button when provided" },
+        { prop: "backBtn",     type: "boolean",             def: "false",      desc: "(ModalFooter) Shows a Back ghost link on the left" },
+        { prop: "mainBtn",     type: '"1" | "2"',           def: '"1"',        desc: "(ModalFooter) 1 = Cancel + Submit; 2 = Cancel + Secondary + Submit" },
+        { prop: "submitLabel", type: "string",              def: '"Submit"',   desc: "(ModalFooter) Label for the primary action button" },
+        { prop: "cancelLabel", type: "string",              def: '"Cancel"',   desc: "(ModalFooter) Label for the cancel button" },
+        { prop: "secondaryLabel",type:"string",             def: '"Save draft"',"desc": "(ModalFooter) Label for secondary button (mainBtn=2 only)" },
+        { prop: "submitDisabled",type:"boolean",            def: "false",      desc: "(ModalFooter) Disables the submit button" },
+      ]} />
+    </div>
+  );
+}
+
+// ---------------------------------------------------------------------------
+// ActionCard tab
+// ---------------------------------------------------------------------------
+function ActionCardTab() {
+  const [action,      setAction]      = useState<"icon btn"|"text btn">("icon btn");
+  const [leadingIcon, setLeadingIcon] = useState<"none"|"icon"|"product">("none");
+  const [lines,       setLines]       = useState<"1"|"2">("2");
+  const [cardState,   setCardState]   = useState<"Default"|"Hover"|"Focus"|"Selected"|"Disable">("Default");
+
+  return (
+    <div>
+      <div style={{ marginBottom: "8px" }}>
+        <code style={{ fontSize: "12px", fontFamily: "monospace", background: tokens.color.bg.darkBg, padding: "2px 8px", borderRadius: tokens.borderRadius.sm, color: tokens.color.fg.support }}>components/ui/ActionCard.tsx</code>
+        <span style={{ fontSize: "12px", color: tokens.color.fg.disabled, marginLeft: "8px" }}>Figma node 3263:2039</span>
+      </div>
+      <p style={{ fontSize: "14px", color: tokens.color.fg.support, marginBottom: "32px", fontFamily: tokens.fontFamily.sans }}>Actionable card with 5 interactive states · 2 action types · 3 leading icon variants · 1–2 text lines</p>
+
+      <div style={{ background: tokens.color.base.white, border: `1px solid ${tokens.color.divider.border}`, borderRadius: tokens.borderRadius.lg, padding: "24px", marginBottom: "40px" }}>
+        <p style={{ fontSize: tokens.fontSize.h5, fontWeight: tokens.fontWeight.semiBold, color: tokens.color.fg.primary, fontFamily: tokens.fontFamily.sans, marginBottom: "20px" }}>Live Playground</p>
+        <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: "32px" }}>
+          <div style={{ display: "flex", flexDirection: "column", gap: "16px" }}>
+            <div>
+              <p style={{ fontSize: "12px", color: tokens.color.fg.support, fontFamily: tokens.fontFamily.sans, marginBottom: "8px", fontWeight: "600" }}>action</p>
+              <div style={{ display: "flex", gap: "8px" }}>
+                <Pill val="icon btn"  cur={action} onClick={() => setAction("icon btn")} />
+                <Pill val="text btn"  cur={action} onClick={() => setAction("text btn")} />
+              </div>
+            </div>
+            <div>
+              <p style={{ fontSize: "12px", color: tokens.color.fg.support, fontFamily: tokens.fontFamily.sans, marginBottom: "8px", fontWeight: "600" }}>leadingIcon</p>
+              <div style={{ display: "flex", gap: "8px" }}>
+                <Pill val="none"    cur={leadingIcon} onClick={() => setLeadingIcon("none")} />
+                <Pill val="icon"    cur={leadingIcon} onClick={() => setLeadingIcon("icon")} />
+                <Pill val="product" cur={leadingIcon} onClick={() => setLeadingIcon("product")} />
+              </div>
+            </div>
+            <div>
+              <p style={{ fontSize: "12px", color: tokens.color.fg.support, fontFamily: tokens.fontFamily.sans, marginBottom: "8px", fontWeight: "600" }}>lines</p>
+              <div style={{ display: "flex", gap: "8px" }}>
+                <Pill val="1" cur={lines} onClick={() => setLines("1")} />
+                <Pill val="2" cur={lines} onClick={() => setLines("2")} />
+              </div>
+            </div>
+            <div>
+              <p style={{ fontSize: "12px", color: tokens.color.fg.support, fontFamily: tokens.fontFamily.sans, marginBottom: "8px", fontWeight: "600" }}>state</p>
+              <div style={{ display: "flex", flexWrap: "wrap", gap: "8px" }}>
+                {(["Default","Hover","Focus","Selected","Disable"] as const).map(s => (
+                  <Pill key={s} val={s} cur={cardState} onClick={() => setCardState(s)} />
+                ))}
+              </div>
+            </div>
+          </div>
+          <div>
+            <p style={{ fontSize: "12px", fontWeight: "600", color: tokens.color.fg.primary, fontFamily: tokens.fontFamily.sans, marginBottom: "8px" }}>Preview</p>
+            <div style={{ background: tokens.color.bg.bg, borderRadius: tokens.borderRadius.md, padding: "24px", display: "flex", alignItems: "center", justifyContent: "center" }}>
+              <ActionCard
+                label="Rope — 11mm × 50m"
+                description="Batch #2024-001 · 12 cut ropes"
+                action={action}
+                leadingIcon={leadingIcon}
+                lines={lines}
+                state={cardState}
+                actionLabel="Select"
+              />
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <Section title="All 5 States — icon btn, no leading, 2 lines">
+        <div style={{ display: "flex", flexDirection: "column", gap: "8px" }}>
+          {(["Default","Hover","Focus","Selected","Disable"] as const).map(s => (
+            <div key={s} style={{ display: "flex", alignItems: "center", gap: "16px" }}>
+              <span style={{ width: "64px", fontSize: "12px", color: tokens.color.fg.support, fontFamily: tokens.fontFamily.sans, flexShrink: 0 }}>{s}</span>
+              <ActionCard label="Rope — 11mm × 50m" description="Batch #2024-001 · 12 cut ropes" state={s} />
+            </div>
+          ))}
+        </div>
+      </Section>
+
+      <Section title="Leading icon variants">
+        <div style={{ display: "flex", flexDirection: "column", gap: "8px" }}>
+          <div style={{ display: "flex", alignItems: "center", gap: "16px" }}>
+            <span style={{ width: "64px", fontSize: "12px", color: tokens.color.fg.support, fontFamily: tokens.fontFamily.sans, flexShrink: 0 }}>none</span>
+            <ActionCard label="Rope — 11mm × 50m" description="Batch #2024-001" leadingIcon="none" />
+          </div>
+          <div style={{ display: "flex", alignItems: "center", gap: "16px" }}>
+            <span style={{ width: "64px", fontSize: "12px", color: tokens.color.fg.support, fontFamily: tokens.fontFamily.sans, flexShrink: 0 }}>icon</span>
+            <ActionCard label="Rope — 11mm × 50m" description="Batch #2024-001" leadingIcon="icon" />
+          </div>
+          <div style={{ display: "flex", alignItems: "center", gap: "16px" }}>
+            <span style={{ width: "64px", fontSize: "12px", color: tokens.color.fg.support, fontFamily: tokens.fontFamily.sans, flexShrink: 0 }}>product</span>
+            <ActionCard label="Rope — 11mm × 50m" description="Batch #2024-001" leadingIcon="product" />
+          </div>
+        </div>
+      </Section>
+
+      <Section title="Action types">
+        <div style={{ display: "flex", flexDirection: "column", gap: "8px" }}>
+          <div style={{ display: "flex", alignItems: "center", gap: "16px" }}>
+            <span style={{ width: "72px", fontSize: "12px", color: tokens.color.fg.support, fontFamily: tokens.fontFamily.sans, flexShrink: 0 }}>icon btn</span>
+            <ActionCard label="Rope — 11mm × 50m" description="Batch #2024-001" action="icon btn" />
+          </div>
+          <div style={{ display: "flex", alignItems: "center", gap: "16px" }}>
+            <span style={{ width: "72px", fontSize: "12px", color: tokens.color.fg.support, fontFamily: tokens.fontFamily.sans, flexShrink: 0 }}>text btn</span>
+            <ActionCard label="Rope — 11mm × 50m" description="Batch #2024-001" action="text btn" actionLabel="Select" />
+          </div>
+        </div>
+      </Section>
+
+      <PropsTable rows={[
+        { prop: "label",           type: "string",                                              def: "required",    desc: "Primary text label" },
+        { prop: "description",     type: "string",                                              def: "undefined",   desc: "Secondary text — only shown when lines=2" },
+        { prop: "action",          type: '"icon btn" | "text btn"',                             def: '"icon btn"',  desc: "icon btn = arrow-right icon; text btn = outlined button on the right" },
+        { prop: "leadingIcon",     type: '"none" | "icon" | "product"',                         def: '"none"',      desc: "Leading content: none / deco icon area / product image" },
+        { prop: "lines",           type: '"1" | "2"',                                           def: '"2"',         desc: "1 = label only; 2 = label + description" },
+        { prop: "state",           type: '"Default"|"Hover"|"Focus"|"Selected"|"Disable"',      def: "undefined",   desc: "Controlled state override (for demos). Omit for mouse-driven state." },
+        { prop: "selected",        type: "boolean",                                             def: "false",       desc: "Applies Selected state (2px indigo border)" },
+        { prop: "disabled",        type: "boolean",                                             def: "false",       desc: "Disables interaction and dims the card" },
+        { prop: "actionLabel",     type: "string",                                              def: '"View"',      desc: "Label for the text button (action=text btn only)" },
+        { prop: "onClick",         type: "() => void",                                          def: "undefined",   desc: "Called when the card body is clicked" },
+        { prop: "onActionClick",   type: "(e: MouseEvent) => void",                             def: "undefined",   desc: "Called when the action button is clicked (propagation stopped)" },
+        { prop: "productImageSrc", type: "string",                                              def: "undefined",   desc: "Image URL for leading product image" },
+        { prop: "leadingIconNode", type: "React.ReactNode",                                     def: "undefined",   desc: "Custom icon node for the leading icon area" },
+      ]} />
+    </div>
+  );
+}
+
+// ---------------------------------------------------------------------------
 // Page shell
 // ---------------------------------------------------------------------------
 const COMPONENT_TABS = [
@@ -1980,6 +2325,10 @@ const COMPONENT_TABS = [
   { id: "context-menu",   label: "Context Menu" },
   { id: "alert",          label: "Alert" },
   { id: "section-header", label: "Section Header" },
+  { id: "glory-items",    label: "Glory Items" },
+  { id: "date-input",     label: "Date Input" },
+  { id: "modal",          label: "Modal" },
+  { id: "action-card",    label: "Action Card" },
 ];
 
 export default function ComponentsPage() {
@@ -2042,6 +2391,10 @@ export default function ComponentsPage() {
         {activeTab === "context-menu"   && <ContextMenuTab />}
         {activeTab === "alert"          && <AlertTab />}
         {activeTab === "section-header" && <SectionHeaderTab />}
+        {activeTab === "glory-items"    && <GloryItemsTab />}
+        {activeTab === "date-input"     && <DateInputTab />}
+        {activeTab === "modal"          && <ModalTab />}
+        {activeTab === "action-card"    && <ActionCardTab />}
 
         <div style={{ borderTop: `1px solid ${tokens.color.divider.frame}`, paddingTop: "24px", marginTop: "48px", display: "flex", justifyContent: "space-between" }}>
           <a href="/styleguide" style={{ fontSize: tokens.fontSize.bodySmall, color: tokens.color.fg.support, fontFamily: tokens.fontFamily.sans, textDecoration: "none" }}>← Design Tokens</a>

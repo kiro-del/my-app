@@ -264,4 +264,52 @@ export const Input = forwardRef<HTMLInputElement, InputProps>(({
 });
 
 Input.displayName = "Input";
+
+// ---------------------------------------------------------------------------
+// CalendarIcon — 24px calendar SVG (Figma node 2150:1814)
+// A calendar body with two handle lines at top, a horizontal divider,
+// and a dot grid representing dates.
+// ---------------------------------------------------------------------------
+export function CalendarIcon({ color = tokens.color.fg.support }: { color?: string }) {
+  return (
+    <svg width="24" height="24" viewBox="0 0 24 24" fill="none" aria-hidden>
+      {/* Calendar body */}
+      <rect x="3" y="5" width="18" height="16" rx="2" stroke={color} strokeWidth="1.5" />
+      {/* Handle lines (top tabs) */}
+      <path d="M8 3V7M16 3V7" stroke={color} strokeWidth="1.5" strokeLinecap="round" />
+      {/* Horizontal divider */}
+      <path d="M3 10H21" stroke={color} strokeWidth="1.5" />
+      {/* Date dot grid — 3 columns × 2 rows */}
+      <circle cx="8"  cy="14" r="1" fill={color} />
+      <circle cx="12" cy="14" r="1" fill={color} />
+      <circle cx="16" cy="14" r="1" fill={color} />
+      <circle cx="8"  cy="18" r="1" fill={color} />
+      <circle cx="12" cy="18" r="1" fill={color} />
+      <circle cx="16" cy="18" r="1" fill={color} />
+    </svg>
+  );
+}
+
+// ---------------------------------------------------------------------------
+// DateInput — Input pre-wired with CalendarIcon as the tailing icon
+// Figma: Scannable Design System — nodes 51:990, 1313:2919, 2150:1814
+// ---------------------------------------------------------------------------
+export interface DateInputProps extends Omit<InputProps, "tailingIcon"> {
+  /** Override the calendar icon colour (defaults to fg.support / gray-500) */
+  iconColor?: string;
+}
+
+export const DateInput = forwardRef<HTMLInputElement, DateInputProps>(
+  ({ iconColor, ...rest }, ref) => (
+    <Input
+      ref={ref}
+      tailingIcon={<CalendarIcon color={iconColor} />}
+      placeholder={rest.placeholder ?? "DD/MM/YYYY"}
+      {...rest}
+    />
+  )
+);
+
+DateInput.displayName = "DateInput";
+
 export default Input;
