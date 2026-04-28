@@ -53,6 +53,14 @@ function SparkleStarIcon() {
 }
 
 // ---------------------------------------------------------------------------
+// Gradient border value — divider/gradient dark (confirmed from Figma design panel)
+// Stops: #FF4CCF 6% → #2C2258 51% (hard stop) → #CCFF00 95%
+// CSS gradient borders require the background-clip technique:
+//   background: white padding-box, gradient border-box; border: Npx solid transparent
+// ---------------------------------------------------------------------------
+const GRADIENT_BORDER = "linear-gradient(135deg, #FF4CCF 6%, #2C2258 51%, #2C2258 51%, #CCFF00 95%)";
+
+// ---------------------------------------------------------------------------
 // GloryItem
 // ---------------------------------------------------------------------------
 export function GloryItem({
@@ -62,6 +70,7 @@ export function GloryItem({
   style,
 }: GloryItemProps) {
   const isButton = type === "button";
+  const borderWidth = isButton ? "3px" : "2px";
 
   return (
     <div
@@ -72,10 +81,11 @@ export function GloryItem({
       style={{
         display:       "inline-flex",
         alignItems:    "center",
-        gap:           tokens.spacing[1],          // 4px
+        gap:           tokens.spacing[1],    // 4px
         borderRadius:  "27px",
-        background:    tokens.color.base.white,
-        border:        `${isButton ? "3px" : "2px"} solid #ff4ccf`,  // solid pink — confirmed Figma
+        // Gradient border via background-clip trick
+        background:    `${tokens.color.base.white} padding-box, ${GRADIENT_BORDER} border-box`,
+        border:        `${borderWidth} solid transparent`,
         paddingLeft:   isButton ? tokens.spacing[4]    : tokens.spacing[2],    // 16px / 8px
         paddingRight:  isButton ? tokens.spacing[4]    : tokens.spacing[2],
         paddingTop:    isButton ? tokens.spacing[2]    : tokens.spacing[0.5],  // 8px / 2px
