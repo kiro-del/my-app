@@ -290,26 +290,4 @@ export function CalendarIcon({ color = tokens.color.fg.support }: { color?: stri
   );
 }
 
-// ---------------------------------------------------------------------------
-// DateInput — Input pre-wired with CalendarIcon as the tailing icon
-// Figma: Scannable Design System — nodes 51:990, 1313:2919, 2150:1814
-// ---------------------------------------------------------------------------
-export interface DateInputProps extends Omit<InputProps, "tailingIcon"> {
-  /** Override the calendar icon colour (defaults to fg.support / gray-500) */
-  iconColor?: string;
-}
-
-export const DateInput = forwardRef<HTMLInputElement, DateInputProps>(
-  ({ iconColor, ...rest }, ref) => (
-    <Input
-      ref={ref}
-      tailingIcon={<CalendarIcon color={iconColor} />}
-      placeholder={rest.placeholder ?? "DD/MM/YYYY"}
-      {...rest}
-    />
-  )
-);
-
-DateInput.displayName = "DateInput";
-
 export default Input;

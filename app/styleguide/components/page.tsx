@@ -23,7 +23,7 @@ import { GloryItem } from "@/components/ui/GloryItems";
 import { ModalFooter } from "@/components/ui/ModalFooter";
 import { ModalHeader } from "@/components/ui/ModalHeader";
 import { ActionCard, ActionCardGroup } from "@/components/ui/ActionCard";
-import { DateInput, CalendarIcon } from "@/components/ui/Input";
+import { CalendarIcon } from "@/components/ui/Input";
 import tokens from "@/styles/design-tokens";
 
 const FILE_KEY = "j8hy0yzSKPyh1yRKOh4tuU";
@@ -456,6 +456,21 @@ function InputTab({ svgs }: { svgs: Record<string, string> }) {
         { prop: "showSupportIcon", type: "boolean",           def: "false",         desc: "Prefix support message with lightbulb icon" },
         { prop: "disabled",        type: "boolean",           def: "false",         desc: "gray-50 bg, gray-400 text, not interactive" },
       ]} />
+
+      {/* Calendar / date variant */}
+      <Section title="Tailing icon — Calendar (date input pattern)">
+        <p style={{ fontSize: "13px", color: tokens.color.fg.support, fontFamily: tokens.fontFamily.sans, marginBottom: "16px" }}>
+          The calendar input is simply <code style={{ fontFamily: "monospace", fontSize: "12px" }}>{"<Input tailingIcon={<CalendarIcon />} />"}</code> — no separate component needed.
+          <code style={{ display: "block", fontFamily: "monospace", fontSize: "12px", background: tokens.color.bg.darkBg, color: tokens.color.brand.lime, padding: "8px 12px", borderRadius: tokens.borderRadius.sm, marginTop: "10px" }}>
+            {`import { Input, CalendarIcon } from "@/components/ui/Input";\n<Input label="Date" placeholder="DD/MM/YYYY" tailingIcon={<CalendarIcon />} />`}
+          </code>
+        </p>
+        <div style={{ display: "flex", flexWrap: "wrap", gap: "16px" }}>
+          <div style={{ width: "240px" }}><p style={{ fontSize: "11px", color: tokens.color.fg.support, fontFamily: "monospace", marginBottom: "8px" }}>default</p><Input label="Date" placeholder="DD/MM/YYYY" tailingIcon={<CalendarIcon />} /></div>
+          <div style={{ width: "240px" }}><p style={{ fontSize: "11px", color: tokens.color.fg.support, fontFamily: "monospace", marginBottom: "8px" }}>error</p><Input label="Date" placeholder="DD/MM/YYYY" tailingIcon={<CalendarIcon />} errorMessage="Invalid date" /></div>
+          <div style={{ width: "240px" }}><p style={{ fontSize: "11px", color: tokens.color.fg.support, fontFamily: "monospace", marginBottom: "8px" }}>disabled</p><Input label="Date" placeholder="DD/MM/YYYY" tailingIcon={<CalendarIcon />} disabled /></div>
+        </div>
+      </Section>
     </div>
   );
 }
@@ -2005,72 +2020,6 @@ function GloryItemsTab() {
 }
 
 // ---------------------------------------------------------------------------
-// DateInput tab
-// ---------------------------------------------------------------------------
-function DateInputTab() {
-  const [val, setVal] = useState("");
-  return (
-    <div>
-      <div style={{ marginBottom: "8px" }}>
-        <code style={{ fontSize: "12px", fontFamily: "monospace", background: tokens.color.bg.darkBg, padding: "2px 8px", borderRadius: tokens.borderRadius.sm, color: tokens.color.fg.support }}>components/ui/Input.tsx → DateInput, CalendarIcon</code>
-        <span style={{ fontSize: "12px", color: tokens.color.fg.disabled, marginLeft: "8px" }}>Figma nodes 51:990 · 1313:2919 · 2150:1814</span>
-      </div>
-      <p style={{ fontSize: "14px", color: tokens.color.fg.support, marginBottom: "32px", fontFamily: tokens.fontFamily.sans }}>DateInput = Input pre-wired with CalendarIcon as the tailing icon. CalendarIcon is also exported standalone.</p>
-
-      <Section title="DateInput variants">
-        <Row label="Default">
-          <div style={{ width: "280px" }}>
-            <DateInput label="Date" placeholder="DD/MM/YYYY" value={val} onChange={(e) => setVal(e.target.value)} />
-          </div>
-        </Row>
-        <Row label="With support message">
-          <div style={{ width: "280px" }}>
-            <DateInput label="Inspection date" placeholder="DD/MM/YYYY" supportMessage="Select a date for the next inspection" />
-          </div>
-        </Row>
-        <Row label="Error state">
-          <div style={{ width: "280px" }}>
-            <DateInput label="Date of purchase" placeholder="DD/MM/YYYY" errorMessage="Please enter a valid date" />
-          </div>
-        </Row>
-        <Row label="Disabled">
-          <div style={{ width: "280px" }}>
-            <DateInput label="Date" placeholder="DD/MM/YYYY" disabled />
-          </div>
-        </Row>
-      </Section>
-
-      <Section title="CalendarIcon standalone">
-        <Row label="24px at various colours">
-          <CalendarIcon />
-          <CalendarIcon color={tokens.color.fg.primary} />
-          <CalendarIcon color={tokens.color.fg.blue} />
-          <CalendarIcon color={tokens.color.fg.disabled} />
-        </Row>
-      </Section>
-
-      <CodeSnippet code={`import { DateInput, CalendarIcon } from "@/components/ui/Input";
-
-// DateInput — drop-in replacement for date fields
-<DateInput label="Date" placeholder="DD/MM/YYYY" />
-
-// CalendarIcon standalone
-<CalendarIcon color={tokens.color.fg.support} />`} />
-
-      <PropsTable rows={[
-        { prop: "label",        type: "string",              def: "undefined",     desc: "Field label above the input" },
-        { prop: "placeholder",  type: "string",              def: '"DD/MM/YYYY"',  desc: "Placeholder text inside the input" },
-        { prop: "iconColor",    type: "string",              def: "fg.support",    desc: "Override the CalendarIcon stroke colour" },
-        { prop: "errorMessage", type: "string",              def: "undefined",     desc: "Shows red border + error text below" },
-        { prop: "supportMessage",type:"string",              def: "undefined",     desc: "Shows grey helper text below the input" },
-        { prop: "disabled",     type: "boolean",             def: "false",         desc: "Disables interaction and dims the field" },
-        { prop: "...rest",      type: "InputHTMLAttributes", def: "—",             desc: "All native <input> props are forwarded" },
-      ]} />
-    </div>
-  );
-}
-
-// ---------------------------------------------------------------------------
 // Modal tab (ModalHeader + ModalFooter)
 // ---------------------------------------------------------------------------
 function ModalTab() {
@@ -2326,7 +2275,6 @@ const COMPONENT_TABS = [
   { id: "alert",          label: "Alert" },
   { id: "section-header", label: "Section Header" },
   { id: "glory-items",    label: "Glory Items" },
-  { id: "date-input",     label: "Date Input" },
   { id: "modal",          label: "Modal" },
   { id: "action-card",    label: "Action Card" },
 ];
@@ -2392,7 +2340,6 @@ export default function ComponentsPage() {
         {activeTab === "alert"          && <AlertTab />}
         {activeTab === "section-header" && <SectionHeaderTab />}
         {activeTab === "glory-items"    && <GloryItemsTab />}
-        {activeTab === "date-input"     && <DateInputTab />}
         {activeTab === "modal"          && <ModalTab />}
         {activeTab === "action-card"    && <ActionCardTab />}
 
