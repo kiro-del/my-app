@@ -2071,7 +2071,7 @@ function ModalTab() {
               <div style={{ padding: "24px", background: tokens.color.bg.lightBg, minHeight: "80px", display: "flex", alignItems: "center", justifyContent: "center" }}>
                 <p style={{ fontSize: "13px", color: tokens.color.fg.disabled, fontFamily: tokens.fontFamily.sans, margin: 0 }}>Modal body content</p>
               </div>
-              <ModalFooter backBtn={backBtn} mainBtn={mainBtn} submitLabel="Create" onBack={() => {}} onCancel={() => {}} onSecondary={() => {}} onSubmit={() => {}} />
+              <ModalFooter backBtn={backBtn} mainBtn={mainBtn} submitLabel="Create" onBack={() => {}} onCancel={() => {}} onSubmit={() => {}} />
             </div>
           </div>
         </div>
@@ -2097,15 +2097,15 @@ function ModalTab() {
       <Section title="ModalFooter variants">
         <div style={{ display: "flex", flexDirection: "column", gap: "8px" }}>
           {[
-            { backBtn: false, mainBtn: "1" as const, label: "No back · 1 primary btn" },
-            { backBtn: true,  mainBtn: "1" as const, label: "Back · 1 primary btn" },
-            { backBtn: false, mainBtn: "2" as const, label: "No back · 2 primary btns" },
-            { backBtn: true,  mainBtn: "2" as const, label: "Back · 2 primary btns" },
+            { backBtn: false, mainBtn: "1" as const, label: "No back · primary only" },
+            { backBtn: true,  mainBtn: "1" as const, label: "Back · primary only" },
+            { backBtn: false, mainBtn: "2" as const, label: "No back · Cancel + primary" },
+            { backBtn: true,  mainBtn: "2" as const, label: "Back · Cancel + primary" },
           ].map(({ backBtn: bb, mainBtn: mb, label: lbl }) => (
             <div key={lbl}>
               <p style={{ fontSize: "12px", color: tokens.color.fg.support, fontFamily: tokens.fontFamily.sans, marginBottom: "4px" }}>{lbl}</p>
               <div style={{ border: `1px solid ${tokens.color.divider.border}`, borderRadius: tokens.borderRadius.lg, overflow: "hidden" }}>
-                <ModalFooter backBtn={bb} mainBtn={mb} submitLabel="Create" onBack={() => {}} onCancel={() => {}} onSecondary={() => {}} onSubmit={() => {}} />
+                <ModalFooter backBtn={bb} mainBtn={mb} submitLabel="Create" onBack={() => {}} onCancel={() => {}} onSubmit={() => {}} />
               </div>
             </div>
           ))}
@@ -2118,12 +2118,11 @@ function ModalTab() {
         { prop: "withBadge",   type: "boolean",             def: "false",      desc: "(ModalHeader) Shows GloryItem chip above title and centres content" },
         { prop: "badgeLabel",  type: "string",              def: '"New"',      desc: "(ModalHeader) Label for the badge chip (withBadge only)" },
         { prop: "onClose",     type: "() => void",          def: "undefined",  desc: "(ModalHeader) Shows × close button when provided" },
-        { prop: "backBtn",     type: "boolean",             def: "false",      desc: "(ModalFooter) Shows a Back ghost link on the left" },
-        { prop: "mainBtn",     type: '"1" | "2"',           def: '"1"',        desc: "(ModalFooter) 1 = Cancel + Submit; 2 = Cancel + Secondary + Submit" },
-        { prop: "submitLabel", type: "string",              def: '"Submit"',   desc: "(ModalFooter) Label for the primary action button" },
-        { prop: "cancelLabel", type: "string",              def: '"Cancel"',   desc: "(ModalFooter) Label for the cancel button" },
-        { prop: "secondaryLabel",type:"string",             def: '"Save draft"',"desc": "(ModalFooter) Label for secondary button (mainBtn=2 only)" },
-        { prop: "submitDisabled",type:"boolean",            def: "false",      desc: "(ModalFooter) Disables the submit button" },
+        { prop: "backBtn",       type: "boolean",   def: "false",    desc: "(ModalFooter) Shows a Back ghost link on the left" },
+        { prop: "mainBtn",       type: '"1" | "2"', def: '"1"',      desc: "(ModalFooter) 1 = primary button only; 2 = Cancel + primary" },
+        { prop: "submitLabel",   type: "string",    def: '"Submit"', desc: "(ModalFooter) Label for the primary action button" },
+        { prop: "cancelLabel",   type: "string",    def: '"Cancel"', desc: "(ModalFooter) Label for the cancel button (mainBtn=2 only)" },
+        { prop: "submitDisabled",type: "boolean",   def: "false",    desc: "(ModalFooter) Disables the submit button" },
       ]} />
     </div>
   );
