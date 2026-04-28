@@ -74,6 +74,36 @@ export function IconArrowLeft({
 }
 
 // ---------------------------------------------------------------------------
+// IconArrowRight — Figma "arrow right"
+// ---------------------------------------------------------------------------
+export function IconArrowRight({
+  color = "#111827",
+  size  = 24,
+}: {
+  color?: string;
+  size?:  number;
+}) {
+  return (
+    <svg
+      width={size}
+      height={size}
+      viewBox="0 0 24 24"
+      fill="none"
+      xmlns="http://www.w3.org/2000/svg"
+      aria-hidden
+    >
+      <path
+        d="M13 6L19 12M19 12L13 18M19 12L5 12"
+        stroke={color}
+        strokeWidth="2"
+        strokeLinecap="round"
+        strokeLinejoin="round"
+      />
+    </svg>
+  );
+}
+
+// ---------------------------------------------------------------------------
 // IconMenuHorizontal — Figma node 154:1415 "menu horizontal"
 // Three horizontal dots (···), fill-based
 // ---------------------------------------------------------------------------

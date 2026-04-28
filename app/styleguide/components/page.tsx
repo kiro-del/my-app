@@ -2240,8 +2240,8 @@ function ActionCardTab() {
         { prop: "actionLabel",     type: "string",                                              def: '"View"',      desc: "Label for the text button (action=text btn only)" },
         { prop: "onClick",         type: "() => void",                                          def: "undefined",   desc: "Called when the card body is clicked" },
         { prop: "onActionClick",   type: "(e: MouseEvent) => void",                             def: "undefined",   desc: "Called when the action button is clicked (propagation stopped)" },
-        { prop: "productImageSrc", type: "string",                                              def: "undefined",   desc: "Image URL for leading product image" },
-        { prop: "leadingIconNode", type: "React.ReactNode",                                     def: "undefined",   desc: "Custom icon node for the leading icon area" },
+        { prop: "productImageSrc", type: "string",              def: "undefined",  desc: "Image URL for leading product image (56×56, white bg, gray-200 border)" },
+        { prop: "decoIconTone",   type: "DecoIcon40Tone",    def: '"info"',     desc: "Tone for the 40px design system DecoIcon (leadingIcon=icon only)" },
       ]} />
     </div>
   );
