@@ -1898,16 +1898,6 @@ function AlertTab() {
 // SectionHeader tab
 // ---------------------------------------------------------------------------
 
-// Inline deco icon (product box) — white strokes for use on indigo bg
-function ProductDecoIcon() {
-  return (
-    <svg width="24" height="24" viewBox="0 0 24 24" fill="none" aria-hidden>
-      <rect x="2" y="7" width="20" height="14" rx="2" stroke="white" strokeWidth="1.5" />
-      <path d="M16 7V5a2 2 0 0 0-2-2h-4a2 2 0 0 0-2 2v2" stroke="white" strokeWidth="1.5" />
-      <path d="M12 12v4M10 14h4" stroke="white" strokeWidth="1.5" strokeLinecap="round" />
-    </svg>
-  );
-}
 
 function SectionHeaderTab() {
   const variants: { label: string; element: React.ReactNode }[] = [
@@ -1941,15 +1931,15 @@ function SectionHeaderTab() {
     },
     {
       label: "8 · Deco icon + title + subtitle",
-      element: <SectionHeader title="iPhone 15 Pro Max" subtitle="Apply to product" decoIcon={<ProductDecoIcon />} />,
+      element: <SectionHeader title="iPhone 15 Pro Max" subtitle="Apply to product" decoIconTone="info" />,
     },
     {
       label: "9 · Deco icon + title + subtitle + close",
-      element: <SectionHeader title="iPhone 15 Pro Max" subtitle="Apply to product" decoIcon={<ProductDecoIcon />} onClose={() => {}} />,
+      element: <SectionHeader title="iPhone 15 Pro Max" subtitle="Apply to product" decoIconTone="info" onClose={() => {}} />,
     },
     {
       label: "10 · Back + deco icon + title + subtitle + close",
-      element: <SectionHeader title="iPhone 15 Pro Max" subtitle="Apply to product" decoIcon={<ProductDecoIcon />} onBack={() => {}} onClose={() => {}} />,
+      element: <SectionHeader title="iPhone 15 Pro Max" subtitle="Apply to product" decoIconTone="info" onBack={() => {}} onClose={() => {}} />,
     },
   ];
 
@@ -1974,7 +1964,7 @@ function SectionHeaderTab() {
       <PropsTable rows={[
         { prop: "title",     type: "string",              def: "—",         desc: "Main heading text (always required)" },
         { prop: "subtitle",  type: "string",              def: "undefined", desc: "Secondary line beneath title — triggers compact padding" },
-        { prop: "decoIcon",  type: "React.ReactNode",     def: "undefined", desc: "Icon inside the indigo 40×40 box left of the title" },
+        { prop: "decoIconTone", type: "DecoIcon40Tone", def: "undefined", desc: "Tone for the 40px design system DecoIcon shown left of the title" },
         { prop: "onBack",    type: "() => void",          def: "undefined", desc: "Shows ← button when provided" },
         { prop: "onMore",    type: "() => void",          def: "undefined", desc: "Shows ··· button when provided" },
         { prop: "onClose",   type: "() => void",          def: "undefined", desc: "Shows × button when provided" },
