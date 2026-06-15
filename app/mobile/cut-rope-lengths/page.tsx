@@ -28,7 +28,7 @@ interface SourceRope {
   lengthM: number;
 }
 
-type Step = "select" | "details" | "form";
+type Step = "select" | "details" | "cut-details" | "assign";
 
 // ── Static data ────────────────────────────────────────────────────────────────
 
@@ -641,8 +641,9 @@ export default function CutRopeLengthsPage() {
   }
 
   function handleBack() {
-    if (step === "details") setStep("select");
-    else if (step === "form") setStep("details");
+    if (step === "details")     setStep("select");
+    else if (step === "cut-details") setStep("details");
+    else if (step === "assign") setStep("cut-details");
   }
 
   function openApplySheet(rope: SourceRope) {
@@ -668,6 +669,8 @@ export default function CutRopeLengthsPage() {
     setApplySheetOpen(false);
     setStep("details");
   }
+
+  const STEP_NUMBER: Record<Step, number> = { "select": 1, "details": 2, "cut-details": 3, "assign": 4 };
 
   function handleSelectRecentReel(reel: RecentReel) {
     const rope = reel.rope;
@@ -722,6 +725,24 @@ export default function CutRopeLengthsPage() {
         onClose={handleClose}
         onBack={handleBack}
       />
+
+      {/* Step indicator */}
+      <div style={{
+        padding:        `${tokens.spacing[2]} ${tokens.spacing[4]} 0`,
+        flexShrink:     0,
+      }}>
+        <span style={{
+          fontFamily:  tokens.fontFamily.sans,
+          fontSize:    "12px",
+          fontWeight:  tokens.fontWeight.semiBold,
+          lineHeight:  "16px",
+          letterSpacing: "0.06em",
+          color:       tokens.color.fg.support,
+          textTransform: "uppercase",
+        }}>
+          Step {STEP_NUMBER[step]}/4
+        </span>
+      </div>
 
       {/* ── Step 1: Select source reel ─────────────────────────────────────── */}
       {step === "select" && (
@@ -882,12 +903,12 @@ export default function CutRopeLengthsPage() {
             )}
           </div>
 
-          <Footer label="Continue to cut rope" onClick={() => setStep("form")} />
+          <Footer label="Next step" onClick={() => setStep("cut-details")} />
         </>
       )}
 
-      {/* ── Step 3: Assign product + cut rope details ──────────────────────── */}
-      {step === "form" && (
+      {/* ── Step 3: Cut rope details ──────────────────────────────────────── */}
+      {step === "cut-details" && (
         <>
           <div style={{ flex: "1 0 0", minHeight: 0, overflowY: "auto" }}>
             <div style={{
@@ -896,11 +917,48 @@ export default function CutRopeLengthsPage() {
               flexDirection: "column",
               gap:           tokens.spacing[4],
             }}>
+              <SectionHeading title="Cut rope details" />
 
-              {/* Assign cut ropes to product */}
+              <div style={{ display: "flex", flexDirection: "column", gap: tokens.spacing[2] }}>
+                <span style={{ ...tokens.typography.bodyM, color: tokens.color.fg.primary }}>
+                  Select a serial format (required)
+                </span>
+                {SERIAL_FORMAT_OPTIONS.map(opt => (
+                  <RadioCard
+                    key={opt.id}
+                    selected={serialFormat === opt.id}
+                    label={opt.label}
+                    description={opt.description}
+                    onClick={() => setSerialFormat(opt.id)}
+                  />
+                ))}
+              </div>
+
+              <TextField label="Purchase order"        value={purchaseOrder} onChange={setPurchaseOrder} />
+              <TextField label="Sales order number"    value={salesOrder}    onChange={setSalesOrder}    />
+              <TextField label="Customer reference"    value={customerRef}   onChange={setCustomerRef}   />
+              <TextField label="Cut rope batch number" value={formBatch}     onChange={setFormBatch}     />
+              <DateInput label="Date of manufacture"   value={formDate}      onChange={setFormDate}      />
+            </div>
+          </div>
+
+          <Footer label="Next step" onClick={() => setStep("assign")} />
+        </>
+      )}
+
+      {/* ── Step 4: Assign cut ropes to product ──────────────────────────── */}
+      {step === "assign" && (
+        <>
+          <div style={{ flex: "1 0 0", minHeight: 0, overflowY: "auto" }}>
+            <div style={{
+              padding:       tokens.spacing[4],
+              display:       "flex",
+              flexDirection: "column",
+              gap:           tokens.spacing[4],
+            }}>
               <SectionHeading
                 title="Assign cut ropes to product"
-                subtitle="Select or create the finished product SKU for the cut rope."
+                subtitle="Set the product details for the rope you are creating from this cut."
               />
 
               <div style={{ display: "flex", flexDirection: "column", gap: tokens.spacing[2] }}>
@@ -911,7 +969,6 @@ export default function CutRopeLengthsPage() {
                   onClick={() => setProductMode("existing")}
                 />
 
-                {/* Existing product sub-panel */}
                 {productMode === "existing" && (
                   <div style={{
                     background:    tokens.color.bg.lightBg,
@@ -951,17 +1008,11 @@ export default function CutRopeLengthsPage() {
                             transition:   "border 150ms ease",
                           }} />
                           <div style={{ flex: "1 1 0", minWidth: 0 }}>
-                            <div style={{ ...tokens.typography.bodyM, color: tokens.color.fg.primary }}>
-                              {product.name}
-                            </div>
+                            <div style={{ ...tokens.typography.bodyM, color: tokens.color.fg.primary }}>{product.name}</div>
                             <div style={{ display: "flex", alignItems: "center", gap: tokens.spacing[1], marginTop: "2px" }}>
-                              <span style={{ ...tokens.typography.smallBodyR, color: tokens.color.fg.support }}>
-                                {product.brand}
-                              </span>
+                              <span style={{ ...tokens.typography.smallBodyR, color: tokens.color.fg.support }}>{product.brand}</span>
                               <div style={{ width: "1px", height: "10px", background: tokens.color.divider.frame }} />
-                              <span style={{ ...tokens.typography.smallBodyR, color: tokens.color.fg.support }}>
-                                {product.sku}
-                              </span>
+                              <span style={{ ...tokens.typography.smallBodyR, color: tokens.color.fg.support }}>{product.sku}</span>
                             </div>
                           </div>
                         </button>
@@ -977,7 +1028,6 @@ export default function CutRopeLengthsPage() {
                   onClick={() => setProductMode("new")}
                 />
 
-                {/* New product sub-panel */}
                 {productMode === "new" && (
                   <div style={{
                     background:    tokens.color.bg.lightBg,
@@ -987,9 +1037,7 @@ export default function CutRopeLengthsPage() {
                     flexDirection: "column",
                     gap:           tokens.spacing[3],
                   }}>
-                    <span style={{ ...tokens.typography.bodyM, color: tokens.color.fg.primary }}>
-                      New product info
-                    </span>
+                    <span style={{ ...tokens.typography.bodyM, color: tokens.color.fg.primary }}>New product info</span>
                     <CompositeInput
                       label="Length"
                       value={newLength}
@@ -1005,21 +1053,13 @@ export default function CutRopeLengthsPage() {
                       onChange={setNewSplice}
                       placeholder="Select..."
                     />
-                    <TextField
-                      label="Part number"
-                      value={newPartNumber}
-                      onChange={setNewPartNumber}
-                    />
-                    <TextField
-                      label="SKU name"
-                      value={newSkuName}
-                      onChange={setNewSkuName}
-                    />
+                    <TextField label="Part number" value={newPartNumber} onChange={setNewPartNumber} />
+                    <TextField label="SKU name"    value={newSkuName}    onChange={setNewSkuName}    />
                   </div>
                 )}
               </div>
 
-              {/* Number of cut ropes section */}
+              {/* Number of cut ropes */}
               <div style={{ borderTop: `1px solid ${tokens.color.divider.border}`, paddingTop: tokens.spacing[6] }}>
                 <SectionHeading title="Number of cut ropes" />
               </div>
@@ -1034,47 +1074,20 @@ export default function CutRopeLengthsPage() {
               {remainingAfterCut !== null && (
                 <InfoBanner message={`Source reel left after cut: ${remainingAfterCut}m`} />
               )}
-
-              {/* Cut rope details section */}
-              <div style={{ borderTop: `1px solid ${tokens.color.divider.border}`, paddingTop: tokens.spacing[6] }}>
-                <SectionHeading title="Cut rope details" />
-              </div>
-
-              <div style={{ display: "flex", flexDirection: "column", gap: tokens.spacing[2] }}>
-                <span style={{ ...tokens.typography.bodyM, color: tokens.color.fg.primary }}>
-                  Select a serial format (required)
-                </span>
-                {SERIAL_FORMAT_OPTIONS.map(opt => (
-                  <RadioCard
-                    key={opt.id}
-                    selected={serialFormat === opt.id}
-                    label={opt.label}
-                    description={opt.description}
-                    onClick={() => setSerialFormat(opt.id)}
-                  />
-                ))}
-              </div>
-
-              <TextField label="Purchase order"        value={purchaseOrder} onChange={setPurchaseOrder} />
-              <TextField label="Sales order number"    value={salesOrder}    onChange={setSalesOrder}    />
-              <TextField label="Customer reference"    value={customerRef}   onChange={setCustomerRef}   />
-              <TextField label="Cut rope batch number" value={formBatch}     onChange={setFormBatch}     />
-              <DateInput label="Date of manufacture"   value={formDate}      onChange={setFormDate}      />
-
             </div>
           </div>
 
           <div style={{
-            padding:    tokens.spacing[4],
-            borderTop:  `1px solid ${tokens.color.divider.border}`,
-            background: tokens.color.base.white,
-            flexShrink: 0,
-            display:    "flex",
+            padding:       tokens.spacing[4],
+            borderTop:     `1px solid ${tokens.color.divider.border}`,
+            background:    tokens.color.base.white,
+            flexShrink:    0,
+            display:       "flex",
             flexDirection: "column",
-            gap:        tokens.spacing[3],
+            gap:           tokens.spacing[3],
           }}>
-            <Button variant="primary"   label="Generate serials"        onClick={() => setSuccessSheetOpen(true)} style={{ width: "100%" }} />
-            <Button variant="secondary" label="Link to existing serials" onClick={() => router.push("/mobile/capture-serials?mode=link")} style={{ width: "100%" }} />
+            <Button variant="primary"   label="Generate serials"         onClick={() => setSuccessSheetOpen(true)} style={{ width: "100%" }} />
+            <Button variant="secondary" label="Link to existing serials"  onClick={() => router.push("/mobile/capture-serials?mode=link")} style={{ width: "100%" }} />
           </div>
         </>
       )}
