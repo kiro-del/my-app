@@ -140,9 +140,9 @@ export default function PrintLabelsPage() {
     <div style={{ display: "flex", flexDirection: "column", height: "100%", background: C_WHITE, overflow: "hidden" }}>
       {/* App bar */}
       <MobileAppBar
+        page="task"
         title="Print labels"
-        leadingAction="close"
-        onLeadingAction={() => router.back()}
+        onClose={() => router.back()}
       />
 
       {/* Scrollable content */}
