@@ -26,6 +26,7 @@ interface SourceRope {
   sku:     string;
   serial:  string;
   lengthM: number;
+  image?:  string;
 }
 
 type Step = "select" | "details" | "cut-details" | "assign";
@@ -33,8 +34,8 @@ type Step = "select" | "details" | "cut-details" | "assign";
 // ── Static data ────────────────────────────────────────────────────────────────
 
 const SOURCE_ROPES: SourceRope[] = [
-  { id: "r1", name: "ZENITH 9.5 mm Blue 200 m",  brand: "Beal",  sku: "BEA0034-490055", serial: "#132241154A", lengthM: 200 },
-  { id: "r2", name: "ZENITH 9.5 mm Orange 50 m", brand: "Beal",  sku: "BEA0034-490066", serial: "#132241155B", lengthM: 50  },
+  { id: "r1", name: "ZENITH 9.5 mm Pink 100 m",  brand: "Beal",  sku: "BC095Z.60.P",   serial: "#132241154A", lengthM: 100, image: "/ZENITH 9.5 mm Pink 60 m.jpg" },
+  { id: "r2", name: "ZENITH 9.5 mm Blue 200 m",  brand: "Beal",  sku: "BEA0034-490055", serial: "#132241154B", lengthM: 200, image: "/INDUSTRIE 11MMx150M 2 TERM BLUE.png" },
   { id: "r3", name: "LINK 10.5 mm Yellow 100 m", brand: "Petzl", sku: "PET0034-10551",  serial: "#132241156C", lengthM: 100 },
 ];
 
@@ -48,8 +49,8 @@ interface RecentReel {
 }
 
 const RECENT_REELS: RecentReel[] = [
-  { rope: SOURCE_ROPES[0], type: "item",    serial: "#132241154A", remainingM: 70 },
-  { rope: SOURCE_ROPES[1], type: "product" },
+  { rope: SOURCE_ROPES[0], type: "item", serial: "#132241154A", remainingM: 70  },
+  { rope: SOURCE_ROPES[1], type: "item", serial: "#132241154B", remainingM: 150 },
 ];
 
 const ROPE_TRACEABILITY: Record<string, { batchNumber: string; domDate: string }> = {
@@ -157,7 +158,7 @@ function CheckCircleIcon({ color }: { color: string }) {
 
 // ── Shared sub-components ──────────────────────────────────────────────────────
 
-function ProductThumb({ size = 56 }: { size?: number }) {
+function ProductThumb({ size = 56, image }: { size?: number; image?: string }) {
   return (
     <div style={{
       width:          size,
@@ -171,7 +172,10 @@ function ProductThumb({ size = 56 }: { size?: number }) {
       justifyContent: "center",
       overflow:       "hidden",
     }}>
-      <CameraIcon color={tokens.color.fg.disabled} />
+      {image
+        ? <img src={image} alt="" style={{ width: size - 8, height: size - 8, objectFit: "cover" }} />
+        : <CameraIcon color={tokens.color.fg.disabled} />
+      }
     </div>
   );
 }
@@ -197,7 +201,7 @@ function SourceRopeCard({ rope, remainingM, serial }: { rope: SourceRope; remain
       borderRadius: tokens.borderRadius.lg,
       border:       `1px solid ${tokens.color.divider.border}`,
     }}>
-      <ProductThumb size={56} />
+      <ProductThumb size={56} image={rope.image} />
       <div style={{ flex: "1 1 0", minWidth: 0, display: "flex", flexDirection: "column", gap: tokens.spacing[1] }}>
         <span style={{ ...tokens.typography.bodyM, color: tokens.color.fg.primary }}>{rope.name}</span>
         <div style={{ display: "flex", alignItems: "center", gap: tokens.spacing[1] }}>
@@ -430,7 +434,7 @@ function SourceRopeRow({ rope, onSelect }: { rope: SourceRope; onSelect: () => v
         padding:            `${tokens.spacing[3]} 0`,
       }}
     >
-      <ProductThumb size={56} />
+      <ProductThumb size={56} image={rope.image} />
       <div style={{ flex: "1 1 0", minWidth: 0, display: "flex", flexDirection: "column", gap: "2px" }}>
         <span style={{
           ...tokens.typography.bodyM,
@@ -493,7 +497,7 @@ function RecentReelCard({ reel, onSelect }: { reel: RecentReel; onSelect: () => 
       <div style={{ flex: "1 1 0", minWidth: 0, display: "flex", flexDirection: "column", gap: tokens.spacing[2] }}>
         {/* Product info row */}
         <div style={{ display: "flex", alignItems: "center", gap: tokens.spacing[4] }}>
-          <ProductThumb size={56} />
+          <ProductThumb size={56} image={reel.rope.image} />
           <div style={{ flex: "1 1 0", minWidth: 0, display: "flex", flexDirection: "column", gap: tokens.spacing[1] }}>
             {/* Name + type badge */}
             <div style={{ display: "flex", alignItems: "center", gap: tokens.spacing[1] }}>
