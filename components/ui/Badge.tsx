@@ -49,24 +49,24 @@ export function Badge({
   const hasLeadingContent = withDot || (icon && iconPosition === "leading");
   const hasTrailingIcon   = !withDot && icon && iconPosition === "tail";
 
-  // Padding — confirmed from Figma:
-  //   plain (no dot, no icon):    2px 8px
-  //   with dot:                   2px 6px
-  //   leading icon:               2px 6px 2px 2px
-  //   trailing icon:              2px 2px 2px 6px
-  let paddingTop    = "2px";
-  let paddingBottom = "2px";
-  let paddingLeft:  string;
-  let paddingRight: string;
+  // Padding — confirmed from Figma node 57:573:
+  //   plain (no dot, no icon):  py-0.5 px-2  →  2px 8px
+  //   with dot:                 py-0.5 px-2  →  2px 8px  (gap-1 between dot + label)
+  //   leading icon:             py-0.5 pl-0.5 pr-2  →  2px left, 8px right
+  //   trailing icon:            py-0.5 pl-2 pr-0.5  →  8px left, 2px right
+  const paddingTop    = tokens.spacing[0.5];  // 2px
+  const paddingBottom = tokens.spacing[0.5];  // 2px
+  let   paddingLeft:  string;
+  let   paddingRight: string;
 
   if (withDot) {
-    paddingLeft = "6px"; paddingRight = "6px";
+    paddingLeft = tokens.spacing[2]; paddingRight = tokens.spacing[2];   // 8px both
   } else if (icon && iconPosition === "leading") {
-    paddingLeft = "2px"; paddingRight = "6px";
+    paddingLeft = tokens.spacing[0.5]; paddingRight = tokens.spacing[2]; // 2px / 8px
   } else if (icon && iconPosition === "tail") {
-    paddingLeft = "6px"; paddingRight = "2px";
+    paddingLeft = tokens.spacing[2]; paddingRight = tokens.spacing[0.5]; // 8px / 2px
   } else {
-    paddingLeft = "8px"; paddingRight = "8px";
+    paddingLeft = tokens.spacing[2]; paddingRight = tokens.spacing[2];   // 8px both
   }
 
   return (
@@ -74,16 +74,16 @@ export function Badge({
       style={{
         display:        "inline-flex",
         alignItems:     "center",
-        gap:            (hasLeadingContent || hasTrailingIcon) ? "4px" : undefined,
+        gap:            (hasLeadingContent || hasTrailingIcon) ? tokens.spacing[1] : undefined,
         paddingTop,
         paddingBottom,
         paddingLeft,
         paddingRight,
-        borderRadius:   "13px",
+        borderRadius:   tokens.borderRadius.full,  // 9999px — full pill
         background:     bg,
         fontFamily:     tokens.fontFamily.sans,
-        fontSize:       "12px",
-        fontWeight:     tokens.fontWeight.semiBold,  // 600
+        fontSize:       tokens.fontSize.bodySmall,  // 12px
+        fontWeight:     tokens.fontWeight.semiBold, // 600
         lineHeight:     "16px",
         color:          text,
         whiteSpace:     "nowrap" as const,
@@ -104,12 +104,12 @@ export function Badge({
         />
       )}
 
-      {/* Leading icon — 14×14px */}
+      {/* Leading icon — 16×16px (Figma: size-[16px]) */}
       {!withDot && icon && iconPosition === "leading" && (
         <span
           style={{
-            width:          "14px",
-            height:         "14px",
+            width:          "16px",
+            height:         "16px",
             display:        "flex",
             alignItems:     "center",
             justifyContent: "center",
@@ -123,12 +123,12 @@ export function Badge({
 
       {label}
 
-      {/* Trailing icon — 14×14px */}
+      {/* Trailing icon — 16×16px (Figma: size-[16px]) */}
       {!withDot && icon && iconPosition === "tail" && (
         <span
           style={{
-            width:          "14px",
-            height:         "14px",
+            width:          "16px",
+            height:         "16px",
             display:        "flex",
             alignItems:     "center",
             justifyContent: "center",

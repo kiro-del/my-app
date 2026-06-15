@@ -73,7 +73,7 @@ export function SidebarNavItem({
         alignItems:      "center",
         justifyContent:  "space-between",
         height:          "40px",
-        padding:         "8px 12px 8px 8px",
+        padding:         `${tokens.spacing[2]} ${tokens.spacing[3]} ${tokens.spacing[2]} ${tokens.spacing[2]}`,
         borderRadius:    tokens.borderRadius.md,    // 6px
         background:      bg,
         cursor:          "pointer",
@@ -88,7 +88,7 @@ export function SidebarNavItem({
       onMouseLeave={() => setHovered(false)}
     >
       {/* Left: icon + label */}
-      <div style={{ display: "flex", alignItems: "center", gap: "12px", minWidth: 0 }}>
+      <div style={{ display: "flex", alignItems: "center", gap: tokens.spacing[3], minWidth: 0 }}>
         {/* Icon — 24×24 */}
         {iconUrl ? (
           /* URL-based icon: CSS mask-image so we control the colour directly */
@@ -131,7 +131,7 @@ export function SidebarNavItem({
         ) : null}
 
         {/* Label + optional info icon */}
-        <div style={{ display: "flex", alignItems: "center", gap: "4px", minWidth: 0 }}>
+        <div style={{ display: "flex", alignItems: "center", gap: tokens.spacing[1], minWidth: 0 }}>
           <span
             style={{
               fontFamily:  tokens.fontFamily.sans,
@@ -156,12 +156,12 @@ export function SidebarNavItem({
           style={{
             display:      "inline-flex",
             alignItems:   "center",
-            padding:      "0 4px",
+            padding:      `0 ${tokens.spacing[1]}`,
             height:       "16px",
             borderRadius: "4px",
             border:       `1px solid ${tokens.color.divider.frame}`,
             fontFamily:   tokens.fontFamily.sans,
-            fontSize:     "12px",
+            fontSize:     tokens.fontSize.bodySmall,
             fontWeight:   tokens.fontWeight.semiBold,
             lineHeight:   "16px",
             color:        tokens.color.fg.primary,

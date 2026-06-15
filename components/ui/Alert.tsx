@@ -129,7 +129,7 @@ function BrandIconBox() {
         flexShrink:     0,
         background:     tokens.color.brand.darkPurple,
         borderRadius:   tokens.borderRadius.lg,   // 8px
-        padding:        "8px",
+        padding:        tokens.spacing[2],
         boxSizing:      "border-box" as const,
       }}
     >
@@ -240,8 +240,8 @@ export function Alert({
         style={{
           display:     "flex",
           alignItems:  "center",
-          gap:         "12px",
-          padding:     "16px",
+          gap:         tokens.spacing[3],
+          padding:     tokens.spacing[4],
           borderRadius: tokens.borderRadius.md,
           background:  cfg.bg,
           ...style,
@@ -291,8 +291,8 @@ export function Alert({
       style={{
         display:      "flex",
         alignItems:   "flex-start",
-        gap:          "12px",
-        padding:      "16px",
+        gap:          tokens.spacing[3],
+        padding:      tokens.spacing[4],
         borderRadius: tokens.borderRadius.md,
         background:   cfg.bg,
         ...style,
@@ -310,11 +310,11 @@ export function Alert({
           minWidth:      0,
           display:       "flex",
           flexDirection: "column",
-          gap:           withAction ? "16px" : "8px",
+          gap:           withAction ? tokens.spacing[4] : tokens.spacing[2],
         }}
       >
         {/* Title + body */}
-        <div style={{ display: "flex", flexDirection: "column", gap: "8px" }}>
+        <div style={{ display: "flex", flexDirection: "column", gap: tokens.spacing[2] }}>
           <p
             style={{
               margin:     0,
@@ -343,7 +343,7 @@ export function Alert({
 
         {/* Action links — only in default type */}
         {withAction && (
-          <div style={{ display: "flex", gap: "20px", alignItems: "center" }}>
+          <div style={{ display: "flex", gap: tokens.spacing[5], alignItems: "center" }}>
             <ActionLink
               label={viewDetailLabel}
               color={cfg.actionColor}

@@ -1,4 +1,4 @@
-// components/ui/ContextMenu.tsx
+// components/patterns/ContextMenu.tsx
 // Figma: Scannable Design System
 //   Floating menu:        node 1586:8785
 //   Bottom sheet (web):   node 5688:11322
@@ -40,6 +40,19 @@ export interface ContextMenuProps {
    * Use to set `top`, `right`, `left`, `bottom` for dropdown positioning.
    */
   floatingStyle?: React.CSSProperties;
+  /**
+   * Use position:absolute instead of position:fixed — for use inside a
+   * position:relative container (e.g. the 393 px mobile prototype wrapper).
+   * The parent must be position:relative and height:100dvh for the sheet
+   * to anchor to the visible bottom correctly.
+   */
+  contained?: boolean;
+  /**
+   * Suppress the semi-transparent backdrop entirely.
+   * Use when the sheet is already scoped to a contained surface (e.g. a side
+   * panel) and dimming the rest of the UI is not desired.
+   */
+  noBackdrop?: boolean;
 }
 
 // ---------------------------------------------------------------------------
@@ -52,8 +65,8 @@ function DragHandle() {
       style={{
         display:        "flex",
         justifyContent: "center",
-        paddingTop:     "12px",
-        paddingBottom:  "4px",
+        paddingTop:     tokens.spacing[3],
+        paddingBottom:  tokens.spacing[1],
         flexShrink:     0,
         width:          "100%",
       }}
@@ -80,21 +93,21 @@ export function ContextMenu({
   children,
   width,
   floatingStyle,
+  contained = false,
+  noBackdrop = false,
 }: ContextMenuProps) {
   // ── Animation state ────────────────────────────────────────────────────────
-  // For bottom sheets we drive a CSS translateY transition.
   // `mounted`  — controls whether the DOM node exists
-  // `revealed` — controls the translate (0 = fully visible, 100% = hidden below)
+  // `revealed` — false while closing (drives slide-down transition + backdrop fade)
+  // Slide-IN is handled by CSS @keyframes so no JS timer is needed on open.
   const [mounted,  setMounted]  = React.useState(open);
   const [revealed, setRevealed] = React.useState(open);
 
   React.useEffect(() => {
     if (open) {
+      // Both states flip together — CSS @keyframes handles the slide-in visually.
       setMounted(true);
-      // Small delay so the browser paints the initial transform before we
-      // remove it (triggering the slide-up transition).
-      const id = requestAnimationFrame(() => setRevealed(true));
-      return () => cancelAnimationFrame(id);
+      setRevealed(true);
     } else {
       setRevealed(false);
       // Wait for the slide-down transition to finish before unmounting.
@@ -124,8 +137,8 @@ export function ContextMenu({
           borderRadius:  tokens.borderRadius.lg,      // 8px
           boxShadow:     tokens.shadows.ringLg,       // ring/lg from Figma
           width:         `${width ?? 240}px`,
-          paddingTop:    "4px",
-          paddingBottom: "4px",
+          paddingTop:    tokens.spacing[1],
+          paddingBottom: tokens.spacing[1],
           overflow:      "hidden",
           ...floatingStyle,
         }}
@@ -142,45 +155,63 @@ export function ContextMenu({
   // Web bottom-sheet is 400 px centred; mobile is full viewport width.
   const panelWidth = isMobile ? "100%" : `${width ?? 400}px`;
 
+  // CSS keyframe names for slide-in animation (avoids needing a JS timer).
+  const slideInKf  = isMobile ? "_cm-slide-up" : "_cm-slide-up-center";
+  const slideInCss = isMobile
+    ? `@keyframes _cm-slide-up { from { transform: translateY(100%); } to { transform: translateY(0%); } }`
+    : `@keyframes _cm-slide-up-center { from { transform: translateX(-50%) translateY(100%); } to { transform: translateX(-50%) translateY(0%); } }`;
+
   return (
     <>
-      {/* Backdrop */}
-      <div
-        aria-hidden
-        onClick={onClose}
-        style={{
-          position:   "fixed",
-          inset:      0,
-          zIndex:     40,
-          background: tokens.color.base.overlay,   // rgba(0,0,0,0.5)
-          opacity:    revealed ? 1 : 0,
-          transition: "opacity 300ms ease",
-        }}
-      />
+      {/* Keyframes injected once per render — idempotent */}
+      <style>{slideInCss}</style>
+
+      {/* Backdrop — suppressed when noBackdrop is true */}
+      {!noBackdrop && (
+        <div
+          aria-hidden
+          onClick={onClose}
+          style={{
+            position:   contained ? "absolute" : "fixed",
+            inset:      0,
+            zIndex:     40,
+            background: tokens.color.base.overlay,   // rgba(0,0,0,0.5)
+            opacity:      revealed ? 1 : 0,
+            transition:   "opacity 300ms ease",
+            cursor:       "pointer",
+            // iOS Safari only fires click on non-interactive elements
+            // when cursor:pointer is set — required for tap-to-dismiss.
+            WebkitTapHighlightColor: "transparent",
+          } as React.CSSProperties}
+        />
+      )}
 
       {/* Panel */}
       <div
         role="menu"
         style={{
-          position:           "fixed",
+          position:           contained ? "absolute" : "fixed",
           bottom:             0,
           left:               isMobile ? 0 : "50%",
-          transform:          isMobile
-            ? `translateY(${revealed ? "0%" : "100%"})`
-            : `translateX(-50%) translateY(${revealed ? "0%" : "100%"})`,
+          // revealed=true  → CSS @keyframes slides panel in (no JS timer needed)
+          // revealed=false → inline transform + transition slides panel out
+          transform: revealed
+            ? isMobile ? "translateY(0%)" : "translateX(-50%) translateY(0%)"
+            : isMobile ? "translateY(100%)" : "translateX(-50%) translateY(100%)",
+          animation:  revealed ? `${slideInKf} 300ms ease` : undefined,
+          transition: revealed ? undefined : "transform 300ms ease",
           zIndex:             50,
           width:              panelWidth,
           background:         tokens.color.base.white,
           borderTopLeftRadius:  tokens.borderRadius["2xl"],  // 16px
           borderTopRightRadius: tokens.borderRadius["2xl"],  // 16px
           boxShadow:          tokens.shadows.upLg,
-          transition:         "transform 300ms ease",
-          paddingTop:         isMobile ? "0" : "8px",
-          paddingBottom:      "8px",
+          paddingTop:         isMobile ? "0" : tokens.spacing[2],
+          paddingBottom:      tokens.spacing[2],
           overflow:           "hidden",
           maxHeight:          "90vh",
           overflowY:          "auto",
-        }}
+        } as React.CSSProperties}
       >
         {/* Drag handle — mobile only */}
         {isMobile && <DragHandle />}

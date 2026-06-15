@@ -10,10 +10,9 @@ import tokens from "@/styles/design-tokens";
 import { AppShell } from "@/components/ui/AppShell";
 import { Input } from "@/components/ui/Input";
 import { Button } from "@/components/ui/Button";
-import { RadioButton } from "@/components/ui/Radio";
-import { ListViewItem } from "@/components/ui/ListViewItem";
-import { Badge } from "@/components/ui/Badge";
+import { SelectionCardGroup } from "@/components/ui/SelectionCard";
 import { useFigmaIcons } from "@/hooks/useFigmaIcons";
+import { ApplyToProduct, type SelectedProductItem, type CatalogueProduct } from "@/components/ui/ApplyToProduct";
 
 // Bin icon — Scannable Design System node 49:967 (red trash can)
 const BIN_ICON_ID = "49:967";
@@ -74,23 +73,6 @@ const CalendarIcon = () => (
   </svg>
 );
 
-// Search icon fallback (shown until Figma icon loads)
-const SearchIconFallback = () => (
-  <svg width="20" height="20" viewBox="0 0 20 20" fill="none" aria-hidden>
-    <circle cx="8.5" cy="8.5" r="5.5" stroke={tokens.color.fg.disabled} strokeWidth="1.5"/>
-    <path d="M13 13l3.5 3.5" stroke={tokens.color.fg.disabled} strokeWidth="1.5" strokeLinecap="round"/>
-  </svg>
-);
-
-function TrashIcon({ url }: { url?: string }) {
-  if (url) return <img src={url} width={24} height={24} alt="" aria-hidden style={{ display: "block" }} />;
-  return (
-    <svg width="24" height="24" viewBox="0 0 24 24" fill="none">
-      <path d="M3 6h18M8 6V4h8v2M19 6l-1 14H6L5 6" stroke="#ef4444" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round"/>
-    </svg>
-  );
-}
-
 // ---------------------------------------------------------------------------
 // Data
 // ---------------------------------------------------------------------------
@@ -122,67 +104,18 @@ const SERIAL_FORMATS = [
   },
 ];
 
-const MOCK_SEARCH_RESULTS = [
-  { id: "p1", name: "Ultra O Locksafe - A327",   subtitle: "DMM | A327MG",  image: "/docs/product-a327.png"   },
-  { id: "p2", name: "Ultra O Locksafe (Orange)", subtitle: "DMM | A327OR",  image: "/docs/product-a327or.png" },
+const MOCK_CATALOGUE: CatalogueProduct[] = [
+  { id: "p1", name: "Ultra O Locksafe - A327",   sku: "DMM | A327MG",  image: "/docs/product-a327.png"   },
+  { id: "p2", name: "Ultra O Locksafe (Orange)", sku: "DMM | A327OR",  image: "/docs/product-a327or.png" },
 ];
-
-// ---------------------------------------------------------------------------
-// SerialFormatRow
-// ---------------------------------------------------------------------------
-function SerialFormatRow({
-  format,
-  selected,
-  onSelect,
-  isLast,
-}: {
-  format: typeof SERIAL_FORMATS[0];
-  selected: boolean;
-  onSelect: () => void;
-  isLast?: boolean;
-}) {
-  return (
-    <div
-      onClick={onSelect}
-      style={{
-        display:        "flex",
-        alignItems:     "center",
-        justifyContent: "space-between",
-        padding:        "12px 24px",
-        gap:            "48px",
-        borderBottom:   isLast ? "none" : `1px solid ${tokens.color.divider.frame}`,
-        cursor:         "pointer",
-        background:     selected ? tokens.color.bg.lightBg : tokens.color.base.white,
-        transition:     "background 150ms ease",
-      }}
-    >
-      <div style={{ display: "flex", alignItems: "center", gap: "8px", flexShrink: 0 }}>
-        <RadioButton checked={selected} onChange={onSelect} />
-        <span style={{ fontFamily: tokens.fontFamily.sans, fontSize: tokens.fontSize.body, fontWeight: tokens.fontWeight.medium, lineHeight: tokens.lineHeight.body, color: tokens.color.fg.primary }}>
-          {format.name}
-        </span>
-      </div>
-      <div style={{ display: "flex", gap: "48px", flexShrink: 0 }}>
-        {format.stats.map((stat) => (
-          <div key={stat.label} style={{ display: "flex", flexDirection: "column", gap: "6px" }}>
-            <Badge label={stat.label} color="green" />
-            <span style={{ fontFamily: tokens.fontFamily.sans, fontSize: tokens.fontSize.body, fontWeight: tokens.fontWeight.regular, lineHeight: tokens.lineHeight.body, color: tokens.color.fg.support }}>
-              {stat.value}
-            </span>
-          </div>
-        ))}
-      </div>
-    </div>
-  );
-}
 
 // ---------------------------------------------------------------------------
 // SectionLabel
 // ---------------------------------------------------------------------------
 function SectionLabel({ title, subtitle }: { title: string; subtitle?: string }) {
   return (
-    <div style={{ marginBottom: "16px" }}>
-      <h2 style={{ fontFamily: tokens.fontFamily.sans, fontSize: "16px", fontWeight: tokens.fontWeight.semiBold, lineHeight: "22px", color: tokens.color.fg.primary, margin: 0 }}>
+    <div style={{ marginBottom: tokens.spacing[6] }}>
+      <h2 style={{ fontFamily: tokens.fontFamily.sans, fontSize: tokens.fontSize.h4, fontWeight: tokens.fontWeight.medium, lineHeight: tokens.lineHeight.h4, color: tokens.color.fg.primary, margin: 0 }}>
         {title}
       </h2>
       {subtitle && (
@@ -215,49 +148,9 @@ export default function CreateSerialsPage() {
   const [customerRef,      setCustomerRef]      = useState("");
   const [batchNumber,      setBatchNumber]      = useState("");
   const [dateManufactured, setDateManufactured] = useState("2026-04-10");
-  const [searchQuery,      setSearchQuery]      = useState("");
-  const [searchOpen,       setSearchOpen]       = useState(false);
-  const [selectedProducts, setSelectedProducts] = useState<
-    { id: string; name: string; subtitle: string; image?: string; quantity: string }[]
-  >([]);
-  const [lastAddedId,  setLastAddedId]  = useState<string | null>(null);
+  const [selectedProducts, setSelectedProducts] = useState<SelectedProductItem[]>([]);
 
-  const dateInputRef   = useRef<HTMLInputElement>(null);
-  const quantityRefs   = useRef<Record<string, HTMLInputElement | null>>({});
-
-  // Auto-focus quantity input when a product is added
-  useEffect(() => {
-    if (lastAddedId && quantityRefs.current[lastAddedId]) {
-      quantityRefs.current[lastAddedId]?.focus();
-    }
-  }, [lastAddedId, selectedProducts.length]);
-
-  const searchResults = searchQuery.trim()
-    ? MOCK_SEARCH_RESULTS.filter(
-        (r) =>
-          r.name.toLowerCase().includes(searchQuery.toLowerCase()) ||
-          r.subtitle.toLowerCase().includes(searchQuery.toLowerCase()),
-      )
-    : [];
-
-  function addProduct(p: { id: string; name: string; subtitle: string; image?: string }) {
-    if (!selectedProducts.find((sp) => sp.id === p.id)) {
-      setSelectedProducts((prev) => [...prev, { ...p, quantity: "" }]);
-      setLastAddedId(p.id);
-    }
-    setSearchOpen(false);
-    setSearchQuery("");
-  }
-
-  function removeProduct(id: string) {
-    setSelectedProducts((prev) => prev.filter((p) => p.id !== id));
-  }
-
-  function setQuantity(id: string, qty: string) {
-    setSelectedProducts((prev) =>
-      prev.map((p) => (p.id === id ? { ...p, quantity: qty } : p)),
-    );
-  }
+  const dateInputRef = useRef<HTMLInputElement>(null);
 
   function handleCreateSerials() {
     const selectedFmt = SERIAL_FORMATS.find((f) => f.id === selectedFormat);
@@ -333,60 +226,69 @@ export default function CreateSerialsPage() {
             borderRadius: tokens.borderRadius.lg,
           }}
         >
-          <div style={{ padding: "24px" }}>
-
-            {/* Page title */}
-            <h1
-              style={{
-                fontFamily:   tokens.fontFamily.sans,
-                fontSize:     "18px",
-                fontWeight:   tokens.fontWeight.semiBold,
-                lineHeight:   "24px",
-                color:        tokens.color.fg.primary,
-                margin:       "0 0 24px",
-                paddingBottom:"24px",
-                borderBottom: `1px solid ${tokens.color.divider.frame}`,
-              }}
-            >
-              Create Serials
+          {/* Page title */}
+          <div style={{
+            padding:      "24px",
+            borderBottom: `1px solid ${tokens.color.divider.border}`,
+          }}>
+            <h1 style={{
+              fontFamily:  tokens.fontFamily.sans,
+              fontSize:    tokens.fontSize.h3,       // 20px
+              fontWeight:  tokens.fontWeight.medium,
+              lineHeight:  tokens.lineHeight.h3,     // 28px
+              color:       tokens.color.fg.primary,
+              margin:      0,
+            }}>
+              Create serials
             </h1>
+          </div>
 
-            {/* ── Serial Details ──────────────────────────────────────── */}
+          {/* Content */}
+          <div style={{
+            display:       "flex",
+            flexDirection: "column",
+            gap:           tokens.spacing[6],   // 24px between all sections
+            padding:       "24px",
+          }}>
+
+            {/* ── Serial details heading ──────────────────────────────── */}
+            <h2 style={{
+              fontFamily:  tokens.fontFamily.sans,
+              fontSize:    tokens.fontSize.h4,       // 18px
+              fontWeight:  tokens.fontWeight.medium,
+              lineHeight:  tokens.lineHeight.h4,     // 24px
+              color:       tokens.color.fg.primary,
+              margin:      0,
+            }}>
+              Serial details
+            </h2>
+
+            {/* ── Serial format selection ──────────────────────────────── */}
             <section>
-              <SectionLabel title="Serial Details" />
-              <p
-                style={{
-                  fontFamily: tokens.fontFamily.sans,
-                  fontSize:   tokens.fontSize.body,
-                  fontWeight: tokens.fontWeight.medium,
-                  lineHeight: tokens.lineHeight.body,
-                  color:      tokens.color.fg.primary,
-                  margin:     "0 0 8px",
-                }}
-              >
-                Select a Serial Format to Use
-              </p>
-              <div
-                style={{
-                  border:       `1px solid ${tokens.color.divider.frame}`,
-                  borderRadius: tokens.borderRadius.lg,
-                  overflow:     "hidden",
-                  background:   tokens.color.base.white,
-                }}
-              >
-                {SERIAL_FORMATS.map((fmt, i) => (
-                  <SerialFormatRow
-                    key={fmt.id}
-                    format={fmt}
-                    selected={selectedFormat === fmt.id}
-                    onSelect={() => setSelectedFormat(fmt.id)}
-                    isLast={i === SERIAL_FORMATS.length - 1}
-                  />
-                ))}
+              <div style={{ display: "flex", flexDirection: "column", gap: tokens.spacing[2], maxWidth: "360px" }}>
+                <p style={{
+                  fontFamily:  tokens.fontFamily.sans,
+                  fontSize:    tokens.fontSize.body,       // 14px
+                  fontWeight:  tokens.fontWeight.medium,   // 500 — Figma: Inter Medium
+                  lineHeight:  tokens.lineHeight.body,     // 20px
+                  color:       tokens.color.fg.primary,
+                  margin:      0,
+                }}>
+                  Select a serial format to use
+                </p>
+                <SelectionCardGroup
+                  type="radio"
+                  name="serial-format"
+                  value={selectedFormat ?? undefined}
+                  onChange={(val) => setSelectedFormat(val)}
+                  options={SERIAL_FORMATS.map((fmt) => ({
+                    value:       fmt.id,
+                    label:       fmt.name,
+                    description: fmt.stats.map((s) => `${s.label}: ${s.value}`).join(" | "),
+                  }))}
+                />
               </div>
             </section>
-
-            <Divider />
 
             {/* ── Batch Details ───────────────────────────────────────── */}
             <section>
@@ -466,13 +368,14 @@ export default function CreateSerialsPage() {
               </div>
             </section>
 
-            <Divider />
-
             {/* ── Apply to Product ────────────────────────────────────── */}
-            <section>
+            <section style={{
+              borderTop:   `1px solid ${tokens.color.divider.border}`,
+              paddingTop:  tokens.spacing[6],
+            }}>
               <SectionLabel
-                title="Apply to Product"
-                subtitle="Add as many products as needed."
+                title="Assign to products"
+                subtitle="Select one or more products to assign these serials to. Note: This tool is not available for Assembly product types."
               />
 
               {/*
@@ -481,176 +384,16 @@ export default function CreateSerialsPage() {
                * are all contained in this 50%-wide wrapper.
                */}
               <div style={{ width: "50%", minWidth: 0 }}>
-
-                {/* Search row — relative so the dropdown anchors to it */}
-                <div style={{ display: "flex", gap: "12px", alignItems: "flex-end", position: "relative" }}>
-                  <div style={{ flex: 1, minWidth: 0 }}>
-                    <Input
-                      placeholder="Search by SKU name or code"
-                      value={searchQuery}
-                      onChange={(e) => { setSearchQuery(e.target.value); setSearchOpen(true); }}
-                      onFocus={() => setSearchOpen(true)}
-                      leadingIcon={
-                        icons[SIDEBAR_ICON_IDS.search] ? (
-                          <span
-                            style={{
-                              display:            "inline-block",
-                              width:              "20px",
-                              height:             "20px",
-                              flexShrink:         0,
-                              background:         tokens.color.fg.disabled,
-                              maskImage:          `url(${icons[SIDEBAR_ICON_IDS.search]})`,
-                              maskSize:           "contain",
-                              maskRepeat:         "no-repeat",
-                              maskPosition:       "center",
-                              WebkitMaskImage:    `url(${icons[SIDEBAR_ICON_IDS.search]})`,
-                              WebkitMaskSize:     "contain",
-                              WebkitMaskRepeat:   "no-repeat",
-                              WebkitMaskPosition: "center",
-                            } as React.CSSProperties}
-                            aria-hidden
-                          />
-                        ) : (
-                          <SearchIconFallback />
-                        )
-                      }
-                      onKeyDown={(e) => { if (e.key === "Escape") setSearchOpen(false); }}
-                    />
-                  </div>
-                  <Button
-                    label="Search"
-                    variant="primary"
-                    onClick={() => setSearchOpen(true)}
-                  />
-
-                  {/* Dropdown — spans the full search-row width */}
-                  {searchOpen && searchResults.length > 0 && (
-                    <div
-                      style={{
-                        position:     "absolute",
-                        bottom:       "calc(100% + 4px)",
-                        left:         0,
-                        right:        0,
-                        background:   tokens.color.base.white,
-                        border:       `1px solid ${tokens.color.divider.frame}`,
-                        borderRadius: tokens.borderRadius.lg,
-                        boxShadow:    tokens.shadows.md,
-                        zIndex:       50,
-                        overflow:     "hidden",
-                      }}
-                    >
-                      {searchResults.map((result) => (
-                        <button
-                          key={result.id}
-                          onClick={() => addProduct(result)}
-                          style={{
-                            display:     "block",
-                            width:       "100%",
-                            background:  "none",
-                            border:      "none",
-                            borderBottom:`1px solid ${tokens.color.divider.border}`,
-                            cursor:      "pointer",
-                            padding:     0,
-                            textAlign:   "left" as const,
-                          }}
-                        >
-                          <ListViewItem title={result.name} subtitle={result.subtitle} />
-                        </button>
-                      ))}
-                    </div>
-                  )}
-                </div>
-
-                {/* Selected products */}
-                {selectedProducts.length > 0 && (
-                  <div style={{ marginTop: "24px" }}>
-                    <p
-                      style={{
-                        fontFamily:  tokens.fontFamily.sans,
-                        fontSize:    tokens.fontSize.body,
-                        fontWeight:  tokens.fontWeight.regular,
-                        lineHeight:  tokens.lineHeight.body,
-                        color:       tokens.color.fg.support,
-                        margin:      "0 0 4px",
-                      }}
-                    >
-                      Selected products
-                    </p>
-
-                    {selectedProducts.map((product, idx) => (
-                      <div
-                        key={product.id}
-                        style={{
-                          display:      "flex",
-                          alignItems:   "flex-end",
-                          gap:          "12px",
-                          padding:      "12px 0",
-                          borderBottom: idx === selectedProducts.length - 1 ? "none" : `1px solid ${tokens.color.divider.border}`,
-                        }}
-                      >
-                        {/* Thumbnail + name — fills available space */}
-                        <div style={{ flex: 1, minWidth: 0, display: "flex", alignItems: "center", gap: "12px" }}>
-                          <div
-                            style={{
-                              width:          "40px",
-                              height:         "40px",
-                              flexShrink:     0,
-                              border:         `1px solid ${tokens.color.divider.border}`,
-                              borderRadius:   tokens.borderRadius.md,
-                              display:        "flex",
-                              alignItems:     "center",
-                              justifyContent: "center",
-                              background:     tokens.color.bg.lightBg,
-                              overflow:       "hidden",
-                            }}
-                          >
-                            {product.image ? (
-                              <img src={product.image} width={40} height={40} alt="" style={{ objectFit: "cover", display: "block" }} />
-                            ) : (
-                              <svg width="20" height="20" viewBox="0 0 20 20" fill="none">
-                                <rect x="4" y="3" width="12" height="14" rx="2" stroke={tokens.color.fg.disabled} strokeWidth="1.2"/>
-                              </svg>
-                            )}
-                          </div>
-                          <div style={{ minWidth: 0 }}>
-                            <div style={{ fontFamily: tokens.fontFamily.sans, fontSize: tokens.fontSize.body, fontWeight: tokens.fontWeight.medium, color: tokens.color.fg.primary, overflow: "hidden", textOverflow: "ellipsis", whiteSpace: "nowrap" as const }}>
-                              {product.name}
-                            </div>
-                            <div style={{ fontFamily: tokens.fontFamily.sans, fontSize: "12px", fontWeight: tokens.fontWeight.regular, color: tokens.color.fg.support, overflow: "hidden", textOverflow: "ellipsis", whiteSpace: "nowrap" as const }}>
-                              {product.subtitle}
-                            </div>
-                          </div>
-                        </div>
-
-                        {/* Quantity input */}
-                        <div style={{ width: "128px", flexShrink: 0 }}>
-                          <Input
-                            label="Quantity of serials"
-                            placeholder="0"
-                            type="number"
-                            value={product.quantity}
-                            onChange={(e) => setQuantity(product.id, e.target.value)}
-                            ref={(el) => { quantityRefs.current[product.id] = el; }}
-                          />
-                        </div>
-
-                        {/* Remove */}
-                        <Button
-                          variant="icon framed"
-                          icon={<TrashIcon url={icons[BIN_ICON_ID]} />}
-                          onClick={() => removeProduct(product.id)}
-                          aria-label={`Remove ${product.name}`}
-                          style={{ flexShrink: 0 }}
-                        />
-                      </div>
-                    ))}
-                  </div>
-                )}
-
+                <ApplyToProduct
+                  catalogue={MOCK_CATALOGUE}
+                  selectedProducts={selectedProducts}
+                  onProductsChange={setSelectedProducts}
+                  binIconUrl={icons[BIN_ICON_ID]}
+                />
               </div>{/* end half-width wrapper */}
             </section>
 
-          </div>{/* end inner padding */}
+          </div>{/* end content */}
 
           {/* Card footer */}
           <div
@@ -658,10 +401,16 @@ export default function CreateSerialsPage() {
               display:        "flex",
               justifyContent: "flex-end",
               alignItems:     "center",
+              gap:            tokens.spacing[3],
               padding:        "16px 24px",
               borderTop:      `1px solid ${tokens.color.divider.frame}`,
             }}
           >
+            <Button
+              label="Cancel"
+              variant="secondary"
+              onClick={() => router.push("/dashboard/serialisation")}
+            />
             <Button
               label="Create Serials"
               variant={selectedFormat && selectedProducts.length > 0 ? "primary" : "disabled"}

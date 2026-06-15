@@ -14,6 +14,8 @@ import tokens from "@/styles/design-tokens";
 import { useFigmaIcons } from "@/hooks/useFigmaIcons";
 import { Input } from "@/components/ui/Input";
 import { Button } from "@/components/ui/Button";
+import { ProductImg } from "@/components/ui/ProductImg";
+import { SearchDropdown, type SearchDropdownItem } from "@/components/ui/SearchDropdown";
 
 // Search icon — Scannable Design System node 52:1245
 const SEARCH_ICON_ID = "52:1245";
@@ -97,36 +99,6 @@ const TrashRedIcon = () => (
   </svg>
 );
 
-// ---------------------------------------------------------------------------
-// ProductThumbnail — 40 × 40 px, lightBg, 1 px border, rect SVG fallback
-// Matches create-serials exactly.
-// ---------------------------------------------------------------------------
-function ProductThumbnail({ image }: { image?: string }) {
-  return (
-    <div
-      style={{
-        width:          "40px",
-        height:         "40px",
-        flexShrink:     0,
-        border:         `1px solid ${tokens.color.divider.border}`,
-        borderRadius:   tokens.borderRadius.md,
-        display:        "flex",
-        alignItems:     "center",
-        justifyContent: "center",
-        background:     tokens.color.bg.lightBg,
-        overflow:       "hidden",
-      }}
-    >
-      {image ? (
-        <img src={image} width={40} height={40} alt="" style={{ objectFit: "cover", display: "block" }} />
-      ) : (
-        <svg width="20" height="20" viewBox="0 0 20 20" fill="none" aria-hidden>
-          <rect x="4" y="3" width="12" height="14" rx="2" stroke={tokens.color.fg.disabled} strokeWidth="1.2"/>
-        </svg>
-      )}
-    </div>
-  );
-}
 
 // ---------------------------------------------------------------------------
 // ApplyToProduct
@@ -143,9 +115,10 @@ export function ApplyToProduct({
   const iconUrls      = useFigmaIcons([SEARCH_ICON_ID]);
   const searchIconUrl = iconUrls[SEARCH_ICON_ID];
 
-  const [searchQuery,   setSearchQuery]   = useState("");
-  const [searchFocused, setSearchFocused] = useState(false);
-  const [searchResults, setSearchResults] = useState<CatalogueProduct[] | null>(null);
+  const [searchQuery,    setSearchQuery]    = useState("");
+  const [searchFocused,  setSearchFocused]  = useState(false);
+  const [searchResults,  setSearchResults]  = useState<CatalogueProduct[] | null>(null);
+  const [dropAbove,      setDropAbove]      = useState(false);
 
   const containerRef = useRef<HTMLDivElement>(null);
 
@@ -159,6 +132,16 @@ export function ApplyToProduct({
     document.addEventListener("mousedown", handleClick);
     return () => document.removeEventListener("mousedown", handleClick);
   }, []);
+
+  // Flip dropdown above when too close to the bottom of the viewport
+  useEffect(() => {
+    if (searchResults !== null && containerRef.current) {
+      const rect            = containerRef.current.getBoundingClientRect();
+      const spaceBelow      = window.innerHeight - rect.bottom;
+      const estimatedHeight = (searchResults.length * 64) + 40; // rows + header
+      setDropAbove(spaceBelow < estimatedHeight + 8);
+    }
+  }, [searchResults]);
 
   // ---------------------------------------------------------------------------
   // Handlers
@@ -204,8 +187,8 @@ export function ApplyToProduct({
     display:      "flex",
     alignItems:   "center",
     height:       "40px",
-    padding:      "0 12px",
-    gap:          "8px",
+    padding:      `0 ${tokens.spacing[3]}`,
+    gap:          tokens.spacing[2],
     border:       searchActive
       ? `2px solid ${tokens.color.divider.blue}`
       : `1px solid ${tokens.color.divider.frame}`,
@@ -219,13 +202,14 @@ export function ApplyToProduct({
   // Render
   // ---------------------------------------------------------------------------
   return (
-    <div>
+    <div style={{ display: "flex", flexDirection: "column", gap: tokens.spacing[6] }}>
       {/* ── Search row ─────────────────────────────────────────────────────── */}
       <div
         ref={containerRef}
-        style={{ display: "flex", gap: "12px", alignItems: "flex-end", position: "relative" }}
+        style={{ display: "flex", gap: tokens.spacing[3], alignItems: "flex-end" }}
       >
-        <div style={{ flex: 1, minWidth: 0 }}>
+        {/* Input — position:relative so dropdown anchors to its width */}
+        <div style={{ flex: 1, minWidth: 0, position: "relative" }}>
           <div style={searchInputWrapStyle}>
             {searchIconUrl ? <MaskedIcon url={searchIconUrl} size={20} /> : <SearchIconFallback />}
             <input
@@ -255,6 +239,54 @@ export function ApplyToProduct({
               }}
             />
           </div>
+
+          {/* ── Dropdown — same width as input ─────────────────────────── */}
+          {searchResults !== null && (
+            <div
+              style={{
+                position: "absolute",
+                ...(dropAbove
+                  ? { bottom: "calc(100% + 4px)", top: "auto" }
+                  : { top:    "calc(100% + 4px)", bottom: "auto" }),
+                left:    0,
+                right:   0,
+                zIndex:  30,
+              }}
+            >
+              {searchResults.length === 0 ? (
+                <div
+                  style={{
+                    background:   tokens.color.base.white,
+                    border:       `1px solid ${tokens.color.divider.border}`,
+                    borderRadius: tokens.borderRadius.lg,
+                    boxShadow:    tokens.shadows.ringMd,
+                    padding:      `${tokens.spacing[4]} ${tokens.spacing[3]}`,
+                    fontFamily:   tokens.fontFamily.sans,
+                    fontSize:     tokens.fontSize.body,
+                    color:        tokens.color.fg.support,
+                    textAlign:    "center" as const,
+                  }}
+                >
+                  No products found
+                </div>
+              ) : (
+                <SearchDropdown
+                  sections={[{
+                    items: searchResults.map((p) => ({
+                      id:       p.id,
+                      title:    p.name,
+                      subtitle: p.sku,
+                      image:    p.image,
+                    })),
+                  }]}
+                  onSelect={(item: SearchDropdownItem) => {
+                    const product = catalogue.find((p) => p.id === item.id);
+                    if (product) selectProduct(product);
+                  }}
+                />
+              )}
+            </div>
+          )}
         </div>
 
         {/* Search button */}
@@ -263,7 +295,7 @@ export function ApplyToProduct({
           onClick={handleSearch}
           style={{
             height:       "40px",
-            padding:      "0 16px",
+            padding:      `0 ${tokens.spacing[4]}`,
             background:   tokens.color.brand.lime,
             border:       `1px solid ${tokens.color.divider.lime}`,
             borderRadius: tokens.borderRadius.md,
@@ -278,57 +310,11 @@ export function ApplyToProduct({
         >
           Search
         </button>
-
-        {/* ── Dropdown ───────────────────────────────────────────────────── */}
-        {searchResults !== null && (
-          <div
-            style={{
-              position:     "absolute",
-              top:          "calc(100% + 4px)",
-              left:         0,
-              right:        0,
-              background:   tokens.color.base.white,
-              border:       `1px solid ${tokens.color.divider.border}`,
-              borderRadius: tokens.borderRadius.md,
-              boxShadow:    tokens.shadows.ringMd,
-              zIndex:       30,
-              overflow:     "hidden",
-            }}
-          >
-            <div
-              style={{
-                padding:      "8px 12px",
-                fontFamily:   tokens.fontFamily.sans,
-                fontSize:     tokens.fontSize.bodySmall,
-                fontWeight:   tokens.fontWeight.regular,
-                color:        tokens.color.fg.support,
-                borderBottom: `1px solid ${tokens.color.divider.border}`,
-              }}
-            >
-              {searchResults.length} product{searchResults.length !== 1 ? "s" : ""}
-            </div>
-
-            {searchResults.length === 0 ? (
-              <div style={{ padding: "16px 12px", fontFamily: tokens.fontFamily.sans, fontSize: tokens.fontSize.body, color: tokens.color.fg.support, textAlign: "center" as const }}>
-                No products found
-              </div>
-            ) : (
-              searchResults.map((product, idx) => (
-                <DropdownRow
-                  key={product.id}
-                  product={product}
-                  isLast={idx === searchResults.length - 1}
-                  onSelect={() => selectProduct(product)}
-                />
-              ))
-            )}
-          </div>
-        )}
       </div>
 
       {/* ── Selected Products ──────────────────────────────────────────────── */}
       {selectedProducts.length > 0 && (
-        <div style={{ marginTop: "24px" }}>
+        <div style={{ display: "flex", flexDirection: "column", gap: tokens.spacing[2] }}>
           <p
             style={{
               fontFamily:  tokens.fontFamily.sans,
@@ -336,7 +322,7 @@ export function ApplyToProduct({
               fontWeight:  tokens.fontWeight.regular,
               lineHeight:  tokens.lineHeight.body,
               color:       tokens.color.fg.support,
-              margin:      "0 0 4px",
+              margin:      0,
             }}
           >
             Selected products
@@ -355,50 +341,6 @@ export function ApplyToProduct({
           ))}
         </div>
       )}
-    </div>
-  );
-}
-
-// ---------------------------------------------------------------------------
-// DropdownRow
-// ---------------------------------------------------------------------------
-function DropdownRow({
-  product,
-  isLast,
-  onSelect,
-}: {
-  product:  CatalogueProduct;
-  isLast:   boolean;
-  onSelect: () => void;
-}) {
-  const [hovered, setHovered] = useState(false);
-  return (
-    <div
-      role="option"
-      aria-selected={false}
-      onClick={onSelect}
-      onMouseEnter={() => setHovered(true)}
-      onMouseLeave={() => setHovered(false)}
-      style={{
-        display:      "flex",
-        alignItems:   "center",
-        gap:          "12px",
-        padding:      "8px 12px",
-        cursor:       "pointer",
-        background:   hovered ? tokens.color.tint.blue : "transparent",
-        borderBottom: isLast ? "none" : `1px solid ${tokens.color.divider.border}`,
-        transition:   "background 100ms ease",
-      }}
-    >
-      <ProductThumbnail image={product.image} />
-      <div style={{ minWidth: 0 }}>
-        <div style={{ fontFamily: tokens.fontFamily.sans, fontSize: tokens.fontSize.body, fontWeight: tokens.fontWeight.medium, color: tokens.color.fg.primary, overflow: "hidden", textOverflow: "ellipsis", whiteSpace: "nowrap" as const }}>
-          {product.name}
-        </div>
-        <div style={{ fontFamily: tokens.fontFamily.sans, fontSize: tokens.fontSize.bodySmall, fontWeight: tokens.fontWeight.regular, color: tokens.color.fg.support, overflow: "hidden", textOverflow: "ellipsis", whiteSpace: "nowrap" as const }}>
-          {product.sku}
-        </div>
-      </div>
     </div>
   );
 }
@@ -425,20 +367,21 @@ function SelectedRow({
     <div
       style={{
         display:      "flex",
-        alignItems:   "flex-end",
-        gap:          "12px",
-        padding:      "12px 0",
-        borderBottom: isLast ? "none" : `1px solid ${tokens.color.divider.border}`,
+        alignItems:    "flex-end",
+        gap:           tokens.spacing[4],   // 16px — Figma gap-4
+        paddingTop:    0,
+        paddingBottom: tokens.spacing[4],   // 16px — Figma pb-4, no top padding
+        borderBottom:  isLast ? "none" : `1px solid ${tokens.color.divider.border}`,
       }}
     >
       {/* Thumbnail + name/sku — flex:1 fills available space */}
-      <div style={{ flex: 1, minWidth: 0, display: "flex", alignItems: "center", gap: "12px" }}>
-        <ProductThumbnail image={product.image} />
+      <div style={{ flex: 1, minWidth: 0, display: "flex", alignItems: "center", gap: tokens.spacing[3] }}>
+        <ProductImg size={40} image={product.image} />
         <div style={{ minWidth: 0 }}>
           <div style={{ fontFamily: tokens.fontFamily.sans, fontSize: tokens.fontSize.body, fontWeight: tokens.fontWeight.medium, color: tokens.color.fg.primary, overflow: "hidden", textOverflow: "ellipsis", whiteSpace: "nowrap" as const }}>
             {product.name}
           </div>
-          <div style={{ fontFamily: tokens.fontFamily.sans, fontSize: "12px", fontWeight: tokens.fontWeight.regular, color: tokens.color.fg.support, overflow: "hidden", textOverflow: "ellipsis", whiteSpace: "nowrap" as const }}>
+          <div style={{ fontFamily: tokens.fontFamily.sans, fontSize: tokens.fontSize.bodySmall, fontWeight: tokens.fontWeight.regular, color: tokens.color.fg.support, overflow: "hidden", textOverflow: "ellipsis", whiteSpace: "nowrap" as const }}>
             {product.sku}
           </div>
         </div>

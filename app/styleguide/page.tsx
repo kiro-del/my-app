@@ -2,6 +2,7 @@
 
 import { useState, useEffect } from "react";
 import tokens from "@/styles/design-tokens";
+import { DecoIcon, type DecoIcon40Tone, type DecoIcon64Tone, type DecoIcon96Tone, type DecoIcon136Tone } from "@/components/ui/DecoIcon";
 
 // ---------------------------------------------------------------------------
 // Icon data
@@ -197,6 +198,34 @@ const ICONS_16: { name: string; nodeId: string }[] = [
 
 const FILE_KEY = "j8hy0yzSKPyh1yRKOh4tuU";
 
+// ---------------------------------------------------------------------------
+// 64px standalone icons  (no coloured container — use for empty states / hero)
+// Node IDs to be added once sourced from Figma.
+// ---------------------------------------------------------------------------
+const ICONS_64: { name: string; nodeId?: string }[] = [
+  { name: "check-on" },
+  { name: "global-search" },
+  { name: "camera" },
+  { name: "brand-loading" },
+  { name: "scan-nfc" },
+  { name: "offline-available" },
+  { name: "assembly" },
+  { name: "notifications" },
+];
+
+// ---------------------------------------------------------------------------
+// Folder icon types  (16 / 20 / 24 / 40 px — inner icon changes by type)
+// ---------------------------------------------------------------------------
+const FOLDER_TYPES: { type: string; nodeId: string; size: number }[] = [
+  { type: "none",      nodeId: "220:465",   size: 24 },  // plain folder
+  { type: "location",  nodeId: "198:1557",  size: 20 },  // location-marker
+  { type: "vehicle",   nodeId: "198:1551",  size: 20 },  // car
+  { type: "kitbag",    nodeId: "198:1550",  size: 20 },  // kit bag
+  { type: "equipment", nodeId: "198:1604",  size: 20 },  // tower
+  { type: "client",    nodeId: "198:507",   size: 20 },  // group
+  { type: "staff",     nodeId: "2128:2699", size: 20 },  // staff
+];
+
 async function fetchSvgs(nodeIds: string[]): Promise<Record<string, string>> {
   const ids = nodeIds.join(",");
   try {
@@ -213,10 +242,11 @@ async function fetchSvgs(nodeIds: string[]): Promise<Record<string, string>> {
 // Helpers
 // ---------------------------------------------------------------------------
 
-function isLight(hex: string) {
-  const r = parseInt(hex.slice(1, 3), 16);
-  const g = parseInt(hex.slice(3, 5), 16);
-  const b = parseInt(hex.slice(5, 7), 16);
+function isLight(color: string) {
+  if (!color.startsWith("#") || color.length < 7) return false;
+  const r = parseInt(color.slice(1, 3), 16);
+  const g = parseInt(color.slice(3, 5), 16);
+  const b = parseInt(color.slice(5, 7), 16);
   return r * 0.299 + g * 0.587 + b * 0.114 > 150;
 }
 
@@ -327,64 +357,43 @@ function IconCard({ name, svgUrl, size }: { name: string; svgUrl?: string; size:
 // ---------------------------------------------------------------------------
 // Deco icon variants
 // ---------------------------------------------------------------------------
-const DECO_VARIANTS: { size: string; tone: string; nodeId: string }[] = [
-  { size: "40",  tone: "info",            nodeId: "216:871"    },
-  { size: "40",  tone: "info reverse",    nodeId: "216:1184"   },
-  { size: "40",  tone: "success",         nodeId: "2204:3387"  },
-  { size: "40",  tone: "success-reverse", nodeId: "2204:3397"  },
-  { size: "40",  tone: "error",           nodeId: "216:1193"   },
-  { size: "40",  tone: "error-reverse",   nodeId: "2236:2941"  },
-  { size: "40",  tone: "warning",         nodeId: "216:1196"   },
-  { size: "40",  tone: "disabled",        nodeId: "216:1199"   },
-  { size: "40",  tone: "brand",           nodeId: "216:1202"   },
-  { size: "40",  tone: "highlight",       nodeId: "220:2721"   },
-  { size: "64",  tone: "brand",           nodeId: "1098:8734"  },
-  { size: "64",  tone: "info",            nodeId: "4409:13196" },
-  { size: "64",  tone: "loading",         nodeId: "1767:2252"  },
-  { size: "96",  tone: "info",            nodeId: "2365:1748"  },
-  { size: "96",  tone: "success",         nodeId: "2365:1843"  },
-  { size: "96",  tone: "disabled",        nodeId: "2365:1826"  },
-  { size: "136", tone: "success",         nodeId: "1732:9725"  },
-  { size: "136", tone: "disabled",        nodeId: "1114:2158"  },
-  { size: "136", tone: "loading",         nodeId: "1738:2243"  },
+// Deco icon tones per size — drives the /styleguide#deco-icons section
+const DECO_SIZES_MAP: { size: "40" | "64" | "96" | "136"; tones: string[] }[] = [
+  { size: "40",  tones: ["info","info reverse","success","success-reverse","error","error-reverse","warning","disabled","brand","highlight"] },
+  { size: "64",  tones: ["brand","info","loading"] },
+  { size: "96",  tones: ["info","success","disabled"] },
+  { size: "136", tones: ["success","disabled","loading"] },
 ];
 
-const DECO_SIZES = ["40", "64", "96", "136"] as const;
-
-function decoRadius(size: string) {
-  return parseInt(size) >= 96 ? tokens.borderRadius["2xl"] : tokens.borderRadius.lg;
-}
-
-const NAV_ITEMS = ["Colors", "Typography", "Spacing", "Border Radius", "Shadows", "Icons", "Deco Icons", "Components", "Patterns"];
+const NAV_ITEMS = ["Colors", "Typography", "Spacing", "Border Radius", "Shadows", "Icons", "Deco Icons", "Folder Icons", "Components", "Patterns", "Mobile"];
 
 export default function StyleguidePage() {
   const [svgs24, setSvgs24] = useState<Record<string, string>>({});
   const [svgs16, setSvgs16] = useState<Record<string, string>>({});
-  const [decoSvgs, setDecoSvgs] = useState<Record<string, string>>({});
-  const [iconTab, setIconTab] = useState<"24" | "16">("24");
+  const [svgsFolder, setSvgsFolder] = useState<Record<string, string>>({});
+  const [iconTab, setIconTab] = useState<"24" | "16" | "64">("24");
   const [iconQuery, setIconQuery] = useState("");
   const [iconsLoading, setIconsLoading] = useState(true);
-  const [decoLoading, setDecoLoading] = useState(true);
   const [svgError, setSvgError] = useState(false);
 
   useEffect(() => {
     const load = async () => {
-      const [r24, r16, rDeco] = await Promise.all([
+      const folderNodeIds = FOLDER_TYPES.map(f => f.nodeId);
+      const [r24, r16, rFolder] = await Promise.all([
         fetchSvgs(ICONS_24.map(i => i.nodeId)),
         fetchSvgs(ICONS_16.map(i => i.nodeId)),
-        fetchSvgs(DECO_VARIANTS.map(v => v.nodeId)),
+        folderNodeIds.length ? fetchSvgs(folderNodeIds) : Promise.resolve({}),
       ]);
       setSvgs24(r24);
       setSvgs16(r16);
-      setDecoSvgs(rDeco);
+      setSvgsFolder(rFolder);
       setSvgError(Object.keys(r24).length === 0);
       setIconsLoading(false);
-      setDecoLoading(false);
     };
     load();
   }, []);
 
-  const activeIcons = iconTab === "24" ? ICONS_24 : ICONS_16;
+  const activeIcons = iconTab === "24" ? ICONS_24 : iconTab === "16" ? ICONS_16 : [];
   const activeSvgs  = iconTab === "24" ? svgs24   : svgs16;
   const filteredIcons = iconQuery
     ? activeIcons.filter(i => i.name.toLowerCase().includes(iconQuery.toLowerCase()))
@@ -411,7 +420,8 @@ export default function StyleguidePage() {
           {NAV_ITEMS.map(item => {
             const href = item === "Components" ? "/styleguide/components"
               : item === "Patterns" ? "/styleguide/patterns"
-              : `#${item.toLowerCase().replace(/ /g, "-")}`;
+              : item === "Mobile"   ? "/styleguide/mobile"
+              : `#${item.toLowerCase().replace(/ /g, "-").replace(/\s+/g, "-")}`;
             return (
               <a key={item} href={href} style={{ display: "inline-block", padding: "12px 16px", fontSize: tokens.fontSize.bodySmall, fontWeight: tokens.fontWeight.medium, color: tokens.color.fg.support, textDecoration: "none", whiteSpace: "nowrap" as const }}>
                 {item}
@@ -434,6 +444,7 @@ export default function StyleguidePage() {
           <PaletteRow label="Tint"             colorMap={tokens.color.tint} />
           <PaletteRow label="Hover States"     colorMap={tokens.color.hover} />
           <PaletteRow label="Pressed States"   colorMap={tokens.color.pressed} />
+          <PaletteRow label="Base"             colorMap={{ white: tokens.color.base.white, black: tokens.color.base.black, overlay: tokens.color.base.overlay }} />
           <div style={{ borderTop: `1px solid ${tokens.color.divider.border}`, margin: "28px 0 20px" }} />
           <p style={{ fontSize: tokens.fontSize.h5, fontWeight: tokens.fontWeight.semiBold, color: tokens.color.fg.primary, marginBottom: "20px", fontFamily: tokens.fontFamily.sans }}>Primitive Palettes</p>
           <PaletteRow label="Gray"   colorMap={Object.fromEntries(Object.entries(tokens.color.palette.gray).map(([k,v])=>[`gray-${k}`,v]))} />
@@ -511,17 +522,21 @@ export default function StyleguidePage() {
           {/* Toolbar */}
           <div style={{ display: "flex", gap: "12px", alignItems: "center", marginBottom: "20px" }}>
             <div style={{ display: "flex", gap: "4px", background: tokens.color.bg.bg, borderRadius: tokens.borderRadius.md, padding: "4px" }}>
-              {(["24", "16"] as const).map(size => (
+              {(["24", "16", "64"] as const).map(size => (
                 <button key={size} onClick={() => setIconTab(size)} style={{ padding: "6px 16px", fontSize: tokens.fontSize.bodySmall, fontWeight: tokens.fontWeight.medium, fontFamily: tokens.fontFamily.sans, border: "none", cursor: "pointer", borderRadius: tokens.borderRadius.sm, background: iconTab === size ? tokens.color.base.white : "transparent", color: iconTab === size ? tokens.color.fg.primary : tokens.color.fg.support, boxShadow: iconTab === size ? tokens.shadows.sm : "none" }}>
                   {size}px
                 </button>
               ))}
             </div>
-            <input type="text" placeholder="Search icons…" value={iconQuery} onChange={e => setIconQuery(e.target.value)} style={{ flex: 1, padding: "8px 12px", fontSize: tokens.fontSize.body, fontFamily: tokens.fontFamily.sans, border: `1px solid ${tokens.color.divider.border}`, borderRadius: tokens.borderRadius.md, outline: "none", color: tokens.color.fg.primary, background: tokens.color.base.white }} />
-            <span style={{ fontSize: tokens.fontSize.bodySmall, color: tokens.color.fg.support, whiteSpace: "nowrap" as const }}>{filteredIcons.length} icons</span>
+            {iconTab !== "64" && (
+              <>
+                <input type="text" placeholder="Search icons…" value={iconQuery} onChange={e => setIconQuery(e.target.value)} style={{ flex: 1, padding: "8px 12px", fontSize: tokens.fontSize.body, fontFamily: tokens.fontFamily.sans, border: `1px solid ${tokens.color.divider.border}`, borderRadius: tokens.borderRadius.md, outline: "none", color: tokens.color.fg.primary, background: tokens.color.base.white }} />
+                <span style={{ fontSize: tokens.fontSize.bodySmall, color: tokens.color.fg.support, whiteSpace: "nowrap" as const }}>{filteredIcons.length} icons</span>
+              </>
+            )}
           </div>
 
-          {svgError && (
+          {svgError && iconTab !== "64" && (
             <div style={{ padding: "12px 16px", background: tokens.color.tint.yellow, border: `1px solid #fcd34d`, borderRadius: tokens.borderRadius.md, marginBottom: "16px" }}>
               <p style={{ fontSize: tokens.fontSize.bodySmall, color: tokens.color.fg.amber, margin: 0, fontFamily: tokens.fontFamily.sans }}>
                 ⚠️ SVG previews unavailable — add <code>FIGMA_TOKEN</code> to <code>.env.local</code> and restart. Icon names are still shown below.
@@ -529,7 +544,25 @@ export default function StyleguidePage() {
             </div>
           )}
 
-          {iconsLoading ? (
+          {iconTab === "64" ? (
+            /* 64px standalone icons — for empty states, onboarding, hero moments */
+            <div>
+              <p style={{ fontSize: tokens.fontSize.bodySmall, color: tokens.color.fg.support, fontFamily: tokens.fontFamily.sans, marginBottom: "16px" }}>
+                Standalone 64×64 icons — no coloured container. Use for empty states, onboarding and hero moments.
+              </p>
+              <div style={{ display: "grid", gridTemplateColumns: "repeat(auto-fill, minmax(120px, 1fr))", gap: "8px" }}>
+                {ICONS_64.map(icon => (
+                  <div key={icon.name} style={{ display: "flex", flexDirection: "column", alignItems: "center", gap: "8px", padding: "16px 8px", background: tokens.color.base.white, border: `1px solid ${tokens.color.divider.border}`, borderRadius: tokens.borderRadius.md }}>
+                    <div style={{ width: "64px", height: "64px", background: tokens.color.bg.darkBg, borderRadius: tokens.borderRadius.md, opacity: 0.3 }} />
+                    <span style={{ fontSize: "10px", fontFamily: tokens.fontFamily.sans, color: tokens.color.fg.support, textAlign: "center", lineHeight: "1.3" }}>{icon.name}</span>
+                  </div>
+                ))}
+              </div>
+              <p style={{ fontSize: "11px", color: tokens.color.fg.disabled, fontFamily: "monospace", marginTop: "12px" }}>
+                Node IDs not yet sourced — add to ICONS_64 array once confirmed from Figma.
+              </p>
+            </div>
+          ) : iconsLoading ? (
             <div style={{ display: "grid", gridTemplateColumns: "repeat(auto-fill, minmax(96px, 1fr))", gap: "8px" }}>
               {Array.from({ length: 32 }).map((_, i) => <div key={i} style={{ height: "80px", background: tokens.color.bg.darkBg, borderRadius: tokens.borderRadius.md, opacity: 0.4 }} />)}
             </div>
@@ -541,37 +574,54 @@ export default function StyleguidePage() {
             </div>
           )}
 
-          {!iconsLoading && filteredIcons.length === 0 && (
+          {!iconsLoading && iconTab !== "64" && filteredIcons.length === 0 && (
             <p style={{ textAlign: "center", padding: "40px 0", color: tokens.color.fg.support, fontSize: tokens.fontSize.body }}>No icons matching "{iconQuery}"</p>
           )}
         </Section>
 
-        {/* DECO ICONS */}
+        {/* DECO ICONS — rendered via <DecoIcon> component (single source of truth) */}
         <Section id="deco-icons" title="Deco Icons">
-          {DECO_SIZES.map(size => {
-            const variants = DECO_VARIANTS.filter(v => v.size === size);
-            const px = parseInt(size);
-            const radius = decoRadius(size);
-            return (
-              <div key={size} style={{ marginBottom: "32px" }}>
-                <p style={{ fontSize: tokens.fontSize.bodySmall, fontWeight: tokens.fontWeight.semiBold, color: tokens.color.fg.primary, fontFamily: tokens.fontFamily.sans, marginBottom: "12px" }}>{size}px</p>
-                <div style={{ display: "flex", flexWrap: "wrap" as const, gap: "12px" }}>
-                  {variants.map(v => (
-                    <div key={v.nodeId} style={{ display: "flex", flexDirection: "column", alignItems: "center", gap: "8px" }}>
-                      {decoLoading ? (
-                        <div style={{ width: `${px}px`, height: `${px}px`, background: tokens.color.bg.darkBg, borderRadius: radius, opacity: 0.4 }} />
-                      ) : decoSvgs[v.nodeId] ? (
-                        <img src={decoSvgs[v.nodeId]} width={px} height={px} alt={`${size}px ${v.tone}`} style={{ display: "block", borderRadius: radius }} />
-                      ) : (
-                        <div style={{ width: `${px}px`, height: `${px}px`, background: tokens.color.bg.darkBg, borderRadius: radius, opacity: 0.4 }} />
-                      )}
-                      <span style={{ fontSize: "10px", fontFamily: tokens.fontFamily.sans, color: tokens.color.fg.support, textAlign: "center" as const }}>{v.tone}</span>
-                    </div>
+          {DECO_SIZES_MAP.map(({ size, tones }) => (
+            <div key={size} style={{ marginBottom: "32px" }}>
+              <p style={{ fontSize: tokens.fontSize.bodySmall, fontWeight: tokens.fontWeight.semiBold, color: tokens.color.fg.primary, fontFamily: tokens.fontFamily.sans, marginBottom: "12px" }}>{size}px</p>
+              <div style={{ display: "flex", flexWrap: "wrap" as const, gap: "12px" }}>
+                {tones.map(tone => (
+                  <div key={tone} style={{ display: "flex", flexDirection: "column", alignItems: "center", gap: "8px" }}>
+                    <DecoIcon
+                      size={size}
+                      tone={tone as DecoIcon40Tone & DecoIcon64Tone & DecoIcon96Tone & DecoIcon136Tone}
+                    />
+                    <span style={{ fontSize: "10px", fontFamily: tokens.fontFamily.sans, color: tokens.color.fg.support, textAlign: "center" as const }}>{tone}</span>
+                  </div>
+                ))}
+              </div>
+            </div>
+          ))}
+        </Section>
+
+        {/* FOLDER ICONS */}
+        <Section id="folder-icons" title="Folder Icons">
+          <p style={{ fontSize: tokens.fontSize.body, color: tokens.color.fg.support, fontFamily: tokens.fontFamily.sans, marginBottom: "24px" }}>
+            Folder icons combine the base folder shape with a category indicator inside. Available in 16 / 20 / 24 / 40 px.
+          </p>
+          <div style={{ display: "grid", gridTemplateColumns: "repeat(auto-fill, minmax(120px, 1fr))", gap: "12px" }}>
+            {FOLDER_TYPES.map(({ type, nodeId, size }) => (
+              <div key={type} style={{ display: "flex", flexDirection: "column", alignItems: "center", gap: "8px", padding: "16px 8px", background: tokens.color.base.white, border: `1px solid ${tokens.color.divider.border}`, borderRadius: tokens.borderRadius.md }}>
+                {svgsFolder[nodeId] ? (
+                  /* display at 2× for legibility; native Figma size shown in size tag */
+                  <img src={svgsFolder[nodeId]} alt={type} width={size * 2} height={size * 2} style={{ imageRendering: "crisp-edges" }} />
+                ) : (
+                  <div style={{ width: `${size * 2}px`, height: `${size * 2}px`, background: tokens.color.bg.darkBg, borderRadius: "4px", opacity: 0.35 }} />
+                )}
+                <span style={{ fontSize: tokens.fontSize.bodySmall, fontFamily: tokens.fontFamily.sans, color: tokens.color.fg.primary, fontWeight: tokens.fontWeight.medium }}>{type}</span>
+                <div style={{ display: "flex", gap: "4px", flexWrap: "wrap" as const, justifyContent: "center" }}>
+                  {["16", "20", "24", "40"].map(sz => (
+                    <span key={sz} style={{ fontSize: "9px", fontFamily: "monospace", color: String(size) === sz ? tokens.color.fg.blue : tokens.color.fg.disabled, background: String(size) === sz ? tokens.color.tint.blue : tokens.color.bg.darkBg, padding: "1px 4px", borderRadius: "3px", fontWeight: String(size) === sz ? tokens.fontWeight.semiBold : tokens.fontWeight.regular }}>{sz}px</span>
                   ))}
                 </div>
               </div>
-            );
-          })}
+            ))}
+          </div>
         </Section>
 
         {/* Footer */}

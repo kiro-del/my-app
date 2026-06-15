@@ -20,7 +20,7 @@ export const colorFg = {
 
 export const colorFgReverse = {
   primary: "#f9fafb",
-  support: "#e5e7eb",
+  support: "#9ca3af",
   blue: "#a5b4fc",
 } as const;
 
@@ -135,7 +135,7 @@ export const fontSize = {
 
 export const lineHeight = {
   loose: "140%", h3: "28px", h4: "24px", h5: "22px",
-  body: "20px", bodySmall: "18px", linkSmall: "18px",
+  body: "20px", bodySmall: "16px", linkSmall: "18px",
 } as const;
 
 export const typography = {
@@ -148,9 +148,9 @@ export const typography = {
   bodySB:  { fontSize: "14px", fontWeight: "600", lineHeight: "20px", fontFamily: "Inter, ui-sans-serif, system-ui, -apple-system, sans-serif" },
   bodyM:   { fontSize: "14px", fontWeight: "500", lineHeight: "20px", fontFamily: "Inter, ui-sans-serif, system-ui, -apple-system, sans-serif" },
   bodyR:   { fontSize: "14px", fontWeight: "400", lineHeight: "20px", fontFamily: "Inter, ui-sans-serif, system-ui, -apple-system, sans-serif" },
-  smallBodySB: { fontSize: "12px", fontWeight: "600", lineHeight: "18px", fontFamily: "Inter, ui-sans-serif, system-ui, -apple-system, sans-serif" },
-  smallBodyM:  { fontSize: "12px", fontWeight: "500", lineHeight: "18px", fontFamily: "Inter, ui-sans-serif, system-ui, -apple-system, sans-serif" },
-  smallBodyR:  { fontSize: "12px", fontWeight: "400", lineHeight: "18px", fontFamily: "Inter, ui-sans-serif, system-ui, -apple-system, sans-serif" },
+  smallBodySB: { fontSize: "12px", fontWeight: "600", lineHeight: "16px", fontFamily: "Inter, ui-sans-serif, system-ui, -apple-system, sans-serif" },
+  smallBodyM:  { fontSize: "12px", fontWeight: "500", lineHeight: "16px", fontFamily: "Inter, ui-sans-serif, system-ui, -apple-system, sans-serif" },
+  smallBodyR:  { fontSize: "12px", fontWeight: "400", lineHeight: "16px", fontFamily: "Inter, ui-sans-serif, system-ui, -apple-system, sans-serif" },
   linkM:       { fontSize: "14px", fontWeight: "500", lineHeight: "20px", fontFamily: "Inter, ui-sans-serif, system-ui, -apple-system, sans-serif", textDecoration: "underline" },
   linkSmallM:  { fontSize: "12px", fontWeight: "500", lineHeight: "18px", fontFamily: "Inter, ui-sans-serif, system-ui, -apple-system, sans-serif", textDecoration: "underline" },
   linkSmallR:  { fontSize: "12px", fontWeight: "400", lineHeight: "18px", fontFamily: "Inter, ui-sans-serif, system-ui, -apple-system, sans-serif", textDecoration: "underline" },

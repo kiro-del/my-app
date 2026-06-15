@@ -1,3 +1,5 @@
+"use client";
+
 // components/ui/ListViewItem.tsx
 // Figma: Scannable Design System — node 2239:541 (list view - item)
 // All values reference design-tokens — never hardcoded.
@@ -5,6 +7,7 @@
 import React from "react";
 import tokens from "@/styles/design-tokens";
 import { Badge, BadgeColor } from "./Badge";
+import { ProductImg } from "@/components/ui/ProductImg";
 
 // ---------------------------------------------------------------------------
 // Types
@@ -15,56 +18,70 @@ export interface ListViewChip {
 }
 
 export interface ListViewItemProps {
-  /** Product image URL — shows placeholder box if omitted */
+  /** Product image URL — shows placeholder if omitted */
   imageUrl?:   string;
   /** Primary label — 14px Medium fg.primary */
   title:       string;
-  /** Secondary line — 12px Regular fg.support (e.g. "DMM · A327") */
+  /**
+   * Secondary line — rendered as "Brand · SKU" with a 1px vertical divider.
+   * Pass "Brand · SKU" and it splits on " · " automatically.
+   * If no " · " separator is found, renders as plain text.
+   */
   subtitle?:   string;
-  /** Optional third line — 12px Medium fg.primary (e.g. serial "#132241154A") */
+  /** Optional third line — 12px Medium fg.primary underlined (e.g. "#132241154A") */
   serialRef?:  string;
   /** Optional chip/badge inline after the title */
   chip?:       ListViewChip;
   /** Optional trailing action button */
   action?:     React.ReactNode;
   onClick?:    () => void;
+  /**
+   * Whether to render the bottom divider line. Defaults to true.
+   * Set to false when the parent (e.g. SearchDropdown) manages dividers itself.
+   */
+  showDivider?: boolean;
+  /**
+   * Override the divider colour. Defaults to tokens.color.divider.frame.
+   * Use tokens.color.divider.border for lighter dropdown contexts (Figma: gray/200).
+   */
+  dividerColor?: string;
 }
 
 // ---------------------------------------------------------------------------
-// Product image placeholder — 56×56, r=6
+// SubtitleWithDivider — renders "Brand" + 1px divider + "SKU"
 // ---------------------------------------------------------------------------
-function ProductImagePlaceholder() {
+function SubtitleWithDivider({ text }: { text: string }) {
+  const parts = text.split(" · ");
+  if (parts.length < 2) {
+    return <>{text}</>;
+  }
   return (
-    <div
-      style={{
-        width:          "56px",
-        height:         "56px",
-        borderRadius:   tokens.borderRadius.md,       // 6px
-        background:     tokens.color.bg.darkBg,       // gray-200
-        display:        "flex",
-        alignItems:     "center",
-        justifyContent: "center",
-        flexShrink:     0,
-      }}
-      aria-hidden
-    >
-      {/* Simple product icon outline */}
-      <svg width="24" height="24" viewBox="0 0 24 24" fill="none">
-        <rect x="3" y="3" width="18" height="18" rx="2" stroke={tokens.color.fg.disabled} strokeWidth="1.5" />
-        <circle cx="12" cy="12" r="4" stroke={tokens.color.fg.disabled} strokeWidth="1.5" />
-      </svg>
-    </div>
+    <span style={{ display: "inline-flex", alignItems: "center", gap: tokens.spacing[1] }}>
+      <span>{parts[0]}</span>
+      {/* 1px vertical divider */}
+      <span
+        style={{
+          display:    "inline-block",
+          width:      "1px",
+          height:     "12px",
+          background: tokens.color.divider.frame,
+          flexShrink: 0,
+        }}
+        aria-hidden
+      />
+      <span>{parts.slice(1).join(" · ")}</span>
+    </span>
   );
 }
 
 // ---------------------------------------------------------------------------
 // ListViewItem
-// Figma (lines=2 variant): pad 8/8/8/16, gap 16 (between img and text block)
-//   img:      56×56, r=6
-//   title:    14px Medium fg.primary
-//   subtitle: 12px Regular fg.support, gap 4px below title
-//   serialRef:12px Medium fg.primary
-//   action:   40×40 icon-framed button, trailing
+// Figma (lines=2 variant): py-8px px-0, gap 16px (between img and text block)
+//   img:       56×56 ProductImg component
+//   title:     14px Medium fg.primary
+//   subtitle:  12px Regular fg.support, brand + 1px divider + SKU
+//   serialRef: 12px Medium fg.primary, underlined
+//   action:    40×40 icon-framed button, trailing
 // ---------------------------------------------------------------------------
 export function ListViewItem({
   imageUrl,
@@ -74,45 +91,29 @@ export function ListViewItem({
   chip,
   action,
   onClick,
+  showDivider  = true,
+  dividerColor = tokens.color.divider.frame,
 }: ListViewItemProps) {
-  const hasExtraLines = Boolean(serialRef);
-
   return (
     <div
       onClick={onClick}
       style={{
         display:      "flex",
         alignItems:   "center",
-        padding:      "8px 8px 8px 16px",
-        gap:          "16px",
-        borderBottom: `1px solid ${tokens.color.divider.frame}`,
-        background:   tokens.color.base.white,
+        padding:      `${tokens.spacing[2]} 0`,   // py-8px px-0
+        gap:          tokens.spacing[4],           // 16px
+        borderBottom: showDivider ? `1px solid ${dividerColor}` : "none",
         cursor:       onClick ? "pointer" : "default",
         boxSizing:    "border-box" as const,
-        minHeight:    hasExtraLines ? "78px" : "72px",
       }}
     >
-      {/* Product image */}
-      {imageUrl ? (
-        <img
-          src={imageUrl}
-          alt={title}
-          style={{
-            width:        "56px",
-            height:       "56px",
-            borderRadius: tokens.borderRadius.md,
-            objectFit:    "cover" as const,
-            flexShrink:   0,
-          }}
-        />
-      ) : (
-        <ProductImagePlaceholder />
-      )}
+      {/* Product image — uses ProductImg component (56×56) */}
+      <ProductImg size={56} image={imageUrl} />
 
       {/* Text block */}
-      <div style={{ flex: 1, minWidth: 0, display: "flex", flexDirection: "column", gap: "4px" }}>
+      <div style={{ flex: 1, minWidth: 0, display: "flex", flexDirection: "column", gap: tokens.spacing[1] }}>
         {/* Title row — title + optional chip */}
-        <div style={{ display: "flex", alignItems: "center", gap: "8px" }}>
+        <div style={{ display: "flex", alignItems: "center", gap: tokens.spacing[2] }}>
           <span
             style={{
               fontFamily:   tokens.fontFamily.sans,
@@ -130,33 +131,31 @@ export function ListViewItem({
           {chip && <Badge label={chip.label} color={chip.color ?? "green"} />}
         </div>
 
-        {/* Subtitle */}
+        {/* Subtitle — brand + 1px divider + SKU */}
         {subtitle && (
           <span
             style={{
-              fontFamily:   tokens.fontFamily.sans,
-              fontSize:     "12px",
-              fontWeight:   tokens.fontWeight.regular,  // 400
-              lineHeight:   "16px",
-              color:        tokens.color.fg.support,    // #6b7280
-              overflow:     "hidden",
-              textOverflow: "ellipsis",
-              whiteSpace:   "nowrap" as const,
+              fontFamily:  tokens.fontFamily.sans,
+              fontSize:    tokens.fontSize.bodySmall,   // 12px
+              fontWeight:  tokens.fontWeight.regular,   // 400
+              lineHeight:  "16px",
+              color:       tokens.color.fg.support,     // #6b7280
             }}
           >
-            {subtitle}
+            <SubtitleWithDivider text={subtitle} />
           </span>
         )}
 
-        {/* Serial ref */}
+        {/* Serial ref — underlined link style */}
         {serialRef && (
           <span
             style={{
-              fontFamily:  tokens.fontFamily.sans,
-              fontSize:    "12px",
-              fontWeight:  tokens.fontWeight.medium,    // 500
-              lineHeight:  "18px",
-              color:       tokens.color.fg.primary,
+              fontFamily:      tokens.fontFamily.sans,
+              fontSize:        tokens.fontSize.bodySmall,   // 12px
+              fontWeight:      tokens.fontWeight.medium,    // 500
+              lineHeight:      tokens.lineHeight.bodySmall, // 18px
+              color:           tokens.color.fg.primary,
+              textDecoration:  "underline",
             }}
           >
             {serialRef}

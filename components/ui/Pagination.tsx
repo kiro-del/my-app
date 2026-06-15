@@ -135,7 +135,7 @@ function NumberButton({
         justifyContent: "center",
         width:          "42px",
         height:         "36px",
-        padding:        "8px 16px",
+        padding:        `${tokens.spacing[2]} ${tokens.spacing[4]}`,
         borderRadius:   0,
         border:         current
           ? `1px solid ${tokens.color.divider.blue}`
@@ -176,7 +176,7 @@ export function Pagination({
   const pages = getPageNumbers(currentPage, totalPages, siblingCount);
 
   return (
-    <div style={{ display: "flex", alignItems: "center", gap: "4px" }}>
+    <div style={{ display: "flex", alignItems: "center", gap: tokens.spacing[1] }}>
       <StepButton
         direction="prev"
         disabled={currentPage <= 1}
@@ -240,7 +240,7 @@ export function TableFooter({
         display:         "flex",
         alignItems:      "center",
         justifyContent:  "space-between",
-        padding:         "12px 24px",
+        padding:         `${tokens.spacing[3]} ${tokens.spacing[6]}`,
         background:      tokens.color.base.white,
         borderTop:       `1px solid ${tokens.color.divider.frame}`,
         borderRadius:    `0 0 ${tokens.borderRadius.lg} ${tokens.borderRadius.lg}`,

@@ -107,8 +107,10 @@ export function Toast({
       style={{
         display:      "flex",
         alignItems:   "center",
-        gap:          "8px",
-        padding:      onClose ? "4px 8px 4px 16px" : "10px 16px",
+        gap:          tokens.spacing[2],
+        padding:      onClose
+          ? `${tokens.spacing[1]} ${tokens.spacing[2]} ${tokens.spacing[1]} ${tokens.spacing[4]}`
+          : `${tokens.spacing[2.5]} ${tokens.spacing[4]}`,
         background:   bg,
         borderRadius: tokens.borderRadius.md,
         boxShadow:    tokens.shadows.lg,
@@ -177,7 +179,7 @@ export function Toast({
 // ---------------------------------------------------------------------------
 export type ToastState = ToastProps & { id: string };
 
-export function useToast() {
+export function useToast(opts?: { bottom?: string | number }) {
   const [toasts, setToasts] = React.useState<ToastState[]>([]);
 
   function show(props: Omit<ToastProps, "onClose"> & { onClose?: () => void }) {
@@ -199,12 +201,12 @@ export function useToast() {
     <div
       style={{
         position:      "fixed",
-        bottom:        "32px",
+        bottom:        opts?.bottom ?? tokens.spacing[8],
         left:          "50%",
         transform:     "translateX(-50%)",
         display:       "flex",
         flexDirection: "column",
-        gap:           "8px",
+        gap:           tokens.spacing[2],
         zIndex:        300,
         alignItems:    "center",
       }}

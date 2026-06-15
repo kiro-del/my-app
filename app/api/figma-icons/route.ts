@@ -37,8 +37,30 @@ export async function GET(req: NextRequest) {
       return NextResponse.json({ error: text }, { status: res.status });
     }
 
-    const data = await res.json();
-    return NextResponse.json(data);
+    const data: { err?: string | null; images?: Record<string, string> } = await res.json();
+    const s3Images = data.images ?? {};
+
+    // Figma's S3 export URLs lack CORS headers, so mask-image: url(s3url) is blocked
+    // by the browser. Fix: fetch each SVG server-side and return a data: URL instead.
+    const dataImages: Record<string, string> = {};
+    await Promise.all(
+      Object.entries(s3Images).map(async ([nodeId, s3Url]) => {
+        try {
+          const svgRes = await fetch(s3Url);
+          if (svgRes.ok) {
+            const svgText = await svgRes.text();
+            const b64 = Buffer.from(svgText).toString("base64");
+            dataImages[nodeId] = `data:image/svg+xml;base64,${b64}`;
+          } else {
+            dataImages[nodeId] = s3Url; // fall back to direct URL
+          }
+        } catch {
+          dataImages[nodeId] = s3Url;
+        }
+      })
+    );
+
+    return NextResponse.json({ err: data.err ?? null, images: dataImages });
   } catch (err) {
     return NextResponse.json({ error: String(err) }, { status: 500 });
   }

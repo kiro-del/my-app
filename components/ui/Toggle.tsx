@@ -1,6 +1,8 @@
 "use client";
 
 // components/ui/Toggle.tsx
+// Figma: Scannable Design System — node 4088:2130 (ToggleInput) · 2044:2532 (Toggle)
+// All values reference design-tokens — never hardcoded.
 
 import React, { useId } from "react";
 import tokens from "@/styles/design-tokens";
@@ -10,6 +12,70 @@ export interface ToggleProps {
   onChange:  (checked: boolean) => void;
   disabled?: boolean;
   id?:       string;
+}
+
+// ---------------------------------------------------------------------------
+// ToggleInput — Toggle + label + optional description
+// Figma: Scannable Design System — node 4088:2130
+// ---------------------------------------------------------------------------
+export interface ToggleInputProps {
+  label:        string;
+  /** Support text — Inter Regular 12px / 16px · fg.support (Figma: Text-sm) */
+  description?: string;
+  checked:      boolean;
+  onChange:     (checked: boolean) => void;
+  disabled?:    boolean;
+  id?:          string;
+}
+
+export function ToggleInput({
+  label,
+  description,
+  checked,
+  onChange,
+  disabled = false,
+  id,
+}: ToggleInputProps) {
+  return (
+    <div
+      style={{
+        display:    "flex",
+        gap:        tokens.spacing[2],     // 8px
+        alignItems: description ? "flex-start" : "center",
+      }}
+    >
+      {/* Label + description */}
+      <div style={{ flex: 1, minWidth: 0, display: "flex", flexDirection: "column", gap: tokens.spacing[1] }}>
+        <span
+          style={{
+            fontFamily: tokens.fontFamily.sans,
+            fontSize:   tokens.fontSize.body,       // 14px
+            fontWeight: tokens.fontWeight.regular,  // 400
+            lineHeight: tokens.lineHeight.body,     // 20px
+            color:      disabled ? tokens.color.fg.disabled : tokens.color.fg.primary,
+          }}
+        >
+          {label}
+        </span>
+        {description && (
+          <span
+            style={{
+              fontFamily: tokens.fontFamily.sans,
+              fontSize:   tokens.fontSize.bodySmall,      // 12px — Figma: Text-sm
+              fontWeight: tokens.fontWeight.regular,      // 400
+              lineHeight: tokens.lineHeight.bodySmall,    // 16px
+              color:      disabled ? tokens.color.fg.disabled : tokens.color.fg.support,
+            }}
+          >
+            {description}
+          </span>
+        )}
+      </div>
+
+      {/* Toggle control */}
+      <Toggle checked={checked} onChange={onChange} disabled={disabled} id={id} />
+    </div>
+  );
 }
 
 export function Toggle({ checked, onChange, disabled = false, id }: ToggleProps) {

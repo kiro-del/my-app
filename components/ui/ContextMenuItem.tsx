@@ -106,9 +106,9 @@ export function ContextMenuItem({
 
   // --- Padding ---------------------------------------------------------------
   // Vertical: 8px with support text, 10px with icon, 12px plain
-  const vertPad = supportText ? "8px" : hasIcon ? "10px" : "12px";
+  const vertPad = supportText ? tokens.spacing[2] : hasIcon ? tokens.spacing[2.5] : tokens.spacing[3];
   // Horizontal right: 8px when there is a trailing element
-  const rightPad = hasTrailing ? "8px" : "16px";
+  const rightPad = hasTrailing ? tokens.spacing[2] : tokens.spacing[4];
 
   // ---------------------------------------------------------------------------
   // Row
@@ -121,8 +121,8 @@ export function ContextMenuItem({
         display:        "flex",
         alignItems:     "center",
         justifyContent: "space-between",
-        gap:            "12px",
-        padding:        `${vertPad} ${rightPad} ${vertPad} 16px`,
+        gap:            tokens.spacing[3],
+        padding:        `${vertPad} ${rightPad} ${vertPad} ${tokens.spacing[4]}`,
         background:     bg,
         borderRadius:   tokens.borderRadius.md,    // 6px
         transition:     "background 150ms ease",
@@ -143,7 +143,7 @@ export function ContextMenuItem({
       }
     >
       {/* ── Left: icon + label column ─────────────────────────────────────── */}
-      <div style={{ display: "flex", alignItems: "center", gap: "12px", flex: "1 1 0", minWidth: 0 }}>
+      <div style={{ display: "flex", alignItems: supportText && hasIcon ? "flex-start" : "center", gap: tokens.spacing[3], flex: "1 1 0", minWidth: 0 }}>
 
         {/* Icon */}
         {iconUrl ? (
@@ -211,7 +211,7 @@ export function ContextMenuItem({
                 lineHeight: tokens.lineHeight.bodySmall,
                 color:      tokens.color.fg.disabled,
                 whiteSpace: "normal" as const,           // allow 2-line wrap
-                marginTop:  "2px",
+                marginTop:  tokens.spacing[0.5],
               }}
             >
               {supportText}
@@ -257,7 +257,7 @@ export function ContextMenuItem({
           style={{
             display:      "inline-flex",
             alignItems:   "center",
-            padding:      "2px 8px",
+            padding:      `${tokens.spacing[0.5]} ${tokens.spacing[2]}`,
             borderRadius: tokens.borderRadius.full,
             background:   tokens.color.tint.yellow,   // #fffbeb
             fontFamily:   tokens.fontFamily.sans,
@@ -284,8 +284,8 @@ export function ContextMenuItem({
         style={{
           display:       "flex",
           flexDirection: "column",
-          gap:           "4px",
-          paddingBottom: "4px",
+          gap:           tokens.spacing[1],
+          paddingBottom: tokens.spacing[1],
           width:         "100%",
         }}
       >

@@ -37,7 +37,7 @@ export function Breadcrumb({ items }: BreadcrumbProps) {
         style={{
           display:    "flex",
           alignItems: "center",
-          gap:        "4px",               // confirmed from Figma node
+          gap:        tokens.spacing[1],     // 4px — confirmed from Figma node
           margin:     0,
           padding:    0,
           listStyle:  "none",

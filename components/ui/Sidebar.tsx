@@ -94,7 +94,7 @@ export function Sidebar({
       {/* ------------------------------------------------------------------ */}
       {/* User header — fix #4: no borderBottom                              */}
       {/* ------------------------------------------------------------------ */}
-      <div style={{ padding: "16px 10px 12px" }}>
+      <div style={{ padding: `${tokens.spacing[4]} ${tokens.spacing[2.5]} ${tokens.spacing[3]}` }}>
 
         {/* Avatar row */}
         <button
@@ -103,14 +103,14 @@ export function Sidebar({
             display:      "flex",
             alignItems:   "center",
             width:        "100%",
-            gap:          "8px",
+            gap:          tokens.spacing[2],
             background:   "none",
             border:       "none",
             cursor:       "pointer",
-            padding:      "4px",
+            padding:      tokens.spacing[1],
             borderRadius: tokens.borderRadius.md,
             textAlign:    "left" as const,
-            marginBottom: "12px",
+            marginBottom: tokens.spacing[3],
           }}
         >
           {/* Brand logo — DecoIcons brand 40px (lime square + wave mark) */}
@@ -147,7 +147,7 @@ export function Sidebar({
             {userSubtitle && (
               <div style={{
                 fontFamily:   tokens.fontFamily.sans,
-                fontSize:     "12px",
+                fontSize:     tokens.fontSize.bodySmall,
                 fontWeight:   tokens.fontWeight.regular,
                 lineHeight:   "16px",
                 color:        tokens.color.fg.support,
@@ -165,12 +165,12 @@ export function Sidebar({
 
         {/* PRO badge row (pro variant only) */}
         {variant === "pro" && (
-          <div style={{ display: "flex", alignItems: "center", gap: "8px", marginBottom: "8px" }}>
+          <div style={{ display: "flex", alignItems: "center", gap: tokens.spacing[2], marginBottom: tokens.spacing[2] }}>
             <div style={{
               display:      "inline-flex",
               alignItems:   "center",
               justifyContent: "center",
-              padding:      "2px 6px",
+              padding:      `${tokens.spacing[0.5]} ${tokens.spacing[1.5]}`,
               border:       `2px solid ${tokens.color.fg.primary}`,
               borderRadius: tokens.borderRadius.md,
               fontFamily:   tokens.fontFamily.sans,
@@ -184,7 +184,7 @@ export function Sidebar({
             </div>
             <div style={{ display: "flex", flexDirection: "column" }}>
               <span style={{ fontFamily: tokens.fontFamily.sans, fontSize: tokens.fontSize.body, fontWeight: tokens.fontWeight.medium, color: tokens.color.fg.primary, lineHeight: "20px" }}>Active</span>
-              <span style={{ fontFamily: tokens.fontFamily.sans, fontSize: "12px", fontWeight: tokens.fontWeight.regular, color: tokens.color.fg.support, lineHeight: "16px" }}>View plan</span>
+              <span style={{ fontFamily: tokens.fontFamily.sans, fontSize: tokens.fontSize.bodySmall, fontWeight: tokens.fontWeight.regular, color: tokens.color.fg.support, lineHeight: "16px" }}>View plan</span>
             </div>
           </div>
         )}
@@ -207,7 +207,7 @@ export function Sidebar({
               fontWeight:     tokens.fontWeight.medium,
               color:          tokens.color.fg.primary,
               cursor:         "pointer",
-              marginBottom:   "6px",
+              marginBottom:   tokens.spacing[1.5],
             }}
           >
             Upgrade to Pro Today
@@ -222,7 +222,7 @@ export function Sidebar({
               display:        "flex",
               alignItems:     "center",
               justifyContent: "center",
-              gap:            "6px",
+              gap:            tokens.spacing[1.5],
               width:          "100%",
               height:         "36px",
               borderRadius:   tokens.borderRadius.md,
@@ -247,7 +247,7 @@ export function Sidebar({
       {/* Nav sections                                                        */}
       {/* fix #8 — tighter spacing: gap 2px, no extra marginBottom           */}
       {/* ------------------------------------------------------------------ */}
-      <nav style={{ flex: 1, padding: "4px 10px 8px", display: "flex", flexDirection: "column" }}>
+      <nav style={{ flex: 1, padding: `${tokens.spacing[1]} ${tokens.spacing[2.5]} ${tokens.spacing[2]}`, display: "flex", flexDirection: "column" }}>
         {sections.map((section, si) => {
           // All titled sections are collapsible
           const isCollapsed = section.title
@@ -255,7 +255,7 @@ export function Sidebar({
             : false;
 
           return (
-            <div key={si} style={{ marginTop: section.title ? "24px" : 0 }}>
+            <div key={si} style={{ marginTop: section.title ? tokens.spacing[6] : 0 }}>
               {section.title && (
                 <button
                   onClick={() => toggleSection(section.title!)}
@@ -264,17 +264,17 @@ export function Sidebar({
                     alignItems:     "center",
                     justifyContent: "space-between",
                     width:          "100%",
-                    padding:        "4px 8px",
+                    padding:        `${tokens.spacing[1]} ${tokens.spacing[2]}`,
                     background:     "none",
                     border:         "none",
                     cursor:         "pointer",
                     fontFamily:     tokens.fontFamily.sans,
-                    fontSize:       "12px",
+                    fontSize:       tokens.fontSize.bodySmall,
                     fontWeight:     tokens.fontWeight.medium,
                     lineHeight:     "16px",
                     color:          tokens.color.fg.support,
                     textAlign:      "left" as const,
-                    marginBottom:   "2px",
+                    marginBottom:   tokens.spacing[0.5],
                   }}
                 >
                   {section.title}
@@ -286,7 +286,7 @@ export function Sidebar({
               )}
 
               {!isCollapsed && (
-                <div style={{ display: "flex", flexDirection: "column", gap: "2px" }}>
+                <div style={{ display: "flex", flexDirection: "column", gap: tokens.spacing[0.5] }}>
                   {section.items.map((item, ii) => (
                     <SidebarNavItem key={ii} {...item} />
                   ))}

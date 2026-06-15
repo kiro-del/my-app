@@ -224,12 +224,12 @@ export function RadioInput({
               <span
                 style={{
                   fontFamily: tokens.fontFamily.sans,
-                  fontSize: "12px",
+                  fontSize: tokens.fontSize.bodySmall,
                   fontWeight: tokens.fontWeight.semiBold,   // 600
                   lineHeight: "16px",
                   color: tokens.color.fg.blue,              // indigo-700 #4338ca
                   background: tokens.color.tint.blue,       // indigo-50 #eef2ff
-                  padding: "2px 8px",
+                  padding: `${tokens.spacing[0.5]} ${tokens.spacing[2]}`,
                   borderRadius: "13px",
                   flexShrink: 0,
                   whiteSpace: "nowrap" as const,
@@ -259,11 +259,11 @@ export function RadioInput({
               style={{
                 display: "block",
                 fontFamily: tokens.fontFamily.sans,
-                fontSize: "12px",                         // smaller than description
+                fontSize: tokens.fontSize.bodySmall,
                 fontWeight: tokens.fontWeight.regular,    // 400
                 lineHeight: "16px",
                 color: disabled ? tokens.color.fg.disabled : tokens.color.fg.primary,
-                marginTop: "2px",
+                marginTop: tokens.spacing[0.5],
               }}
             >
               {meta}

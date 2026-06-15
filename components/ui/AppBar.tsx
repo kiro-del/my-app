@@ -83,7 +83,7 @@ export function AppBar({
         alignItems:      "center",
         justifyContent:  "space-between",
         height:          "64px",
-        padding:         `12px 24px`,
+        padding:         `${tokens.spacing[3]} ${tokens.spacing[6]}`,
         boxSizing:       "border-box" as const,
         flexShrink:      0,
       }}
@@ -92,7 +92,7 @@ export function AppBar({
       <Breadcrumb items={breadcrumbs} />
 
       {/* Right — actions */}
-      <div style={{ display: "flex", alignItems: "center", gap: "16px" }}>
+      <div style={{ display: "flex", alignItems: "center", gap: tokens.spacing[4] }}>
 
         {/* Book a Demo — primary lime button */}
         {showBookADemo && (
@@ -124,7 +124,7 @@ export function AppBar({
           style={{
             ...pillBase,
             padding:  `0 ${tokens.spacing[4]} 0 ${tokens.spacing[3]}`,
-            gap:      "4px",
+            gap:      tokens.spacing[1],
             position: "relative" as const,
           }}
           aria-label={`Notifications${notificationCount > 0 ? ` (${notificationCount})` : ""}`}
@@ -150,7 +150,7 @@ export function AppBar({
         {/* Language selector */}
         <button
           onClick={onLanguageClick}
-          style={{ ...pillBase, padding: `0 ${tokens.spacing[3]}`, gap: "16px" }}
+          style={{ ...pillBase, padding: `0 ${tokens.spacing[3]}`, gap: tokens.spacing[4] }}
           aria-label={`Language: ${language}`}
         >
           <span>{language}</span>
@@ -162,8 +162,8 @@ export function AppBar({
           onClick={onAvatarClick}
           style={{
             ...pillBase,
-            padding:      `4px 8px 4px 4px`,
-            gap:          "4px",
+            padding:      `${tokens.spacing[1]} ${tokens.spacing[2]} ${tokens.spacing[1]} ${tokens.spacing[1]}`,
+            gap:          tokens.spacing[1],
             borderRadius: "24px",
           }}
           aria-label="User menu"

@@ -84,7 +84,7 @@ export function DataTable<T = Record<string, unknown>>({
   const [hoveredKey, setHoveredKey] = React.useState<string | number | null>(null);
 
   const headerCellStyle: React.CSSProperties = {
-    padding:        "12px 16px",
+    padding:        `${tokens.spacing[3]} ${tokens.spacing[4]}`,
     background:     tokens.color.bg.bg,           // gray-100 #f3f4f6
     fontFamily:     tokens.fontFamily.sans,
     fontSize:       tokens.fontSize.body,          // 14px
@@ -98,7 +98,7 @@ export function DataTable<T = Record<string, unknown>>({
   };
 
   const bodyCellStyle: React.CSSProperties = {
-    padding:        "10px 16px",
+    padding:        `${tokens.spacing[2.5]} ${tokens.spacing[4]}`,
     fontFamily:     tokens.fontFamily.sans,
     fontSize:       tokens.fontSize.body,          // 14px
     fontWeight:     tokens.fontWeight.regular,     // 400
@@ -135,7 +135,7 @@ export function DataTable<T = Record<string, unknown>>({
                 }}
                 onClick={() => col.sortable && onSort?.(col.key)}
               >
-                <div style={{ display: "flex", alignItems: "center", gap: col.sortable ? "8px" : undefined }}>
+                <div style={{ display: "flex", alignItems: "center", gap: col.sortable ? tokens.spacing[2] : undefined }}>
                   <span>{col.label}</span>
                   {col.sortable && (
                     <SortChevron direction={sortKey === col.key ? sortDirection : "none"} />
@@ -171,7 +171,7 @@ export function DataTable<T = Record<string, unknown>>({
                   ...bodyCellStyle,
                   textAlign:  "center",
                   color:      tokens.color.fg.support,
-                  padding:    "40px 16px",
+                  padding:    `${tokens.spacing[10]} ${tokens.spacing[4]}`,
                 }}
               >
                 {emptyMessage}
@@ -212,7 +212,7 @@ export function DataTable<T = Record<string, unknown>>({
                       style={{
                         ...bodyCellStyle,
                         width:   "80px",
-                        padding: "16px 12px",
+                        padding: `${tokens.spacing[4]} ${tokens.spacing[3]}`,
                         ...(stickyActions ? {
                           position:   "sticky",
                           right:      0,

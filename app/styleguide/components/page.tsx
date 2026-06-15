@@ -3,7 +3,7 @@
 // Icons fetched from the actual button/input component instances in Figma
 // so colors are baked correctly per variant (white for destructive, gray for disabled etc.)
 
-import { useState, useEffect } from "react";
+import { useState, useEffect, useRef } from "react";
 import { Button, ButtonType, ButtonSize, ButtonWithIcon } from "@/components/ui/Button";
 import { Input } from "@/components/ui/Input";
 import { RadioIndicator, RadioButton, RadioInput, RadioGroup } from "@/components/ui/Radio";
@@ -12,11 +12,11 @@ import { Sidebar } from "@/components/ui/Sidebar";
 import { SidebarNavItem } from "@/components/ui/SidebarNavItem";
 import { SelectionCard, SelectionCardGroup } from "@/components/ui/SelectionCard";
 import { Badge, BadgeColor, BadgeIconPosition } from "@/components/ui/Badge";
+import { BadgeActionable, BadgeActionableChevronIcon } from "@/components/ui/BadgeActionable";
 import { Toast, ToastVariant, useToast } from "@/components/ui/Toast";
 import { Toggle as ToggleUI } from "@/components/ui/Toggle";
 import { ToggleInput } from "@/components/ui/ToggleInput";
 import { ContextMenuItem } from "@/components/ui/ContextMenuItem";
-import { ContextMenu } from "@/components/ui/ContextMenu";
 import { Alert, AlertTone, AlertType } from "@/components/ui/Alert";
 import { SectionHeader } from "@/components/ui/SectionHeader";
 import { GloryItem } from "@/components/ui/GloryItems";
@@ -24,6 +24,23 @@ import { ModalFooter } from "@/components/ui/ModalFooter";
 import { ModalHeader } from "@/components/ui/ModalHeader";
 import { ActionCard, ActionCardGroup } from "@/components/ui/ActionCard";
 import { CalendarIcon } from "@/components/ui/Input";
+import { ProductImg, CameraIcon } from "@/components/ui/ProductImg";
+import { Breadcrumb } from "@/components/ui/Breadcrumb";
+import { AppBar } from "@/components/ui/AppBar";
+import { DashboardStatCard, DashboardStatStrip } from "@/components/ui/DashboardStatCard";
+import { ListViewItem } from "@/components/ui/ListViewItem";
+import { DataTable } from "@/components/ui/DataTable";
+import { Pagination, TableFooter } from "@/components/ui/Pagination";
+import { ApplyToProduct, type CatalogueProduct, type SelectedProductItem } from "@/components/ui/ApplyToProduct";
+import { SearchDropdown, type SearchDropdownItem } from "@/components/ui/SearchDropdown";
+import { Tabs, type TabItem } from "@/components/ui/Tabs";
+import { ProductListItem } from "@/components/ui/ProductListItem";
+import { ViewItemPageImg, type ViewItemPageImgPlatform } from "@/components/ui/ViewItemPageImg";
+import { EmptyState } from "@/components/ui/EmptyState";
+import { Steps, type StepsVariant } from "@/components/ui/Steps";
+import { SelectInput } from "@/components/ui/SelectInput";
+import { CompositeInput } from "@/components/ui/CompositeInput";
+import { ScanInput } from "@/components/ui/ScanInput";
 import tokens from "@/styles/design-tokens";
 
 const FILE_KEY = "j8hy0yzSKPyh1yRKOh4tuU";
@@ -47,6 +64,11 @@ const ICON_NODE_IDS = {
   input_arrow:           "1313:2945",
   input_scan:            "3953:13529",  // phone-scan 16px — used in inline button variant
   input_nfc_add:         "2064:1089",   // add/plus 16px  — used in NFC inline button
+  tab_placeholder:       "51:1203",     // exclamation mark 24px — placeholder icon for Tabs demo
+  pli_add_24:            "46:2936",     // add/plus 24px — ProductListItem add button
+  pli_bin_24:            "49:967",      // bin/trash 24px — ProductListItem delete button
+  pli_add_16:            "2064:1089",   // add/plus 16px — ProductListItem action link
+  pli_info_16:           "148:862",     // info circle 16px — ProductListItem indicator
 };
 
 // ---------------------------------------------------------------------------
@@ -90,7 +112,7 @@ function ChecklistIcon() {
 // ---------------------------------------------------------------------------
 // Layout helpers
 // ---------------------------------------------------------------------------
-const TOP_NAV = ["Colors","Typography","Spacing","Border Radius","Shadows","Icons","Components","Patterns"];
+const TOP_NAV = ["Colors","Typography","Spacing","Border Radius","Shadows","Icons","Components","Patterns","Mobile"];
 
 function Row({ label, children }: { label: string; children: React.ReactNode }) {
   return (
@@ -288,6 +310,179 @@ function ButtonTab({ svgs }: { svgs: Record<string, string> }) {
 }
 
 // ---------------------------------------------------------------------------
+// Calendar date-picker demo — interactive, reusable in prototypes
+// Pattern: hidden <input type="date"> + showPicker() triggered by CalendarIcon button
+// ---------------------------------------------------------------------------
+function CalendarDateDemo() {
+  const domRef1 = useRef<HTMLInputElement>(null);
+  const domRef2 = useRef<HTMLInputElement>(null);
+  const domRef3 = useRef<HTMLInputElement>(null);
+  const [date1, setDate1] = useState("");
+  const [date2, setDate2] = useState("2026-04-10"); // pre-filled example
+
+  // Format raw YYYY-MM-DD to "Apr 10, 2026" display string
+  function formatDate(raw: string) {
+    if (!raw) return "";
+    const d = new Date(raw + "T00:00:00");
+    return d.toLocaleDateString("en-US", { month: "short", day: "numeric", year: "numeric" });
+  }
+
+  const calendarTailingIcon = (ref: React.RefObject<HTMLInputElement | null>) => (
+    <button
+      type="button"
+      onClick={() => ref.current?.showPicker?.()}
+      style={{ display: "flex", alignItems: "center", background: "transparent", border: "none", cursor: "pointer", padding: 0 }}
+    >
+      <CalendarIcon />
+    </button>
+  );
+
+  const codeSnippet =
+`import { useRef, useState } from "react";
+import { Input, CalendarIcon } from "@/components/ui/Input";
+
+const domRef = useRef<HTMLInputElement>(null);
+const [date, setDate] = useState("");
+
+function formatDate(raw: string) {
+  if (!raw) return "";
+  return new Date(raw + "T00:00:00")
+    .toLocaleDateString("en-US", { month: "short", day: "numeric", year: "numeric" });
+}
+
+<div style={{ position: "relative" }}>
+  <Input
+    label="Date of manufacture"
+    placeholder="Select date"
+    value={formatDate(date)}
+    readOnly
+    tailingIcon={
+      <button type="button"
+        onClick={() => domRef.current?.showPicker?.()}
+        style={{ display:"flex", alignItems:"center", background:"transparent", border:"none", cursor:"pointer", padding:0 }}
+      >
+        <CalendarIcon />
+      </button>
+    }
+  />
+  <input ref={domRef} type="date"
+    onChange={(e) => setDate(e.target.value)}
+    style={{ position:"absolute", opacity:0, pointerEvents:"none", width:0, height:0 }}
+    tabIndex={-1} aria-hidden
+  />
+</div>`;
+
+  return (
+    <div style={{ display: "flex", flexDirection: "column", gap: tokens.spacing[6] }}>
+
+      {/* Description */}
+      <p style={{ fontSize: "13px", color: tokens.color.fg.support, fontFamily: tokens.fontFamily.sans, margin: 0 }}>
+        Use a hidden <code style={{ fontFamily: "monospace" }}>{"<input type=\"date\">"}</code> + <code style={{ fontFamily: "monospace" }}>showPicker()</code> triggered by the
+        {" "}<code style={{ fontFamily: "monospace" }}>CalendarIcon</code> button. This opens the native date picker without any visible date-input chrome.
+        The displayed value is formatted separately. Icon colour is <code style={{ fontFamily: "monospace" }}>fg/primary</code>.
+      </p>
+
+      {/* Interactive demos */}
+      <div style={{ display: "flex", flexWrap: "wrap", gap: tokens.spacing[4], alignItems: "flex-start" }}>
+
+        {/* Empty state */}
+        <div style={{ width: "280px" }}>
+          <p style={{ fontSize: "11px", color: tokens.color.fg.support, fontFamily: "monospace", marginBottom: "8px" }}>empty — click icon to pick</p>
+          <div style={{ position: "relative" }}>
+            <Input
+              label="Date of manufacture"
+              placeholder="Select date"
+              value={formatDate(date1)}
+              readOnly
+              tailingIcon={calendarTailingIcon(domRef1)}
+            />
+            <input
+              ref={domRef1}
+              type="date"
+              onChange={(e) => setDate1(e.target.value)}
+              style={{ position: "absolute", opacity: 0, pointerEvents: "none", width: 0, height: 0 }}
+              tabIndex={-1}
+              aria-hidden
+            />
+          </div>
+        </div>
+
+        {/* Pre-filled state */}
+        <div style={{ width: "280px" }}>
+          <p style={{ fontSize: "11px", color: tokens.color.fg.support, fontFamily: "monospace", marginBottom: "8px" }}>pre-filled — click icon to change</p>
+          <div style={{ position: "relative" }}>
+            <Input
+              label="Date of manufacture"
+              placeholder="Select date"
+              value={formatDate(date2)}
+              readOnly
+              tailingIcon={calendarTailingIcon(domRef2)}
+            />
+            <input
+              ref={domRef2}
+              type="date"
+              value={date2}
+              onChange={(e) => setDate2(e.target.value)}
+              style={{ position: "absolute", opacity: 0, pointerEvents: "none", width: 0, height: 0 }}
+              tabIndex={-1}
+              aria-hidden
+            />
+          </div>
+        </div>
+
+        {/* Disabled state */}
+        <div style={{ width: "280px" }}>
+          <p style={{ fontSize: "11px", color: tokens.color.fg.support, fontFamily: "monospace", marginBottom: "8px" }}>disabled</p>
+          <Input
+            label="Date of manufacture"
+            placeholder="Select date"
+            disabled
+            tailingIcon={
+              <button type="button" disabled style={{ display: "flex", alignItems: "center", background: "transparent", border: "none", cursor: "not-allowed", padding: 0 }}>
+                <CalendarIcon color={tokens.color.fg.disabled} />
+              </button>
+            }
+          />
+        </div>
+
+        {/* Error state */}
+        <div style={{ width: "280px" }}>
+          <p style={{ fontSize: "11px", color: tokens.color.fg.support, fontFamily: "monospace", marginBottom: "8px" }}>error</p>
+          <div style={{ position: "relative" }}>
+            <Input
+              label="Date of manufacture"
+              placeholder="Select date"
+              value={formatDate(date1)}
+              readOnly
+              errorMessage="Date is required"
+              tailingIcon={calendarTailingIcon(domRef3)}
+            />
+            <input
+              ref={domRef3}
+              type="date"
+              onChange={(e) => setDate1(e.target.value)}
+              style={{ position: "absolute", opacity: 0, pointerEvents: "none", width: 0, height: 0 }}
+              tabIndex={-1}
+              aria-hidden
+            />
+          </div>
+        </div>
+      </div>
+
+      {/* Code snippet */}
+      <pre style={{
+        fontFamily: "monospace", fontSize: "12px",
+        background: tokens.color.bg.darkBg, color: tokens.color.brand.lime,
+        padding: "12px 16px", borderRadius: tokens.borderRadius.md,
+        overflowX: "auto", margin: 0, lineHeight: "1.6",
+      }}>
+        {codeSnippet}
+      </pre>
+    </div>
+  );
+}
+
+// ---------------------------------------------------------------------------
 // Input tab
 // ---------------------------------------------------------------------------
 function InputTab({ svgs }: { svgs: Record<string, string> }) {
@@ -314,7 +509,7 @@ function InputTab({ svgs }: { svgs: Record<string, string> }) {
       <button
         type="button"
         disabled={btnDisabled}
-        style={{ display:"flex", alignItems:"center", gap:"6px", height:"100%", padding:"0 12px", background: btnDisabled ? tokens.color.bg.lightBg : tokens.color.brand.lime, border:"none", cursor: btnDisabled ? "not-allowed" : "pointer", fontFamily:tokens.fontFamily.sans, fontSize:tokens.fontSize.body, fontWeight:tokens.fontWeight.medium, color: btnDisabled ? tokens.color.fg.disabled : tokens.color.fg.primary, whiteSpace:"nowrap" as const, borderRadius: 0 }}
+        style={{ display:"flex", alignItems:"center", gap: tokens.spacing[1], height:"100%", paddingTop: tokens.spacing[2.5], paddingBottom: tokens.spacing[2.5], paddingLeft: tokens.spacing[2], paddingRight: tokens.spacing[2.5], background: btnDisabled ? tokens.color.bg.lightBg : tokens.color.brand.lime, border: btnDisabled ? `1px solid ${tokens.color.divider.frame}` : `1px solid ${tokens.color.divider.lime}`, cursor: btnDisabled ? "not-allowed" : "pointer", fontFamily:tokens.fontFamily.sans, fontSize:tokens.fontSize.body, fontWeight:tokens.fontWeight.medium, color: btnDisabled ? tokens.color.fg.disabled : tokens.color.fg.primary, whiteSpace:"nowrap" as const, borderRadius: 0 }}
       >
         {scanIconEl}Scan
       </button>
@@ -392,66 +587,14 @@ function InputTab({ svgs }: { svgs: Record<string, string> }) {
         </div>
       </Section>
 
-      {/* ── Inline Button section ─────────────────────────────────────────── */}
-      <Section title="Inline Button (Search + Inline Btn)">
-        <p style={{ fontSize: tokens.fontSize.body, color: tokens.color.fg.support, fontFamily: tokens.fontFamily.sans, marginBottom: "20px" }}>
-          Figma node 51:990 — Leading icon + inline action button inside the input border. Error state uses red border only (no error icon). Pass a fully-styled <code style={{ fontSize: "12px", background: tokens.color.bg.darkBg, padding: "2px 6px", borderRadius: "4px" }}>&lt;button&gt;</code> to <code style={{ fontSize: "12px", background: tokens.color.bg.darkBg, padding: "2px 6px", borderRadius: "4px" }}>inlineButton</code>.
-        </p>
-        <div style={{ background: tokens.color.base.white, border: `1px solid ${tokens.color.divider.border}`, borderRadius: tokens.borderRadius.lg, padding: "24px" }}>
-          <div style={{ display: "grid", gridTemplateColumns: "repeat(auto-fill, minmax(300px, 1fr))", gap: "24px" }}>
-            <div>
-              <p style={{ fontSize: "11px", color: tokens.color.fg.support, fontFamily: "monospace", marginBottom: "8px" }}>search + inline btn — default</p>
-              <Input label="Label" placeholder="Placeholder" leadingIcon={searchIcon} inlineButton={ScanBtn()} value="" onChange={() => {}} />
-            </div>
-            <div>
-              <p style={{ fontSize: "11px", color: tokens.color.fg.support, fontFamily: "monospace", marginBottom: "8px" }}>search + inline btn — filled + clear ×</p>
-              <Input label="Label" placeholder="Placeholder" leadingIcon={searchIcon} inlineButton={ScanBtn()} value={inlineSVal || "327"} onChange={(e) => setInlineSVal(e.target.value)} onClear={() => setInlineSVal("")} />
-            </div>
-            <div>
-              <p style={{ fontSize: "11px", color: tokens.color.fg.support, fontFamily: "monospace", marginBottom: "8px" }}>search + inline btn — error</p>
-              <Input label="Label" placeholder="Placeholder" leadingIcon={searchIcon} inlineButton={ScanBtn()} errorMessage="Invalid format" value="327" onChange={() => {}} onClear={() => {}} />
-            </div>
-            <div>
-              <p style={{ fontSize: "11px", color: tokens.color.fg.support, fontFamily: "monospace", marginBottom: "8px" }}>search + inline btn — disabled</p>
-              <Input label="Label" placeholder="Invalid inputs" leadingIcon={searchIcon} inlineButton={ScanBtn(true)} disabled value="" onChange={() => {}} />
-            </div>
-          </div>
-        </div>
-      </Section>
-
-      <Section title="Inline Button (No Leading Icon)">
-        <div style={{ background: tokens.color.base.white, border: `1px solid ${tokens.color.divider.border}`, borderRadius: tokens.borderRadius.lg, padding: "24px" }}>
-          <div style={{ display: "grid", gridTemplateColumns: "repeat(auto-fill, minmax(300px, 1fr))", gap: "24px" }}>
-            <div>
-              <p style={{ fontSize: "11px", color: tokens.color.fg.support, fontFamily: "monospace", marginBottom: "8px" }}>inline btn — default</p>
-              <Input label="Label" placeholder="Placeholder" inlineButton={ScanBtn()} value="" onChange={() => {}} />
-            </div>
-            <div>
-              <p style={{ fontSize: "11px", color: tokens.color.fg.support, fontFamily: "monospace", marginBottom: "8px" }}>inline btn — filled + clear ×</p>
-              <Input label="Label" placeholder="Placeholder" inlineButton={ScanBtn()} value={inlineVal || "12344433-43"} onChange={(e) => setInlineVal(e.target.value)} onClear={() => setInlineVal("")} />
-            </div>
-            <div>
-              <p style={{ fontSize: "11px", color: tokens.color.fg.support, fontFamily: "monospace", marginBottom: "8px" }}>inline btn — error</p>
-              <Input label="Label" placeholder="Placeholder" inlineButton={ScanBtn()} errorMessage="Invalid format" value="12344433-43" onChange={() => {}} onClear={() => {}} />
-            </div>
-            <div>
-              <p style={{ fontSize: "11px", color: tokens.color.fg.support, fontFamily: "monospace", marginBottom: "8px" }}>inline btn — disabled</p>
-              <Input label="Label" placeholder="Invalid inputs" inlineButton={ScanBtn(true)} disabled value="" onChange={() => {}} />
-            </div>
-          </div>
-        </div>
-      </Section>
-
       <p style={{ fontSize: tokens.fontSize.h5, fontWeight: tokens.fontWeight.semiBold, color: tokens.color.fg.primary, fontFamily: tokens.fontFamily.sans, marginBottom: "8px", borderBottom: `1px solid ${tokens.color.divider.border}`, paddingBottom: "8px" }}>Props</p>
       <PropsTable rows={[
         { prop: "label",           type: "string",            def: "—",             desc: "Label above the field — Inter Medium 500 14px" },
         { prop: "placeholder",     type: "string",            def: '"Placeholder"', desc: "Placeholder text in gray-400" },
         { prop: "inputSize",       type: '"Default"|"large"', def: '"Default"',     desc: "Default=40px · large=80px min-height" },
         { prop: "leadingIcon",     type: "ReactNode",         def: "—",             desc: "24px icon on the left — gray/400 color" },
-        { prop: "tailingIcon",     type: "ReactNode",         def: "—",             desc: "24px icon on the right — hidden when errorMessage or inlineButton set" },
-        { prop: "inlineButton",    type: "ReactNode",         def: "—",             desc: "Action button rendered flush at the right edge — pass a fully-styled <button>" },
-        { prop: "onClear",         type: "() => void",        def: "—",             desc: "When set + input has value, shows × clear button (only with inlineButton)" },
-        { prop: "errorMessage",    type: "string",            def: "—",             desc: "Red 2px border + error icon (omitted when inlineButton set) + message" },
+        { prop: "tailingIcon",     type: "ReactNode",         def: "—",             desc: "24px icon on the right — hidden when errorMessage set" },
+        { prop: "errorMessage",    type: "string",            def: "—",             desc: "Red 2px border + error icon + message. For inline button variant use ScanInput." },
         { prop: "supportMessage",  type: "string",            def: "—",             desc: "Helper text in gray-500 below the input" },
         { prop: "showSupportIcon", type: "boolean",           def: "false",         desc: "Prefix support message with lightbulb icon" },
         { prop: "disabled",        type: "boolean",           def: "false",         desc: "gray-50 bg, gray-400 text, not interactive" },
@@ -459,18 +602,184 @@ function InputTab({ svgs }: { svgs: Record<string, string> }) {
 
       {/* Calendar / date variant */}
       <Section title="Tailing icon — Calendar (date input pattern)">
-        <p style={{ fontSize: "13px", color: tokens.color.fg.support, fontFamily: tokens.fontFamily.sans, marginBottom: "16px" }}>
-          The calendar input is simply <code style={{ fontFamily: "monospace", fontSize: "12px" }}>{"<Input tailingIcon={<CalendarIcon />} />"}</code> — no separate component needed.
-          <code style={{ display: "block", fontFamily: "monospace", fontSize: "12px", background: tokens.color.bg.darkBg, color: tokens.color.brand.lime, padding: "8px 12px", borderRadius: tokens.borderRadius.sm, marginTop: "10px" }}>
-            {`import { Input, CalendarIcon } from "@/components/ui/Input";\n<Input label="Date" placeholder="DD/MM/YYYY" tailingIcon={<CalendarIcon />} />`}
-          </code>
-        </p>
-        <div style={{ display: "flex", flexWrap: "wrap", gap: "16px" }}>
-          <div style={{ width: "240px" }}><p style={{ fontSize: "11px", color: tokens.color.fg.support, fontFamily: "monospace", marginBottom: "8px" }}>default</p><Input label="Date" placeholder="DD/MM/YYYY" tailingIcon={<CalendarIcon />} /></div>
-          <div style={{ width: "240px" }}><p style={{ fontSize: "11px", color: tokens.color.fg.support, fontFamily: "monospace", marginBottom: "8px" }}>error</p><Input label="Date" placeholder="DD/MM/YYYY" tailingIcon={<CalendarIcon />} errorMessage="Invalid date" /></div>
-          <div style={{ width: "240px" }}><p style={{ fontSize: "11px", color: tokens.color.fg.support, fontFamily: "monospace", marginBottom: "8px" }}>disabled</p><Input label="Date" placeholder="DD/MM/YYYY" tailingIcon={<CalendarIcon />} disabled /></div>
+        <CalendarDateDemo />
+      </Section>
+    </div>
+  );
+}
+
+// ---------------------------------------------------------------------------
+// SelectInput tab
+// ---------------------------------------------------------------------------
+function SelectInputTab() {
+  const [val,      setVal]      = useState("option-a");
+  const [hasError, setHasError] = useState(false);
+  const [disabled, setDisabled] = useState(false);
+
+  const options = [
+    { value: "option-a", label: "Option A" },
+    { value: "option-b", label: "Option B" },
+    { value: "option-c", label: "Option C" },
+  ];
+
+  return (
+    <div>
+      <div style={{ marginBottom: "8px" }}>
+        <code style={{ fontSize: "12px", fontFamily: "monospace", background: tokens.color.bg.darkBg, padding: "2px 8px", borderRadius: tokens.borderRadius.sm, color: tokens.color.fg.support }}>components/ui/SelectInput.tsx</code>
+        <span style={{ fontSize: "12px", color: tokens.color.fg.disabled, marginLeft: "8px" }}>Figma node 51:1093</span>
+      </div>
+      <p style={{ fontSize: "14px", color: tokens.color.fg.support, marginBottom: "32px", fontFamily: tokens.fontFamily.sans }}>Dropdown select — same border states as Input · floating list via ContextMenu</p>
+
+      {/* Playground */}
+      <div style={{ background: tokens.color.base.white, border: `1px solid ${tokens.color.divider.border}`, borderRadius: tokens.borderRadius.lg, padding: "24px", marginBottom: "40px" }}>
+        <p style={{ fontSize: tokens.fontSize.h5, fontWeight: tokens.fontWeight.semiBold, color: tokens.color.fg.primary, fontFamily: tokens.fontFamily.sans, marginBottom: "20px" }}>Live Playground</p>
+        <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: "32px" }}>
+          <div style={{ display: "flex", flexDirection: "column", gap: "16px" }}>
+            <div>
+              <p style={{ fontSize: "12px", fontWeight: "600", color: tokens.color.fg.primary, fontFamily: tokens.fontFamily.sans, marginBottom: "8px" }}>Options</p>
+              <div style={{ display: "flex", flexWrap: "wrap" as const, gap: "6px" }}>
+                <PillToggle active={hasError} label="Error state" onClick={() => setHasError(!hasError)} />
+                <PillToggle active={disabled} label="Disabled"    onClick={() => setDisabled(!disabled)} />
+              </div>
+            </div>
+          </div>
+          <div>
+            <p style={{ fontSize: "12px", fontWeight: "600", color: tokens.color.fg.primary, fontFamily: tokens.fontFamily.sans, marginBottom: "8px" }}>Preview</p>
+            <div style={{ background: tokens.color.bg.bg, borderRadius: tokens.borderRadius.md, padding: "20px" }}>
+              <SelectInput
+                label="Label"
+                placeholder="Placeholder"
+                options={options}
+                value={hasError || disabled ? undefined : val}
+                onChange={setVal}
+                errorMessage={hasError ? "This field has an error" : undefined}
+                supportMessage={!hasError ? "Support message" : undefined}
+                disabled={disabled}
+              />
+            </div>
+          </div>
+        </div>
+      </div>
+
+      {/* All states */}
+      <Section title="All States">
+        <div style={{ background: tokens.color.base.white, border: `1px solid ${tokens.color.divider.border}`, borderRadius: tokens.borderRadius.lg, padding: "24px" }}>
+          <div style={{ display: "grid", gridTemplateColumns: "repeat(auto-fill, minmax(280px, 1fr))", gap: "24px" }}>
+            <div><p style={{ fontSize: "11px", color: tokens.color.fg.support, fontFamily: "monospace", marginBottom: "8px" }}>default (empty)</p><SelectInput label="Label" placeholder="Placeholder" options={options} /></div>
+            <div><p style={{ fontSize: "11px", color: tokens.color.fg.support, fontFamily: "monospace", marginBottom: "8px" }}>filled — click to open</p><SelectInput label="Label" options={options} value="option-a" /></div>
+            <div><p style={{ fontSize: "11px", color: tokens.color.fg.support, fontFamily: "monospace", marginBottom: "8px" }}>error</p><SelectInput label="Label" options={options} value="option-a" errorMessage="This field has an error" /></div>
+            <div><p style={{ fontSize: "11px", color: tokens.color.fg.support, fontFamily: "monospace", marginBottom: "8px" }}>disabled</p><SelectInput label="Label" placeholder="Placeholder" options={options} disabled /></div>
+            <div><p style={{ fontSize: "11px", color: tokens.color.fg.support, fontFamily: "monospace", marginBottom: "8px" }}>support message</p><SelectInput label="Label" placeholder="Placeholder" options={options} supportMessage="Support message" showSupportIcon /></div>
+          </div>
         </div>
       </Section>
+
+      {/* Props */}
+      <p style={{ fontSize: tokens.fontSize.h5, fontWeight: tokens.fontWeight.semiBold, color: tokens.color.fg.primary, fontFamily: tokens.fontFamily.sans, marginBottom: "8px", borderBottom: `1px solid ${tokens.color.divider.border}`, paddingBottom: "8px" }}>Props</p>
+      <PropsTable rows={[
+        { prop: "options",        type: "SelectOption[]", def: "—",             desc: "Array of { value, label } pairs" },
+        { prop: "value",          type: "string",         def: "—",             desc: "Controlled selected value" },
+        { prop: "onChange",       type: "(v) => void",    def: "—",             desc: "Called with the new value when an option is picked" },
+        { prop: "label",          type: "string",         def: "—",             desc: "Label above the dropdown" },
+        { prop: "placeholder",    type: "string",         def: '"Placeholder"', desc: "Shown when no value is selected" },
+        { prop: "errorMessage",   type: "string",         def: "—",             desc: "Red 2px border + error icon + message below" },
+        { prop: "supportMessage", type: "string",         def: "—",             desc: "Helper text shown below the trigger" },
+        { prop: "showSupportIcon",type: "boolean",        def: "false",         desc: "Prefix support message with lightbulb icon" },
+        { prop: "disabled",       type: "boolean",        def: "false",         desc: "Gray-50 bg, not interactive" },
+      ]} />
+    </div>
+  );
+}
+
+// ---------------------------------------------------------------------------
+// CompositeInput tab
+// ---------------------------------------------------------------------------
+function CompositeInputTab() {
+  const [numVal,   setNumVal]   = useState("");
+  const [unit,     setUnit]     = useState("kg");
+  const [hasError, setHasError] = useState(false);
+  const [disabled, setDisabled] = useState(false);
+
+  const unitOptions = [
+    { value: "kg",  label: "kg"  },
+    { value: "g",   label: "g"   },
+    { value: "lb",  label: "lb"  },
+    { value: "oz",  label: "oz"  },
+    { value: "m",   label: "m"   },
+    { value: "cm",  label: "cm"  },
+    { value: "mm",  label: "mm"  },
+  ];
+
+  return (
+    <div>
+      <div style={{ marginBottom: "8px" }}>
+        <code style={{ fontSize: "12px", fontFamily: "monospace", background: tokens.color.bg.darkBg, padding: "2px 8px", borderRadius: tokens.borderRadius.sm, color: tokens.color.fg.support }}>components/ui/CompositeInput.tsx</code>
+        <span style={{ fontSize: "12px", color: tokens.color.fg.disabled, marginLeft: "8px" }}>Figma nodes 52:1355 · 5837:15854</span>
+      </div>
+      <p style={{ fontSize: "14px", color: tokens.color.fg.support, marginBottom: "32px", fontFamily: tokens.fontFamily.sans }}>Text input + inline unit selector — single shared border, right-aligned 148px dropdown</p>
+
+      {/* Playground */}
+      <div style={{ background: tokens.color.base.white, border: `1px solid ${tokens.color.divider.border}`, borderRadius: tokens.borderRadius.lg, padding: "24px", marginBottom: "40px" }}>
+        <p style={{ fontSize: tokens.fontSize.h5, fontWeight: tokens.fontWeight.semiBold, color: tokens.color.fg.primary, fontFamily: tokens.fontFamily.sans, marginBottom: "20px" }}>Live Playground</p>
+        <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: "32px" }}>
+          <div style={{ display: "flex", flexDirection: "column", gap: "16px" }}>
+            <div>
+              <p style={{ fontSize: "12px", fontWeight: "600", color: tokens.color.fg.primary, fontFamily: tokens.fontFamily.sans, marginBottom: "8px" }}>Options</p>
+              <div style={{ display: "flex", flexWrap: "wrap" as const, gap: "6px" }}>
+                <PillToggle active={hasError} label="Error state" onClick={() => setHasError(!hasError)} />
+                <PillToggle active={disabled} label="Disabled"    onClick={() => setDisabled(!disabled)} />
+              </div>
+            </div>
+          </div>
+          <div>
+            <p style={{ fontSize: "12px", fontWeight: "600", color: tokens.color.fg.primary, fontFamily: tokens.fontFamily.sans, marginBottom: "8px" }}>Preview</p>
+            <div style={{ background: tokens.color.bg.bg, borderRadius: tokens.borderRadius.md, padding: "20px" }}>
+              <CompositeInput
+                label="Weight"
+                placeholder="0"
+                value={numVal}
+                onChange={setNumVal}
+                unitOptions={unitOptions}
+                unitValue={unit}
+                onUnitChange={setUnit}
+                errorMessage={hasError ? "This field has an error" : undefined}
+                supportMessage={!hasError ? "Enter a value and select a unit" : undefined}
+                disabled={disabled}
+              />
+            </div>
+          </div>
+        </div>
+      </div>
+
+      {/* All states */}
+      <Section title="All States">
+        <div style={{ background: tokens.color.base.white, border: `1px solid ${tokens.color.divider.border}`, borderRadius: tokens.borderRadius.lg, padding: "24px" }}>
+          <div style={{ display: "grid", gridTemplateColumns: "repeat(auto-fill, minmax(280px, 1fr))", gap: "24px" }}>
+            <div><p style={{ fontSize: "11px", color: tokens.color.fg.support, fontFamily: "monospace", marginBottom: "8px" }}>default (empty)</p><CompositeInput label="Label" placeholder="0" unitOptions={unitOptions} /></div>
+            <div><p style={{ fontSize: "11px", color: tokens.color.fg.support, fontFamily: "monospace", marginBottom: "8px" }}>filled</p><CompositeInput label="Label" value="12.5" unitOptions={unitOptions} unitValue="kg" /></div>
+            <div><p style={{ fontSize: "11px", color: tokens.color.fg.support, fontFamily: "monospace", marginBottom: "8px" }}>error</p><CompositeInput label="Label" value="abc" unitOptions={unitOptions} unitValue="kg" errorMessage="Invalid value" /></div>
+            <div><p style={{ fontSize: "11px", color: tokens.color.fg.support, fontFamily: "monospace", marginBottom: "8px" }}>disabled</p><CompositeInput label="Label" placeholder="0" unitOptions={unitOptions} disabled /></div>
+            <div><p style={{ fontSize: "11px", color: tokens.color.fg.support, fontFamily: "monospace", marginBottom: "8px" }}>support message</p><CompositeInput label="Label" placeholder="0" unitOptions={unitOptions} unitValue="m" supportMessage="Enter a length" showSupportIcon /></div>
+          </div>
+        </div>
+      </Section>
+
+      {/* Props */}
+      <p style={{ fontSize: tokens.fontSize.h5, fontWeight: tokens.fontWeight.semiBold, color: tokens.color.fg.primary, fontFamily: tokens.fontFamily.sans, marginBottom: "8px", borderBottom: `1px solid ${tokens.color.divider.border}`, paddingBottom: "8px" }}>Props</p>
+      <PropsTable rows={[
+        { prop: "unitOptions",    type: "UnitOption[]",   def: "—",              desc: "Array of { value, label } pairs for the unit dropdown" },
+        { prop: "unitValue",      type: "string",         def: "—",              desc: "Controlled selected unit" },
+        { prop: "onUnitChange",   type: "(v) => void",    def: "—",              desc: "Called when a unit is selected" },
+        { prop: "value",          type: "string",         def: "—",              desc: "Controlled value for the text input" },
+        { prop: "onChange",       type: "(v) => void",    def: "—",              desc: "Called on text input change" },
+        { prop: "label",          type: "string",         def: "—",              desc: "Label above the field" },
+        { prop: "placeholder",    type: "string",         def: '"0"',            desc: "Placeholder for the numeric input" },
+        { prop: "unitPlaceholder",type: "string",         def: '"Select unit"',  desc: "Placeholder shown in the unit button when nothing selected" },
+        { prop: "errorMessage",   type: "string",         def: "—",              desc: "Red 2px border + error icon + message below" },
+        { prop: "supportMessage", type: "string",         def: "—",              desc: "Helper text shown below the input" },
+        { prop: "showSupportIcon",type: "boolean",        def: "false",          desc: "Prefix support message with lightbulb icon" },
+        { prop: "disabled",       type: "boolean",        def: "false",          desc: "Gray-50 bg, not interactive" },
+      ]} />
     </div>
   );
 }
@@ -1091,6 +1400,222 @@ function BadgeTab() {
 }
 
 // ---------------------------------------------------------------------------
+// BadgeActionableTab
+// ---------------------------------------------------------------------------
+function BadgeActionableTab() {
+  const [sel1, setSel1] = useState(false);
+  const [sel2, setSel2] = useState(false);
+  const [sel3, setSel3] = useState(false);
+  const [sel4, setSel4] = useState(false);
+
+  // Shared icon helpers (inline SVGs — 16px)
+  const AdjustmentsIcon = ({ color = tokens.color.fg.primary }: { color?: string }) => (
+    <svg width="16" height="16" viewBox="0 0 16 16" fill="none" aria-hidden>
+      <line x1="2" y1="4.5"  x2="14" y2="4.5"  stroke={color} strokeWidth="1.4" strokeLinecap="round" />
+      <line x1="2" y1="11.5" x2="14" y2="11.5" stroke={color} strokeWidth="1.4" strokeLinecap="round" />
+      <circle cx="5"  cy="4.5"  r="1.8" fill="white" stroke={color} strokeWidth="1.4" />
+      <circle cx="11" cy="11.5" r="1.8" fill="white" stroke={color} strokeWidth="1.4" />
+    </svg>
+  );
+
+  const InfoIcon = ({ color = tokens.color.fg.support }: { color?: string }) => (
+    <svg width="16" height="16" viewBox="0 0 16 16" fill="none" aria-hidden>
+      <circle cx="8" cy="8" r="6.5" stroke={color} strokeWidth="1.3" />
+      <path d="M8 7v4" stroke={color} strokeWidth="1.4" strokeLinecap="round" />
+      <circle cx="8" cy="5" r="0.8" fill={color} />
+    </svg>
+  );
+
+  const chevronColor    = (sel: boolean) => sel ? tokens.color.fg.blue : tokens.color.fg.support;
+  const adjColor        = (sel: boolean) => sel ? tokens.color.fg.blue : tokens.color.fg.primary;
+
+  return (
+    <div style={{ display: "flex", flexDirection: "column", gap: "40px" }}>
+
+      {/* ── Small — removable tag (tailing ×, always) ── */}
+      <Section title="Small — removable tag">
+        <Row label="Default / selected">
+          <div style={{ display: "flex", flexWrap: "wrap", gap: "8px", alignItems: "center" }}>
+            <BadgeActionable label="EN 12275:2013" dismissible onDismiss={() => {}} />
+            <BadgeActionable label="EN 12275:2013" dismissible selected onDismiss={() => {}} />
+          </div>
+        </Row>
+        <Row label="Disabled">
+          <BadgeActionable label="EN 12275:2013" dismissible disabled onDismiss={() => {}} />
+        </Row>
+      </Section>
+
+      {/* ── Small — dropdown filter (leading info + trailing chevron → × when selected) ── */}
+      <Section title="Small — dropdown filter chip">
+        <Row label="Default / selected / disabled">
+          <div style={{ display: "flex", flexWrap: "wrap", gap: "8px", alignItems: "center" }}>
+            <BadgeActionable
+              label="EN 12275:2013"
+              leadingIcon={<InfoIcon />}
+              tailingIcon={<BadgeActionableChevronIcon color={tokens.color.fg.support} />}
+              dismissible
+              onDismiss={() => {}}
+            />
+            <BadgeActionable
+              label="EN 12275:2013"
+              selected
+              leadingIcon={<InfoIcon color={tokens.color.fg.blue} />}
+              tailingIcon={<BadgeActionableChevronIcon color={tokens.color.fg.blue} />}
+              dismissible
+              onDismiss={() => {}}
+            />
+            <BadgeActionable
+              label="EN 12275:2013"
+              disabled
+              leadingIcon={<InfoIcon />}
+              tailingIcon={<BadgeActionableChevronIcon color={tokens.color.fg.support} />}
+              dismissible
+              onDismiss={() => {}}
+            />
+          </div>
+        </Row>
+        <Row label="Interactive (click to select)">
+          <div style={{ display: "flex", flexWrap: "wrap", gap: "8px", alignItems: "center" }}>
+            <BadgeActionable
+              label="Print Status"
+              leadingIcon={<InfoIcon color={sel1 ? tokens.color.fg.blue : tokens.color.fg.support} />}
+              tailingIcon={<BadgeActionableChevronIcon color={chevronColor(sel1)} />}
+              selected={sel1}
+              dismissible
+              onClick={() => setSel1(!sel1)}
+              onDismiss={() => setSel1(false)}
+            />
+            <BadgeActionable
+              label="Source"
+              tailingIcon={<BadgeActionableChevronIcon color={chevronColor(sel2)} />}
+              selected={sel2}
+              dismissible
+              onClick={() => setSel2(!sel2)}
+              onDismiss={() => setSel2(false)}
+            />
+          </div>
+        </Row>
+      </Section>
+
+      {/* ── Big — text only ── */}
+      <Section title='Big — text only ("none")'>
+        <Row label="Default / selected / disabled">
+          <div style={{ display: "flex", flexWrap: "wrap", gap: "8px", alignItems: "center" }}>
+            <BadgeActionable label="Filters" size="big" />
+            <BadgeActionable label="All Item" size="big" selected dismissible onDismiss={() => {}} />
+            <BadgeActionable label="Filters"  size="big" disabled />
+          </div>
+        </Row>
+      </Section>
+
+      {/* ── Big — leading icon ── */}
+      <Section title='Big — leading icon'>
+        <Row label="Default / selected / disabled">
+          <div style={{ display: "flex", flexWrap: "wrap", gap: "8px", alignItems: "center" }}>
+            <BadgeActionable
+              label="Filters"
+              size="big"
+              leadingIcon={<AdjustmentsIcon />}
+            />
+            <BadgeActionable
+              label="Filters"
+              size="big"
+              selected
+              leadingIcon={<AdjustmentsIcon color={tokens.color.fg.blue} />}
+            />
+            <BadgeActionable
+              label="Filters"
+              size="big"
+              disabled
+              leadingIcon={<AdjustmentsIcon />}
+            />
+          </div>
+        </Row>
+      </Section>
+
+      {/* ── Big — tailing icon (dropdown) ── */}
+      <Section title='Big — tailing icon (dropdown)'>
+        <Row label="Default / selected (× replaces icon) / disabled">
+          <div style={{ display: "flex", flexWrap: "wrap", gap: "8px", alignItems: "center" }}>
+            <BadgeActionable
+              label="Print Status"
+              size="big"
+              tailingIcon={<BadgeActionableChevronIcon color={tokens.color.fg.support} />}
+              dismissible
+              onDismiss={() => {}}
+            />
+            <BadgeActionable
+              label="All Item"
+              size="big"
+              selected
+              tailingIcon={<BadgeActionableChevronIcon color={tokens.color.fg.blue} />}
+              dismissible
+              onDismiss={() => {}}
+            />
+            <BadgeActionable
+              label="Source"
+              size="big"
+              disabled
+              tailingIcon={<BadgeActionableChevronIcon color={tokens.color.fg.support} />}
+            />
+          </div>
+        </Row>
+        <Row label="Interactive (click to select)">
+          <div style={{ display: "flex", flexWrap: "wrap", gap: "8px", alignItems: "center" }}>
+            <BadgeActionable
+              label="Print Status"
+              size="big"
+              tailingIcon={<BadgeActionableChevronIcon color={chevronColor(sel3)} />}
+              selected={sel3}
+              dismissible
+              onClick={() => setSel3(!sel3)}
+              onDismiss={() => setSel3(false)}
+            />
+            <BadgeActionable
+              label="Source"
+              size="big"
+              tailingIcon={<BadgeActionableChevronIcon color={chevronColor(sel4)} />}
+              selected={sel4}
+              dismissible
+              onClick={() => setSel4(!sel4)}
+              onDismiss={() => setSel4(false)}
+            />
+            <BadgeActionable
+              label="Filters"
+              size="big"
+              leadingIcon={<AdjustmentsIcon color={adjColor(false)} />}
+            />
+          </div>
+        </Row>
+      </Section>
+
+      {/* ── Big — tailing adjustments icon ── */}
+      <Section title='Big — tailing adjustments icon'>
+        <Row label="Default / selected">
+          <div style={{ display: "flex", flexWrap: "wrap", gap: "8px", alignItems: "center" }}>
+            <BadgeActionable label="Filters" size="big" tailingIcon={<AdjustmentsIcon />} />
+            <BadgeActionable label="Filters" size="big" selected tailingIcon={<AdjustmentsIcon color={tokens.color.fg.blue} />} dismissible onDismiss={() => {}} />
+          </div>
+        </Row>
+      </Section>
+
+      {/* Props table */}
+      <PropsTable rows={[
+        { prop: "label",        type: "string",                       def: "—",       desc: "Chip text" },
+        { prop: "size",         type: '"small" | "big"',              def: '"small"', desc: "small = pill (12px rounded-full) · big = chip (14px rounded-md)" },
+        { prop: "selected",     type: "boolean",                      def: "false",   desc: "Blue selected state — tint/blue bg, action/500 border" },
+        { prop: "disabled",     type: "boolean",                      def: "false",   desc: "Fades to 30% opacity, prevents interaction" },
+        { prop: "leadingIcon",  type: "React.ReactNode",              def: "—",       desc: "16×16 icon before label" },
+        { prop: "tailingIcon",  type: "React.ReactNode",              def: "—",       desc: "16×16 icon after label. On big+dismissible: replaced by × when selected" },
+        { prop: "dismissible",  type: "boolean",                      def: "false",   desc: "Shows ×. small+no tailingIcon: always. small+tailingIcon or big: only when selected" },
+        { prop: "onClick",      type: "() => void",                   def: "—",       desc: "Called on chip click" },
+        { prop: "onDismiss",    type: "() => void",                   def: "—",       desc: "Called when × is clicked (stops propagation)" },
+      ]} />
+    </div>
+  );
+}
+
+// ---------------------------------------------------------------------------
 // Sidebar icon node IDs (same as dashboard pages)
 // ---------------------------------------------------------------------------
 const SIDEBAR_ICON_IDS = {
@@ -1512,246 +2037,78 @@ function ToggleTab() {
 }
 
 // ---------------------------------------------------------------------------
-// ContextMenu tab
+// ContextMenuItemTab
 // ---------------------------------------------------------------------------
-function ContextMenuTab() {
-  const [sheetWebOpen,    setSheetWebOpen]    = useState(false);
-  const [sheetMobileOpen, setSheetMobileOpen] = useState(false);
+function ContextMenuItemTab() {
   const [toggleA, setToggleA] = useState(false);
   const [toggleB, setToggleB] = useState(true);
 
-  const menuItems = [
-    { label: "Inspect",                  state: "default"     as const },
-    { label: "Update information",       state: "default"     as const },
-    { label: "Set inspection frequency", state: "default"     as const, divider: true },
-    { label: "Assign to team",           state: "default"     as const },
-    { label: "Move to folder",           state: "default"     as const, divider: true },
-    { label: "Remove from inventory",    state: "destructive" as const },
-  ];
-
   return (
     <div>
-      {/* Header */}
       <div style={{ marginBottom: "8px" }}>
         <code style={{ fontSize: "12px", fontFamily: "monospace", background: tokens.color.bg.darkBg, padding: "2px 8px", borderRadius: tokens.borderRadius.sm, color: tokens.color.fg.support }}>components/ui/ContextMenuItem.tsx</code>
-        <span style={{ fontSize: "12px", color: tokens.color.fg.disabled, marginLeft: "8px" }}>Figma node 165-930</span>
+        <span style={{ fontSize: "12px", color: tokens.color.fg.disabled, marginLeft: "8px" }}>Figma node 165:930</span>
       </div>
       <p style={{ fontSize: "14px", color: tokens.color.fg.support, marginBottom: "32px", fontFamily: tokens.fontFamily.sans }}>
-        Row atom — icon, label, optional support text, 5 states, 4 trailing types. Compose rows inside a ContextMenu surface.
+        Row atom — icon, label, optional support text, 5 states, 4 trailing types. Compose rows inside a <code>ContextMenu</code> surface (see Patterns).
       </p>
 
-      {/* ── Item states ── */}
-      <Section title="Item states">
-        <div style={{ background: tokens.color.base.white, border: `1px solid ${tokens.color.divider.border}`, borderRadius: tokens.borderRadius.lg, padding: "24px" }}>
-          <Row label="Default">
-            <div style={{ width: "280px" }}><ContextMenuItem label="Update information" /></div>
-          </Row>
-          <Row label="Hover (simulated)">
-            <div style={{ width: "280px" }}><ContextMenuItem label="Update information" state="hover" /></div>
-          </Row>
-          <Row label="Selected — trailing check">
-            <div style={{ width: "280px" }}><ContextMenuItem label="Update information" state="selected" /></div>
-          </Row>
-          <Row label="Destructive — red text">
-            <div style={{ width: "280px" }}><ContextMenuItem label="Remove from inventory" state="destructive" /></div>
-          </Row>
-          <Row label="Disabled — 30% opacity">
-            <div style={{ width: "280px" }}><ContextMenuItem label="Update information" state="disabled" /></div>
-          </Row>
+      <Section title="States">
+        <div style={{ background: tokens.color.base.white, border: `1px solid ${tokens.color.divider.border}`, borderRadius: tokens.borderRadius.lg, padding: "8px", maxWidth: "320px" }}>
+          <ContextMenuItem label="Default" />
+          <ContextMenuItem label="Hover (simulated)"    state="hover" />
+          <ContextMenuItem label="Selected"             state="selected" />
+          <ContextMenuItem label="Remove from inventory" state="destructive" />
+          <ContextMenuItem label="Disabled"             state="disabled" />
         </div>
       </Section>
 
-      {/* ── With icon ── */}
-      <Section title="Icon variants (iconUrl / icon)">
-        <div style={{ background: tokens.color.base.white, border: `1px solid ${tokens.color.divider.border}`, borderRadius: tokens.borderRadius.lg, padding: "24px" }}>
-          <Row label="No icon (plain text)">
-            <div style={{ width: "280px" }}>
-              <ContextMenuItem label="Share" />
-              <ContextMenuItem label="Archive" />
-              <ContextMenuItem label="Delete" state="destructive" />
-            </div>
-          </Row>
-          <Row label="With inline SVG icon">
-            <div style={{ width: "280px" }}>
-              <ContextMenuItem
-                label="Inspect"
-                icon={
-                  <svg width="24" height="24" viewBox="0 0 24 24" fill="none">
-                    <rect x="5" y="2" width="14" height="18" rx="2" stroke="currentColor" strokeWidth="1.5"/>
-                    <path d="M8 7h8M8 11h8M8 15h5" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round"/>
-                  </svg>
-                }
-              />
-              <ContextMenuItem
-                label="Remove from inventory"
-                state="destructive"
-                icon={
-                  <svg width="24" height="24" viewBox="0 0 24 24" fill="none">
-                    <path d="M4 6h16M9 6V4h6v2M19 6l-1 14H6L5 6" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round"/>
-                  </svg>
-                }
-              />
-            </div>
-          </Row>
-          <Row label="With support text">
-            <div style={{ width: "280px" }}>
-              <ContextMenuItem
-                label="Add NFC"
-                supportText="NFC is not enabled on this device"
-                icon={
-                  <svg width="24" height="24" viewBox="0 0 24 24" fill="none">
-                    <path d="M6 5h3l6 14H12" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round"/>
-                    <path d="M13 9.5c1.5.5 2.5 2 2.5 3.5s-1 3-2.5 3.5" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round"/>
-                  </svg>
-                }
-              />
-            </div>
-          </Row>
-          <Row label="With support text + divider (Figma 5744:11135)">
-            <div style={{ width: "280px" }}>
-              <ContextMenuItem
-                label="Preview"
-                supportText="View this batch in read-only mode."
-                divider
-                icon={
-                  <svg width="24" height="24" viewBox="0 0 24 24" fill="none">
-                    <path d="M2 12s3.5-7 10-7 10 7 10 7-3.5 7-10 7S2 12 2 12z" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round"/>
-                    <circle cx="12" cy="12" r="3" stroke="currentColor" strokeWidth="1.5"/>
-                  </svg>
-                }
-              />
-            </div>
-          </Row>
+      <Section title="With icon">
+        <div style={{ background: tokens.color.base.white, border: `1px solid ${tokens.color.divider.border}`, borderRadius: tokens.borderRadius.lg, padding: "8px", maxWidth: "320px" }}>
+          <ContextMenuItem label="Inspect" icon={
+            <svg width="24" height="24" viewBox="0 0 24 24" fill="none">
+              <rect x="5" y="2" width="14" height="18" rx="2" stroke="currentColor" strokeWidth="1.5"/>
+              <path d="M8 7h8M8 11h8M8 15h5" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round"/>
+            </svg>
+          } />
+          <ContextMenuItem label="Remove from inventory" state="destructive" icon={
+            <svg width="24" height="24" viewBox="0 0 24 24" fill="none">
+              <path d="M4 6h16M9 6V4h6v2M19 6l-1 14H6L5 6" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round"/>
+            </svg>
+          } />
+          <ContextMenuItem label="Add NFC" supportText="NFC is not enabled on this device" icon={
+            <svg width="24" height="24" viewBox="0 0 24 24" fill="none">
+              <path d="M6 5h3l6 14H12" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round"/>
+              <path d="M13 9.5c1.5.5 2.5 2 2.5 3.5s-1 3-2.5 3.5" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round"/>
+            </svg>
+          } />
         </div>
       </Section>
 
-      {/* ── Trailing items ── */}
-      <Section title="Trailing items">
-        <div style={{ background: tokens.color.base.white, border: `1px solid ${tokens.color.divider.border}`, borderRadius: tokens.borderRadius.lg, padding: "24px" }}>
-          <Row label="Arrow (sub-menu hint)">
-            <div style={{ width: "280px" }}>
-              <ContextMenuItem label="Move to folder" trailing="arrow" />
-            </div>
-          </Row>
-          <Row label="Toggle switch">
-            <div style={{ width: "280px" }}>
-              <ContextMenuItem label="Show archived" trailing="toggle" toggleChecked={toggleA} onToggleChange={setToggleA} />
-              <ContextMenuItem label="Preview mode"  trailing="toggle" toggleChecked={toggleB} onToggleChange={setToggleB} />
-            </div>
-          </Row>
-          <Row label="Chip badge">
-            <div style={{ width: "280px" }}>
-              <ContextMenuItem label="Next inspection" trailing="chip" chipLabel="Due Sep 3" />
-            </div>
-          </Row>
+      <Section title="Trailing types">
+        <div style={{ background: tokens.color.base.white, border: `1px solid ${tokens.color.divider.border}`, borderRadius: tokens.borderRadius.lg, padding: "8px", maxWidth: "320px" }}>
+          <ContextMenuItem label="Move to folder"   trailing="arrow" />
+          <ContextMenuItem label="Show archived"    trailing="toggle" toggleChecked={toggleA} onToggleChange={setToggleA} />
+          <ContextMenuItem label="Preview mode"     trailing="toggle" toggleChecked={toggleB} onToggleChange={setToggleB} />
+          <ContextMenuItem label="Next inspection"  trailing="chip"   chipLabel="Due Sep 3" />
+          <ContextMenuItem label="With divider"     divider />
+          <ContextMenuItem label="After divider" />
         </div>
       </Section>
 
-      {/* ── Divider ── */}
-      <Section title="Divider variant">
-        <div style={{ background: tokens.color.base.white, border: `1px solid ${tokens.color.divider.border}`, borderRadius: tokens.borderRadius.lg, padding: "24px" }}>
-          <Row label="Item with bottom divider">
-            <div style={{ width: "280px" }}>
-              <ContextMenuItem label="Update information" divider />
-              <ContextMenuItem label="Remove from inventory" state="destructive" />
-            </div>
-          </Row>
-        </div>
-      </Section>
-
-      {/* ── Floating menu ── */}
-      <div style={{ borderTop: `1px solid ${tokens.color.divider.frame}`, marginTop: "48px", paddingTop: "40px" }}>
-        <div style={{ marginBottom: "8px" }}>
-          <code style={{ fontSize: "12px", fontFamily: "monospace", background: tokens.color.bg.darkBg, padding: "2px 8px", borderRadius: tokens.borderRadius.sm, color: tokens.color.fg.support }}>components/ui/ContextMenu.tsx</code>
-          <span style={{ fontSize: "12px", color: tokens.color.fg.disabled, marginLeft: "8px" }}>Figma node 1586-8785</span>
-        </div>
-        <p style={{ fontSize: "14px", color: tokens.color.fg.support, marginBottom: "32px", fontFamily: tokens.fontFamily.sans }}>
-          Surface wrapper. Three variants: <code>floating</code> · <code>bottom-sheet-web</code> · <code>bottom-sheet-mobile</code>
-        </p>
-
-        <Section title="Floating menu (variant=&quot;floating&quot;)">
-          <p style={{ fontSize: "13px", color: tokens.color.fg.support, fontFamily: tokens.fontFamily.sans, marginBottom: "16px" }}>
-            White card with ring shadow. Position absolutely relative to a trigger. Default width 240 px.
-          </p>
-          <div style={{ background: tokens.color.bg.darkBg, borderRadius: tokens.borderRadius.lg, padding: "40px", display: "flex", justifyContent: "center" }}>
-            {/* Floating menus are always-open in the preview */}
-            <div style={{ position: "relative" }}>
-              <ContextMenu variant="floating" open>
-                {menuItems.map((item, i) => (
-                  <ContextMenuItem key={i} label={item.label} state={item.state} divider={item.divider} />
-                ))}
-              </ContextMenu>
-            </div>
-          </div>
-        </Section>
-
-        {/* ── Bottom sheet web ── */}
-        <Section title="Bottom sheet — web (variant=&quot;bottom-sheet-web&quot;)">
-          <p style={{ fontSize: "13px", color: tokens.color.fg.support, fontFamily: tokens.fontFamily.sans, marginBottom: "16px" }}>
-            Slides up from the bottom of the screen. Rendered fixed, centred, 400 px wide. Backdrop closes on click.
-          </p>
-          <div style={{ background: tokens.color.bg.bg, borderRadius: tokens.borderRadius.lg, padding: "24px", display: "flex", alignItems: "center", gap: "16px" }}>
-            <button
-              onClick={() => setSheetWebOpen(true)}
-              style={{ padding: "10px 20px", background: tokens.color.bg.blue, color: tokens.color.base.white, border: "none", borderRadius: tokens.borderRadius.md, fontFamily: tokens.fontFamily.sans, fontSize: tokens.fontSize.body, cursor: "pointer" }}
-            >
-              Open bottom sheet (web)
-            </button>
-            <span style={{ fontSize: "13px", color: tokens.color.fg.support, fontFamily: tokens.fontFamily.sans }}>Click the backdrop or press Esc to close</span>
-          </div>
-          <ContextMenu variant="bottom-sheet-web" open={sheetWebOpen} onClose={() => setSheetWebOpen(false)}>
-            {menuItems.map((item, i) => (
-              <ContextMenuItem key={i} label={item.label} state={item.state} divider={item.divider} onClick={() => setSheetWebOpen(false)} />
-            ))}
-          </ContextMenu>
-        </Section>
-
-        {/* ── Bottom sheet mobile ── */}
-        <Section title="Bottom sheet — mobile (variant=&quot;bottom-sheet-mobile&quot;)">
-          <p style={{ fontSize: "13px", color: tokens.color.fg.support, fontFamily: tokens.fontFamily.sans, marginBottom: "16px" }}>
-            Full-width version with drag handle. Used in native-feeling mobile flows.
-          </p>
-          <div style={{ background: tokens.color.bg.bg, borderRadius: tokens.borderRadius.lg, padding: "24px", display: "flex", alignItems: "center", gap: "16px" }}>
-            <button
-              onClick={() => setSheetMobileOpen(true)}
-              style={{ padding: "10px 20px", background: tokens.color.bg.blue, color: tokens.color.base.white, border: "none", borderRadius: tokens.borderRadius.md, fontFamily: tokens.fontFamily.sans, fontSize: tokens.fontSize.body, cursor: "pointer" }}
-            >
-              Open bottom sheet (mobile)
-            </button>
-            <span style={{ fontSize: "13px", color: tokens.color.fg.support, fontFamily: tokens.fontFamily.sans }}>Click the backdrop or press Esc to close</span>
-          </div>
-          <ContextMenu variant="bottom-sheet-mobile" open={sheetMobileOpen} onClose={() => setSheetMobileOpen(false)}>
-            {menuItems.map((item, i) => (
-              <ContextMenuItem key={i} label={item.label} state={item.state} divider={item.divider} onClick={() => setSheetMobileOpen(false)} />
-            ))}
-          </ContextMenu>
-        </Section>
-      </div>
-
-      {/* ── Props tables ── */}
       <PropsTable rows={[
-        { prop: "label",          type: "string",                    def: "—",           desc: "Primary label text" },
-        { prop: "supportText",    type: "string",                    def: "undefined",   desc: "Secondary line below label — 14px fg.disabled" },
-        { prop: "iconUrl",        type: "string",                    def: "undefined",   desc: "Data URL / public path SVG, tinted via mask-image (fg.disabled or fg.red)" },
-        { prop: "icon",           type: "ReactNode",                 def: "undefined",   desc: "Inline SVG; paths use currentColor — color set automatically" },
+        { prop: "label",          type: "string",                    def: "—",         desc: "Primary label text" },
+        { prop: "supportText",    type: "string",                    def: "undefined", desc: "Secondary line below label" },
+        { prop: "icon",           type: "ReactNode",                 def: "undefined", desc: "Inline SVG; paths use currentColor — tinted automatically" },
+        { prop: "iconUrl",        type: "string",                    def: "undefined", desc: "Data URL SVG, tinted via CSS mask (fg.disabled or fg.red)" },
         { prop: "state",          type: "'default'|'hover'|'selected'|'destructive'|'disabled'", def: "'default'", desc: "Visual state of the row" },
-        { prop: "divider",        type: "boolean",                   def: "false",       desc: "Adds a 1 px divider line below the row" },
         { prop: "trailing",       type: "'none'|'arrow'|'toggle'|'chip'", def: "'none'", desc: "Trailing element type" },
-        { prop: "chipLabel",      type: "string",                    def: "undefined",   desc: "Text inside the amber chip badge" },
-        { prop: "toggleChecked",  type: "boolean",                   def: "false",       desc: "Controlled value for the toggle trailing item" },
-        { prop: "onToggleChange", type: "(checked: boolean) => void", def: "undefined",  desc: "Called when the toggle is switched" },
-        { prop: "onClick",        type: "() => void",                def: "undefined",   desc: "Click handler for the row (adds role=menuitem, tabIndex, keyboard support)" },
+        { prop: "chipLabel",      type: "string",                    def: "undefined", desc: "Text inside the amber chip badge" },
+        { prop: "toggleChecked",  type: "boolean",                   def: "false",     desc: "Controlled value for the toggle trailing item" },
+        { prop: "onToggleChange", type: "(checked: boolean) => void", def: "undefined", desc: "Called when the toggle is switched" },
+        { prop: "divider",        type: "boolean",                   def: "false",     desc: "Adds a 1px divider line below the row" },
+        { prop: "onClick",        type: "() => void",                def: "undefined", desc: "Row click handler — adds role=menuitem, keyboard support" },
       ]} />
-
-      <div style={{ borderTop: `1px solid ${tokens.color.divider.frame}`, marginTop: "48px", paddingTop: "32px" }}>
-        <PropsTable rows={[
-          { prop: "variant",  type: "'floating'|'bottom-sheet-web'|'bottom-sheet-mobile'", def: "'floating'", desc: "Surface type" },
-          { prop: "open",     type: "boolean",  def: "—",          desc: "Whether the menu is visible" },
-          { prop: "onClose",  type: "() => void", def: "undefined", desc: "Called when backdrop is clicked or Escape is pressed" },
-          { prop: "children", type: "ReactNode", def: "—",         desc: "ContextMenuItem rows (or any content)" },
-          { prop: "width",    type: "number",   def: "240",        desc: "Panel width override in px (floating only)" },
-        ]} />
-      </div>
     </div>
   );
 }
@@ -2250,22 +2607,1142 @@ function ActionCardTab() {
 // ---------------------------------------------------------------------------
 // Page shell
 // ---------------------------------------------------------------------------
+// ---------------------------------------------------------------------------
+// ProductImg tab
+// ---------------------------------------------------------------------------
+function ProductImgTab() {
+  return (
+    <div>
+      <div style={{ marginBottom: "8px" }}>
+        <code style={{ fontSize: "12px", fontFamily: "monospace", background: tokens.color.bg.darkBg, padding: "2px 8px", borderRadius: tokens.borderRadius.sm, color: tokens.color.fg.support }}>components/ui/ProductImg.tsx</code>
+        <span style={{ fontSize: "12px", color: tokens.color.fg.disabled, marginLeft: "8px" }}>Figma nodes 161:4904 · 2319:1509 · 188:1642 · 2237:524 · 188:1653 · 2127:1676</span>
+      </div>
+      <p style={{ fontSize: "14px", color: tokens.color.fg.support, marginBottom: "32px", fontFamily: tokens.fontFamily.sans }}>
+        Product image placeholder — 6 sizes · camera icon (node 152:824) · "NO IMAGE" label on ≥80px · fills with image when provided
+      </p>
+
+      <Section title="Placeholder — all sizes">
+        <Row label="40px · radius-md · camera only">
+          <ProductImg size={40} />
+        </Row>
+        <Row label="56px · radius-md · camera only">
+          <ProductImg size={56} />
+        </Row>
+        <Row label="64px · radius-md · camera only">
+          <ProductImg size={64} />
+        </Row>
+        <Row label="80px · radius-lg · camera + NO IMAGE">
+          <ProductImg size={80} />
+        </Row>
+        <Row label="120px · radius-lg · camera + NO IMAGE">
+          <ProductImg size={120} />
+        </Row>
+        <Row label="224px · radius-2xl · camera + NO IMAGE">
+          <ProductImg size={224} />
+        </Row>
+      </Section>
+
+      <Section title="With image">
+        <Row label="All sizes — objectFit cover, fills edge-to-edge">
+          <ProductImg size={40}  image="https://images.unsplash.com/photo-1542291026-7eec264c27ff?w=400" alt="Product" />
+          <ProductImg size={56}  image="https://images.unsplash.com/photo-1542291026-7eec264c27ff?w=400" alt="Product" />
+          <ProductImg size={64}  image="https://images.unsplash.com/photo-1542291026-7eec264c27ff?w=400" alt="Product" />
+          <ProductImg size={80}  image="https://images.unsplash.com/photo-1542291026-7eec264c27ff?w=400" alt="Product" />
+          <ProductImg size={120} image="https://images.unsplash.com/photo-1542291026-7eec264c27ff?w=400" alt="Product" />
+          <ProductImg size={224} image="https://images.unsplash.com/photo-1542291026-7eec264c27ff?w=400" alt="Product" />
+        </Row>
+      </Section>
+
+      <Section title="Camera icon (node 152:824)">
+        <Row label="24px · standalone export · CameraIcon color prop">
+          <span style={{ display: "flex", alignItems: "center", gap: tokens.spacing[3] }}>
+            <CameraIcon color={tokens.color.fg.disabled} />
+            <CameraIcon color={tokens.color.fg.primary} />
+            <CameraIcon color={tokens.color.fg.support} />
+            <CameraIcon color={tokens.color.fg.blue} />
+          </span>
+        </Row>
+      </Section>
+
+      <PropsTable rows={[
+        { prop: "size",    type: "40 | 56 | 64 | 80 | 120 | 224", def: "40",       desc: "Container size in px — maps directly to Figma variants. ≥80px shows camera + NO IMAGE label" },
+        { prop: "image",   type: "string",                          def: "—",        desc: "When provided, renders the image filling the container edge-to-edge (objectFit: cover)" },
+        { prop: "alt",     type: "string",                          def: '""',       desc: "Alt text for the image" },
+        { prop: "style",   type: "React.CSSProperties",             def: "—",        desc: "Extra inline styles merged onto the container" },
+      ]} />
+    </div>
+  );
+}
+
+// ---------------------------------------------------------------------------
+// Breadcrumb tab
+// ---------------------------------------------------------------------------
+function BreadcrumbTab() {
+  return (
+    <div>
+      <div style={{ marginBottom: "8px" }}>
+        <code style={{ fontSize: "12px", fontFamily: "monospace", background: tokens.color.bg.darkBg, padding: "2px 8px", borderRadius: tokens.borderRadius.sm, color: tokens.color.fg.support }}>components/ui/Breadcrumb.tsx</code>
+        <span style={{ fontSize: "12px", color: tokens.color.fg.disabled, marginLeft: "8px" }}>Figma node 5467:20002</span>
+      </div>
+      <p style={{ fontSize: "14px", color: tokens.color.fg.support, marginBottom: "32px", fontFamily: tokens.fontFamily.sans }}>Navigation trail — last item Medium fg.primary, parents Regular fg.support, "/" separator</p>
+
+      <Section title="Variants">
+        <Row label="Single item">
+          <Breadcrumb items={[{ label: "Dashboard" }]} />
+        </Row>
+        <Row label="Two levels">
+          <Breadcrumb items={[{ label: "Dashboard", href: "#" }, { label: "Serials" }]} />
+        </Row>
+        <Row label="Three levels">
+          <Breadcrumb items={[{ label: "Dashboard", href: "#" }, { label: "Inventory", href: "#" }, { label: "Create Serials" }]} />
+        </Row>
+        <Row label="Four levels">
+          <Breadcrumb items={[{ label: "Dashboard", href: "#" }, { label: "Inventory", href: "#" }, { label: "Products", href: "#" }, { label: "Ultra O Locksafe" }]} />
+        </Row>
+      </Section>
+
+      <PropsTable rows={[
+        { prop: "items", type: "BreadcrumbItem[]", def: "—", desc: "Ordered list of breadcrumb segments. Last item is always the current page (no href needed)." },
+      ]} />
+    </div>
+  );
+}
+
+// ---------------------------------------------------------------------------
+// AppBar tab
+// ---------------------------------------------------------------------------
+function AppBarTab() {
+  return (
+    <div>
+      <div style={{ marginBottom: "8px" }}>
+        <code style={{ fontSize: "12px", fontFamily: "monospace", background: tokens.color.bg.darkBg, padding: "2px 8px", borderRadius: tokens.borderRadius.sm, color: tokens.color.fg.support }}>components/ui/AppBar.tsx</code>
+      </div>
+      <p style={{ fontSize: "14px", color: tokens.color.fg.support, marginBottom: "32px", fontFamily: tokens.fontFamily.sans }}>Top navigation bar — 64px, white bg, breadcrumb left, controls right</p>
+
+      <Section title="Default">
+        <div style={{ border: `1px solid ${tokens.color.divider.border}`, borderRadius: tokens.borderRadius.md, overflow: "hidden" }}>
+          <AppBar breadcrumbs={[{ label: "Dashboard", href: "#" }, { label: "Inventory" }]} language="EN" userInitials="KZ" notificationCount={3} />
+        </div>
+      </Section>
+      <Section title="With Book a Demo">
+        <div style={{ border: `1px solid ${tokens.color.divider.border}`, borderRadius: tokens.borderRadius.md, overflow: "hidden" }}>
+          <AppBar breadcrumbs={[{ label: "Dashboard" }]} showBookADemo language="EN" userInitials="KZ" />
+        </div>
+      </Section>
+      <Section title="No notifications">
+        <div style={{ border: `1px solid ${tokens.color.divider.border}`, borderRadius: tokens.borderRadius.md, overflow: "hidden" }}>
+          <AppBar breadcrumbs={[{ label: "Dashboard", href: "#" }, { label: "Reports", href: "#" }, { label: "Monthly" }]} language="FR" userInitials="AB" notificationCount={0} />
+        </div>
+      </Section>
+
+      <PropsTable rows={[
+        { prop: "breadcrumbs",         type: "BreadcrumbItem[]", def: "—",      desc: "Breadcrumb trail shown on the left" },
+        { prop: "showBookADemo",        type: "boolean",          def: "false",  desc: "Shows a lime primary 'Book a Demo' button" },
+        { prop: "language",             type: "string",           def: '"EN"',   desc: "Language code shown in the selector" },
+        { prop: "userInitials",         type: "string",           def: "—",      desc: "Two-letter initials for the avatar pill" },
+        { prop: "notificationCount",    type: "number",           def: "—",      desc: "Badge count on bell icon — hidden when 0" },
+        { prop: "onNotificationsClick", type: "() => void",       def: "—",      desc: "Bell click handler" },
+        { prop: "onLanguageClick",      type: "() => void",       def: "—",      desc: "Language selector click handler" },
+        { prop: "onAvatarClick",        type: "() => void",       def: "—",      desc: "Avatar click handler" },
+        { prop: "onBookADemoClick",     type: "() => void",       def: "—",      desc: "Book a Demo click handler" },
+      ]} />
+    </div>
+  );
+}
+
+// ---------------------------------------------------------------------------
+// DashboardStatCard tab
+// ---------------------------------------------------------------------------
+function DashboardStatCardTab() {
+  // Icons filled with brand.darkPurple — rendered on lime (#ccff00) background
+  const StatIcon = () => (
+    <svg width="24" height="24" viewBox="0 0 24 24" fill="none" aria-hidden>
+      <rect x="3" y="13" width="4" height="8" rx="1" fill={tokens.color.brand.darkPurple} />
+      <rect x="10" y="9" width="4" height="12" rx="1" fill={tokens.color.brand.darkPurple} />
+      <rect x="17" y="4" width="4" height="17" rx="1" fill={tokens.color.brand.darkPurple} />
+    </svg>
+  );
+  const BoxIcon = () => (
+    <svg width="24" height="24" viewBox="0 0 24 24" fill="none" aria-hidden>
+      <path d="M12 3L21 7.5V16.5L12 21L3 16.5V7.5L12 3Z" stroke={tokens.color.brand.darkPurple} strokeWidth="1.5" strokeLinejoin="round" />
+      <path d="M3 7.5L12 12L21 7.5M12 12V21" stroke={tokens.color.brand.darkPurple} strokeWidth="1.5" />
+    </svg>
+  );
+  const TagIcon = () => (
+    <svg width="24" height="24" viewBox="0 0 24 24" fill="none" aria-hidden>
+      <path d="M12 2L20 10L12 22L4 10L12 2Z" stroke={tokens.color.brand.darkPurple} strokeWidth="1.5" strokeLinejoin="round" />
+      <circle cx="12" cy="10" r="2" fill={tokens.color.brand.darkPurple} />
+    </svg>
+  );
+
+  return (
+    <div>
+      <div style={{ marginBottom: "8px" }}>
+        <code style={{ fontSize: "12px", fontFamily: "monospace", background: tokens.color.bg.darkBg, padding: "2px 8px", borderRadius: tokens.borderRadius.sm, color: tokens.color.fg.support }}>components/ui/DashboardStatCard.tsx</code>
+        <span style={{ fontSize: "12px", color: tokens.color.fg.disabled, marginLeft: "8px" }}>Figma node 3343:25930 · bg brand.darkPurple · icon fill darkPurple on lime</span>
+      </div>
+      <p style={{ fontSize: "14px", color: tokens.color.fg.support, marginBottom: "32px", fontFamily: tokens.fontFamily.sans }}>Dark KPI strip — brand.darkPurple bg · lime icon box · darkPurple icons · 16px radius · gray-700 dividers</p>
+
+      <Section title="Single card">
+        <Row label="With action link">
+          <DashboardStatCard icon={<StatIcon />} label="Total Serials" count="12,450" actionLabel="View Inventory" actionHref="#" />
+        </Row>
+        <Row label="Without action">
+          <DashboardStatCard icon={<BoxIcon />} label="Active Products" count="38" />
+        </Row>
+      </Section>
+
+      <Section title="Strip — horizontal row of cards">
+        <DashboardStatStrip cards={[
+          { icon: <StatIcon />, label: "Total Serials",    count: "12,450", actionLabel: "View all",  actionHref: "#" },
+          { icon: <BoxIcon />,  label: "Active Products",  count: "38" },
+          { icon: <TagIcon />,  label: "Pending Captures", count: "5",      actionLabel: "Review",    actionHref: "#" },
+        ]} />
+      </Section>
+
+      <PropsTable rows={[
+        { prop: "iconUrl",       type: "string",     def: "—",  desc: "Figma icon URL from useFigmaIcons — rendered via CSS mask at brand.darkPurple (preferred)" },
+        { prop: "icon",          type: "ReactNode",  def: "—",  desc: "Fallback icon node — color your SVG with tokens.color.brand.darkPurple" },
+        { prop: "label",         type: "string",     def: "—",  desc: "Metric label — 14px SemiBold white" },
+        { prop: "count",         type: "string | number", def: "—", desc: "Metric value — 18px Medium white" },
+        { prop: "actionLabel",   type: "string",     def: "—",  desc: "Link text — shown only when provided" },
+        { prop: "actionHref",    type: "string",     def: "—",  desc: "Link href — use with actionLabel" },
+        { prop: "onActionClick", type: "() => void", def: "—",  desc: "Click handler — alternative to actionHref" },
+      ]} />
+    </div>
+  );
+}
+
+// ---------------------------------------------------------------------------
+// ListViewItem tab
+// ---------------------------------------------------------------------------
+function ListViewItemTab() {
+  const ArrowBtn = () => (
+    <button style={{ display: "flex", alignItems: "center", justifyContent: "center", width: "32px", height: "32px", background: tokens.color.base.white, border: `1px solid ${tokens.color.divider.frame}`, borderRadius: tokens.borderRadius.md, cursor: "pointer", flexShrink: 0 }}>
+      <svg width="16" height="16" viewBox="0 0 16 16" fill="none"><path d="M6 3l5 5-5 5" stroke={tokens.color.fg.primary} strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round" /></svg>
+    </button>
+  );
+  return (
+    <div>
+      <div style={{ marginBottom: "8px" }}>
+        <code style={{ fontSize: "12px", fontFamily: "monospace", background: tokens.color.bg.darkBg, padding: "2px 8px", borderRadius: tokens.borderRadius.sm, color: tokens.color.fg.support }}>components/ui/ListViewItem.tsx</code>
+      </div>
+      <p style={{ fontSize: "14px", color: tokens.color.fg.support, marginBottom: "32px", fontFamily: tokens.fontFamily.sans }}>Product row — 56px image, title, subtitle, optional serial ref, chip, and trailing action</p>
+
+      <Section title="Variants">
+        <Row label="Title + subtitle only">
+          <div style={{ width: "400px", border: `1px solid ${tokens.color.divider.border}`, borderRadius: tokens.borderRadius.md, overflow: "hidden" }}>
+            <ListViewItem title="Ultra O Locksafe" subtitle="DMM · A327MG" />
+          </div>
+        </Row>
+        <Row label="With serial ref">
+          <div style={{ width: "400px", border: `1px solid ${tokens.color.divider.border}`, borderRadius: tokens.borderRadius.md, overflow: "hidden" }}>
+            <ListViewItem title="Ultra O Locksafe" subtitle="DMM · A327MG" serialRef="#132241154A" />
+          </div>
+        </Row>
+        <Row label="With chip + action">
+          <div style={{ width: "400px", border: `1px solid ${tokens.color.divider.border}`, borderRadius: tokens.borderRadius.md, overflow: "hidden" }}>
+            <ListViewItem title="Ultra O Locksafe" subtitle="DMM · A327MG" chip={{ label: "Active", color: "green" }} action={<ArrowBtn />} />
+          </div>
+        </Row>
+        <Row label="Stacked list">
+          <div style={{ width: "400px", border: `1px solid ${tokens.color.divider.border}`, borderRadius: tokens.borderRadius.md, overflow: "hidden" }}>
+            <ListViewItem title="Ultra O Locksafe" subtitle="DMM · A327MG" chip={{ label: "Active", color: "green" }} action={<ArrowBtn />} />
+            <ListViewItem title="Mammut Sender" subtitle="Mammut · 2310-01160" chip={{ label: "Pending", color: "yellow" }} action={<ArrowBtn />} />
+            <ListViewItem title="Petzl Grigri" subtitle="Petzl · D100A001" chip={{ label: "Expired", color: "red" }} action={<ArrowBtn />} />
+          </div>
+        </Row>
+      </Section>
+
+      <PropsTable rows={[
+        { prop: "title",     type: "string",        def: "—",         desc: "Primary label — 14px Medium fg.primary" },
+        { prop: "subtitle",  type: "string",        def: "—",         desc: "Secondary line — 12px Regular fg.support" },
+        { prop: "serialRef", type: "string",        def: "—",         desc: "Third line — 12px Medium fg.primary (e.g. serial number)" },
+        { prop: "imageUrl",  type: "string",        def: "—",         desc: "Product image URL — shows placeholder when omitted" },
+        { prop: "chip",      type: "ListViewChip",  def: "—",         desc: "Badge shown inline after the title — { label, color }" },
+        { prop: "action",    type: "ReactNode",     def: "—",         desc: "Trailing element — typically an icon button" },
+        { prop: "onClick",   type: "() => void",    def: "—",         desc: "Makes the whole row clickable" },
+      ]} />
+    </div>
+  );
+}
+
+// ---------------------------------------------------------------------------
+// DataTable tab
+// ---------------------------------------------------------------------------
+function DataTableTab() {
+  const [sortKey, setSortKey] = useState("name");
+  const [sortDir, setSortDir] = useState<"asc"|"desc"|"none">("asc");
+
+  function handleSort(key: string) {
+    if (sortKey === key) setSortDir(d => d === "asc" ? "desc" : "asc");
+    else { setSortKey(key); setSortDir("asc"); }
+  }
+
+  const rows = [
+    { name: "Ultra O Locksafe", sku: "A327MG",    brand: "DMM",    status: "Active" },
+    { name: "Sender 9.9",       sku: "2310-01160", brand: "Mammut", status: "Pending" },
+    { name: "Grigri+",          sku: "D100A001",   brand: "Petzl",  status: "Active" },
+    { name: "Reverso 4",        sku: "D017AA00",   brand: "Petzl",  status: "Expired" },
+  ];
+
+  const columns = [
+    { key: "name",   label: "Product",  sortable: true },
+    { key: "brand",  label: "Brand",    sortable: true },
+    { key: "sku",    label: "SKU",      sortable: false },
+    { key: "status", label: "Status",   sortable: false,
+      render: (v: unknown) => (
+        <span style={{ display: "inline-flex", alignItems: "center", gap: "6px", fontSize: tokens.fontSize.bodySmall, fontWeight: tokens.fontWeight.medium, color: v === "Active" ? tokens.color.fg.green : v === "Pending" ? tokens.color.fg.amber : tokens.color.fg.disabled }}>
+          <span style={{ width: "6px", height: "6px", borderRadius: "50%", background: v === "Active" ? tokens.color.fg.green : v === "Pending" ? tokens.color.fg.amber : tokens.color.fg.disabled, flexShrink: 0 }} />
+          {String(v)}
+        </span>
+      )
+    },
+  ];
+
+  return (
+    <div>
+      <div style={{ marginBottom: "8px" }}>
+        <code style={{ fontSize: "12px", fontFamily: "monospace", background: tokens.color.bg.darkBg, padding: "2px 8px", borderRadius: tokens.borderRadius.sm, color: tokens.color.fg.support }}>components/ui/DataTable.tsx</code>
+        <span style={{ fontSize: "12px", color: tokens.color.fg.disabled, marginLeft: "8px" }}>Figma node 161:4925</span>
+      </div>
+      <p style={{ fontSize: "14px", color: tokens.color.fg.support, marginBottom: "32px", fontFamily: tokens.fontFamily.sans }}>Sortable data table — 44px header, 72px rows, custom cell renderers, sticky action column</p>
+
+      <Section title="Sortable table">
+        <div style={{ border: `1px solid ${tokens.color.divider.border}`, borderRadius: tokens.borderRadius.md, overflow: "hidden" }}>
+          <DataTable
+            columns={columns}
+            rows={rows}
+            sortKey={sortKey}
+            sortDirection={sortDir}
+            onSort={handleSort}
+          />
+        </div>
+      </Section>
+
+      <Section title="Empty state">
+        <div style={{ border: `1px solid ${tokens.color.divider.border}`, borderRadius: tokens.borderRadius.md, overflow: "hidden" }}>
+          <DataTable columns={columns} rows={[]} emptyMessage="No products found." />
+        </div>
+      </Section>
+
+      <Section title="With row actions">
+        <div style={{ border: `1px solid ${tokens.color.divider.border}`, borderRadius: tokens.borderRadius.md, overflow: "hidden" }}>
+          <DataTable
+            columns={columns}
+            rows={rows}
+            renderRowActions={(row) => (
+              <button style={{ background: "none", border: "none", cursor: "pointer", color: tokens.color.fg.support, fontSize: tokens.fontSize.bodySmall, fontFamily: tokens.fontFamily.sans }}>
+                ···
+              </button>
+            )}
+          />
+        </div>
+      </Section>
+
+      <PropsTable rows={[
+        { prop: "columns",        type: "DataTableColumn[]",  def: "—",      desc: "Column definitions — key, label, sortable, width, render" },
+        { prop: "rows",           type: "T[]",                def: "—",      desc: "Data rows — keys matched to column.key" },
+        { prop: "sortKey",        type: "string",             def: "—",      desc: "Currently sorted column key" },
+        { prop: "sortDirection",  type: '"asc"|"desc"|"none"',def: '"none"', desc: "Sort direction for the active column" },
+        { prop: "onSort",         type: "(key: string) => void", def: "—",   desc: "Called when a sortable header is clicked" },
+        { prop: "renderRowActions", type: "(row, i) => ReactNode", def: "—", desc: "Renders a trailing action cell per row" },
+        { prop: "stickyActions",  type: "boolean",            def: "false",  desc: "Sticks the action column to the right edge on scroll" },
+        { prop: "onRowClick",     type: "(row, i) => void",   def: "—",      desc: "Makes rows clickable with hover highlight" },
+        { prop: "emptyMessage",   type: "string",             def: '"No results found."', desc: "Message shown when rows array is empty" },
+      ]} />
+    </div>
+  );
+}
+
+// ---------------------------------------------------------------------------
+// Pagination tab
+// ---------------------------------------------------------------------------
+function PaginationTab() {
+  const [page1, setPage1] = useState(1);
+  const [page2, setPage2] = useState(3);
+  const [page3, setPage3] = useState(5);
+
+  return (
+    <div>
+      <div style={{ marginBottom: "8px" }}>
+        <code style={{ fontSize: "12px", fontFamily: "monospace", background: tokens.color.bg.darkBg, padding: "2px 8px", borderRadius: tokens.borderRadius.sm, color: tokens.color.fg.support }}>components/ui/Pagination.tsx</code>
+      </div>
+      <p style={{ fontSize: "14px", color: tokens.color.fg.support, marginBottom: "32px", fontFamily: tokens.fontFamily.sans }}>Page controls + TableFooter with result count — controlled, 1-based</p>
+
+      <Section title="Pagination">
+        <Row label="First page">
+          <Pagination currentPage={page1} totalPages={10} onPageChange={setPage1} />
+        </Row>
+        <Row label="Middle page">
+          <Pagination currentPage={page2} totalPages={10} onPageChange={setPage2} />
+        </Row>
+        <Row label="Last page">
+          <Pagination currentPage={page3} totalPages={5} onPageChange={setPage3} />
+        </Row>
+      </Section>
+
+      <Section title="TableFooter — with result count">
+        <div style={{ border: `1px solid ${tokens.color.divider.border}`, borderRadius: tokens.borderRadius.md, overflow: "hidden" }}>
+          <TableFooter currentPage={page2} totalPages={10} onPageChange={setPage2} from={21} to={30} total={98} />
+        </div>
+      </Section>
+
+      <PropsTable rows={[
+        { prop: "currentPage",  type: "number",           def: "—",  desc: "Active page — 1-based" },
+        { prop: "totalPages",   type: "number",           def: "—",  desc: "Total number of pages" },
+        { prop: "siblingCount", type: "number",           def: "1",  desc: "Page buttons to show either side of the current page" },
+        { prop: "onPageChange", type: "(page: number) => void", def: "—", desc: "Called with the new page number on click" },
+        { prop: "from / to / total", type: "number",     def: "—",  desc: "TableFooter only — drives the 'Showing X to Y of Z' label" },
+      ]} />
+    </div>
+  );
+}
+
+// ---------------------------------------------------------------------------
+// ---------------------------------------------------------------------------
+// ApplyToProduct tab
+// ---------------------------------------------------------------------------
+function ApplyToProductTab() {
+  const CATALOGUE: CatalogueProduct[] = [
+    { id: "1", name: "Ultra O Locksafe",  sku: "DMM | A327MG" },
+    { id: "2", name: "Sender 9.9",        sku: "Mammut | 2310-01160" },
+    { id: "3", name: "Grigri+",           sku: "Petzl | D100A001" },
+    { id: "4", name: "Reverso 4",         sku: "Petzl | D017AA00" },
+    { id: "5", name: "ATC Guide",         sku: "Black Diamond | BD625100" },
+  ];
+  const [selected, setSelected] = useState<SelectedProductItem[]>([]);
+
+  return (
+    <div>
+      <div style={{ marginBottom: "8px" }}>
+        <code style={{ fontSize: "12px", fontFamily: "monospace", background: tokens.color.bg.darkBg, padding: "2px 8px", borderRadius: tokens.borderRadius.sm, color: tokens.color.fg.support }}>components/ui/ApplyToProduct.tsx</code>
+      </div>
+      <p style={{ fontSize: "14px", color: tokens.color.fg.support, marginBottom: "32px", fontFamily: tokens.fontFamily.sans }}>Search, select, and quantify products — used in create-serials and capture-serials flows</p>
+
+      <Section title="Live demo">
+        <div style={{ maxWidth: "560px", background: tokens.color.base.white, border: `1px solid ${tokens.color.divider.border}`, borderRadius: tokens.borderRadius.lg, padding: tokens.spacing[6] }}>
+          <ApplyToProduct
+            catalogue={CATALOGUE}
+            selectedProducts={selected}
+            onProductsChange={setSelected}
+            defaultQuantity={0}
+            quantityLabel="Quantity of serials"
+          />
+        </div>
+      </Section>
+
+      <PropsTable rows={[
+        { prop: "catalogue",        type: "CatalogueProduct[]",      def: "—",               desc: "Full searchable product list — already-selected items are filtered out" },
+        { prop: "selectedProducts", type: "SelectedProductItem[]",   def: "—",               desc: "Controlled list of selected products with quantities" },
+        { prop: "onProductsChange", type: "(products) => void",      def: "—",               desc: "Called whenever selection or quantity changes" },
+        { prop: "defaultQuantity",  type: "number",                  def: "0",               desc: "Quantity assigned when a product is first added" },
+        { prop: "quantityLabel",    type: "string",                  def: '"Quantity of serials"', desc: "Label above each quantity input" },
+        { prop: "binIconUrl",       type: "string",                  def: "—",               desc: "Figma icon URL for the remove button (node 49:967)" },
+      ]} />
+    </div>
+  );
+}
+
+// ---------------------------------------------------------------------------
+// SearchDropdown tab
+// ---------------------------------------------------------------------------
+function SearchDropdownTab() {
+  const FLAT_ITEMS: SearchDropdownItem[] = [
+    { id: "1", title: "Ultra O Locksafe - A327",   subtitle: "DMM · A327MG"          },
+    { id: "2", title: "Ultra O Locksafe (Orange)",  subtitle: "DMM · A327OR"          },
+  ];
+
+  const USED_ITEMS: SearchDropdownItem[] = [
+    { id: "3", title: "11MM Kernmantle Marlow Static Rope",  subtitle: "Marlow · ZTO11/11" },
+  ];
+
+  const GLOBAL_ITEMS: SearchDropdownItem[] = [
+    { id: "4", title: "11MM Kernmantle Marlow Static Rope orange...", subtitle: "Marlow · ZTO11/15" },
+    { id: "5", title: "11mm Marlow Kernmantle static rope",            subtitle: "Marlow · ZTO11/12" },
+    { id: "6", title: "Fixe Ranger Rope – 11mm – 200m Spool",         subtitle: "Aspiring safety · P11FRSR" },
+  ];
+
+  return (
+    <div>
+      <div style={{ marginBottom: "8px" }}>
+        <code style={{ fontSize: "12px", fontFamily: "monospace", background: tokens.color.bg.darkBg, padding: "2px 8px", borderRadius: tokens.borderRadius.sm, color: tokens.color.fg.support }}>
+          components/ui/SearchDropdown.tsx
+        </code>
+      </div>
+      <p style={{ fontSize: "14px", color: tokens.color.fg.support, marginBottom: "32px", fontFamily: tokens.fontFamily.sans }}>
+        Search result dropdown — flat (count header) or sectioned (named groups). Rows rendered via ListViewItem.
+      </p>
+
+      <Section title="Flat variant — single section, no label (node 3250:19886)">
+        <div style={{ width: "360px" }}>
+          <SearchDropdown
+            sections={[{ items: FLAT_ITEMS }]}
+            onSelect={(item) => alert(`Selected: ${item.title}`)}
+          />
+        </div>
+      </Section>
+
+      <Section title="Sectioned variant — named section headers (node 3250:19845)">
+        <div style={{ width: "360px" }}>
+          <SearchDropdown
+            sections={[
+              { label: "Used products:",               items: USED_ITEMS   },
+              { label: "Products in global database:", items: GLOBAL_ITEMS },
+            ]}
+            onSelect={(item) => alert(`Selected: ${item.title}`)}
+          />
+        </div>
+      </Section>
+
+      <PropsTable rows={[
+        { prop: "sections",  type: "SearchDropdownSection[]", def: "—", desc: "One section (no label) = flat variant; sections with labels = sectioned variant" },
+        { prop: "onSelect",  type: "(item) => void",          def: "—", desc: "Called when the user clicks a row" },
+      ]} />
+    </div>
+  );
+}
+
+// ---------------------------------------------------------------------------
+// Tabs tab
+// ---------------------------------------------------------------------------
+function TabsTab({ svgs }: { svgs: Record<string, string> }) {
+  const [activeA, setActiveA] = useState("a");
+  const [activeB, setActiveB] = useState("b");
+  const [activeC, setActiveC] = useState("c");
+  const [activeD, setActiveD] = useState("a");
+  const [activeE, setActiveE] = useState("e1");
+
+  const iconUrl = svgs[ICON_NODE_IDS.tab_placeholder];
+
+  // Inline SVG placeholder rendered as a ReactNode so Tabs stays framework-agnostic
+  const PlaceholderIcon = (
+    <img src={iconUrl} alt="" width={24} height={24}
+      style={{ display: "block", filter: "brightness(0) invert(40%) sepia(0%) saturate(0%) hue-rotate(0deg) brightness(60%)" }}
+    />
+  );
+  const PlaceholderIconActive = (
+    <img src={iconUrl} alt="" width={24} height={24}
+      style={{ display: "block", filter: "brightness(0) invert(23%) sepia(87%) saturate(700%) hue-rotate(224deg) brightness(90%) contrast(95%)" }}
+    />
+  );
+
+  const makeItems = (ids: string[], labels: string[], withIcon?: boolean, badge?: number): TabItem[] =>
+    ids.map((id, i) => ({
+      id,
+      label: labels[i],
+      ...(withIcon ? { icon: <img src={iconUrl} alt="" width={24} height={24} style={{ display: "block" }} /> } : {}),
+      ...(badge !== undefined && i === 2 ? { badge } : {}),
+    }));
+
+  return (
+    <div>
+      <div style={{ marginBottom: "8px" }}>
+        <code style={{ fontSize: "12px", fontFamily: "monospace", background: tokens.color.bg.darkBg, padding: "2px 8px", borderRadius: tokens.borderRadius.sm, color: tokens.color.fg.support }}>components/ui/Tabs.tsx</code>
+        <span style={{ fontSize: "12px", color: tokens.color.fg.disabled, marginLeft: "8px" }}>Figma node 71:1391 · 71:1496</span>
+      </div>
+      <p style={{ fontSize: "14px", color: tokens.color.fg.support, marginBottom: "32px", fontFamily: tokens.fontFamily.sans }}>
+        Tab bar for web and mobile. Active tab: indigo label + 2px indicator. Supports icons (stacked above label), badge counts, and full-width stretch.
+      </p>
+
+      {/* Text-only */}
+      <Section title="Text only">
+        <div style={{ display: "flex", flexDirection: "column", gap: "24px" }}>
+          <div>
+            <p style={{ fontSize: "12px", color: tokens.color.fg.disabled, fontFamily: "monospace", marginBottom: "8px" }}>2 items</p>
+            <Tabs
+              items={[{ id: "a", label: "Product" }, { id: "b", label: "Parts" }]}
+              activeId={activeA}
+              onChange={setActiveA}
+            />
+          </div>
+          <div>
+            <p style={{ fontSize: "12px", color: tokens.color.fg.disabled, fontFamily: "monospace", marginBottom: "8px" }}>3 items</p>
+            <Tabs
+              items={[{ id: "a", label: "Product" }, { id: "b", label: "Parts" }, { id: "c", label: "History" }]}
+              activeId={activeB}
+              onChange={setActiveB}
+            />
+          </div>
+          <div>
+            <p style={{ fontSize: "12px", color: tokens.color.fg.disabled, fontFamily: "monospace", marginBottom: "8px" }}>4 items · fullWidth</p>
+            <Tabs
+              items={[{ id: "a", label: "Product" }, { id: "b", label: "Parts" }, { id: "c", label: "History" }, { id: "d", label: "Serials" }]}
+              activeId={activeC}
+              onChange={setActiveC}
+              fullWidth
+            />
+          </div>
+        </div>
+      </Section>
+
+      {/* With icons */}
+      <Section title="With icons · fullWidth">
+        <div style={{ display: "flex", flexDirection: "column", gap: "24px" }}>
+          <div>
+            <p style={{ fontSize: "12px", color: tokens.color.fg.disabled, fontFamily: "monospace", marginBottom: "8px" }}>2 items</p>
+            <div style={{ width: "400px" }}>
+              <Tabs
+                items={[
+                  { id: "a", label: "Product", icon: <img src={iconUrl} alt="" width={24} height={24} style={{ display: "block" }} /> },
+                  { id: "b", label: "Parts",   icon: <img src={iconUrl} alt="" width={24} height={24} style={{ display: "block" }} /> },
+                ]}
+                activeId={activeD}
+                onChange={setActiveD}
+                fullWidth
+              />
+            </div>
+          </div>
+          <div>
+            <p style={{ fontSize: "12px", color: tokens.color.fg.disabled, fontFamily: "monospace", marginBottom: "8px" }}>4 items · with badge</p>
+            <div style={{ width: "500px" }}>
+              <Tabs
+                items={[
+                  { id: "e1", label: "Product",  icon: <img src={iconUrl} alt="" width={24} height={24} style={{ display: "block" }} /> },
+                  { id: "e2", label: "Parts",    icon: <img src={iconUrl} alt="" width={24} height={24} style={{ display: "block" }} /> },
+                  { id: "e3", label: "History",  icon: <img src={iconUrl} alt="" width={24} height={24} style={{ display: "block" }} />, badge: 3 },
+                  { id: "e4", label: "Serials",  icon: <img src={iconUrl} alt="" width={24} height={24} style={{ display: "block" }} /> },
+                ]}
+                activeId={activeE}
+                onChange={setActiveE}
+                fullWidth
+              />
+            </div>
+          </div>
+        </div>
+      </Section>
+
+      <PropsTable rows={[
+        { prop: "items",     type: "TabItem[]",           def: "—",     desc: "Tab definitions — id, label, optional icon ReactNode, optional badge count" },
+        { prop: "activeId",  type: "string",              def: "—",     desc: "id of the currently selected tab" },
+        { prop: "onChange",  type: "(id: string) => void", def: "—",    desc: "Called with the new tab id when a tab is clicked" },
+        { prop: "fullWidth", type: "boolean",             def: "false", desc: "Stretch tabs to fill the container width equally (flex: 1)" },
+      ]} />
+
+      <div style={{ marginTop: "24px" }}>
+        <p style={{ fontSize: tokens.fontSize.bodySmall, fontWeight: tokens.fontWeight.semiBold, color: tokens.color.fg.primary, fontFamily: tokens.fontFamily.sans, marginBottom: "12px" }}>TabItem</p>
+        <PropsTable rows={[
+          { prop: "id",    type: "string",        def: "—",         desc: "Unique identifier used as the activeId value" },
+          { prop: "label", type: "string",        def: "—",         desc: "Text shown on the tab" },
+          { prop: "icon",  type: "ReactNode",     def: "undefined", desc: "24×24 icon rendered above the label. Omit for text-only tabs." },
+          { prop: "badge", type: "number",        def: "undefined", desc: "Badge count shown top-right of the icon. Only visible when icon is set." },
+        ]} />
+      </div>
+    </div>
+  );
+}
+
+// Inline SVG — node 2508:1264 is a two-path raster composite that doesn't export via SVG API
+function DocIcon16() {
+  const c = tokens.color.fg.support;
+  return (
+    <svg width="16" height="16" viewBox="0 0 16 16" fill="none" xmlns="http://www.w3.org/2000/svg">
+      <g clipPath="url(#clip-doc16)">
+        <path d="M3.5 0.5H8.88086L13.5 5.2041V14.4004C13.4999 14.7019 13.3875 14.9854 13.1963 15.1895C13.0059 15.3925 12.7544 15.5 12.5 15.5H3.5C3.24558 15.5 2.99411 15.3925 2.80371 15.1895C2.61247 14.9854 2.5001 14.7019 2.5 14.4004V1.59961L2.50488 1.48828C2.52897 1.22896 2.6362 0.989301 2.80371 0.810547C2.99411 0.607458 3.24558 0.5 3.5 0.5Z" stroke={c} strokeLinecap="round" strokeLinejoin="round"/>
+        <path d="M8.5 0V5.5H13.5" stroke={c} strokeLinecap="round" strokeLinejoin="round"/>
+      </g>
+      <defs>
+        <clipPath id="clip-doc16"><rect width="16" height="16" fill="white"/></clipPath>
+      </defs>
+    </svg>
+  );
+}
+
+function ProductListItemTab({ svgs }: { svgs: Record<string, string> }) {
+  const add24  = svgs[ICON_NODE_IDS.pli_add_24];
+  const bin24  = svgs[ICON_NODE_IDS.pli_bin_24];
+  const add16  = svgs[ICON_NODE_IDS.pli_add_16];
+  const info16 = svgs[ICON_NODE_IDS.pli_info_16];
+
+  const Img = (url?: string, size = 24) =>
+    url
+      ? <img src={url} alt="" width={size} height={size} style={{ display: "block" }} />
+      : <div style={{ width: size, height: size, background: tokens.color.bg.darkBg, borderRadius: tokens.borderRadius.sm, opacity: 0.4 }} />;
+
+  const items = [
+    { label: "SKU", variant: "text" as const,                     value: "SCN-0042" },
+    { label: "NFC",  variant: "action" as const },
+    { label: "Batch", variant: "text+buttons" as const,            value: "B-2024-09" },
+    { label: "Serial", variant: "text+indicator+buttons" as const, value: "SN-00124" },
+    { label: "Certificate", variant: "badge" as const,             badgeText: "cert-2024.pdf", noDivider: true },
+  ];
+
+  return (
+    <div>
+      <div style={{ marginBottom: "8px" }}>
+        <code style={{ fontSize: "12px", fontFamily: "monospace", background: tokens.color.bg.darkBg, padding: "2px 8px", borderRadius: tokens.borderRadius.sm, color: tokens.color.fg.support }}>components/ui/ProductListItem.tsx</code>
+        <span style={{ fontSize: "12px", color: tokens.color.fg.disabled, marginLeft: "8px" }}>Figma node 2334:810</span>
+      </div>
+      <p style={{ fontSize: "14px", color: tokens.color.fg.support, marginBottom: "32px", fontFamily: tokens.fontFamily.sans }}>
+        A single row in a product detail list. Five variants: text, action, text+buttons, text+indicator+buttons, badge.
+      </p>
+
+      <Section title="All variants">
+        <div style={{ border: `1px solid ${tokens.color.divider.border}`, borderRadius: tokens.borderRadius.lg, overflow: "hidden" }}>
+          {items.map((item, i) => (
+            <ProductListItem
+              key={item.variant}
+              label={item.label}
+              variant={item.variant}
+              value={"value" in item ? item.value : undefined}
+              badgeText={"badgeText" in item ? item.badgeText : undefined}
+              noDivider={"noDivider" in item ? item.noDivider : false}
+              actionIcon={Img(add16, 16)}
+              addIcon={Img(add24)}
+              deleteIcon={Img(bin24)}
+              indicatorIcon={Img(info16, 16)}
+              badgeIcon={<DocIcon16 />}
+            />
+          ))}
+        </div>
+      </Section>
+
+      <Section title="Individual variants">
+        <div style={{ display: "flex", flexDirection: "column", gap: "24px" }}>
+
+          <div>
+            <p style={{ fontSize: "12px", color: tokens.color.fg.disabled, fontFamily: "monospace", marginBottom: "8px" }}>text</p>
+            <div style={{ border: `1px solid ${tokens.color.divider.border}`, borderRadius: tokens.borderRadius.lg, overflow: "hidden" }}>
+              <ProductListItem label="SKU" variant="text" value="SCN-0042" noDivider />
+            </div>
+          </div>
+
+          <div>
+            <p style={{ fontSize: "12px", color: tokens.color.fg.disabled, fontFamily: "monospace", marginBottom: "8px" }}>action</p>
+            <div style={{ border: `1px solid ${tokens.color.divider.border}`, borderRadius: tokens.borderRadius.lg, overflow: "hidden" }}>
+              <ProductListItem label="NFC" variant="action" actionIcon={Img(add16, 16)} noDivider />
+            </div>
+          </div>
+
+          <div>
+            <p style={{ fontSize: "12px", color: tokens.color.fg.disabled, fontFamily: "monospace", marginBottom: "8px" }}>text+buttons</p>
+            <div style={{ border: `1px solid ${tokens.color.divider.border}`, borderRadius: tokens.borderRadius.lg, overflow: "hidden" }}>
+              <ProductListItem label="Batch" variant="text+buttons" value="B-2024-09" addIcon={Img(add24)} deleteIcon={Img(bin24)} noDivider />
+            </div>
+          </div>
+
+          <div>
+            <p style={{ fontSize: "12px", color: tokens.color.fg.disabled, fontFamily: "monospace", marginBottom: "8px" }}>text+indicator+buttons</p>
+            <div style={{ border: `1px solid ${tokens.color.divider.border}`, borderRadius: tokens.borderRadius.lg, overflow: "hidden" }}>
+              <ProductListItem label="Serial" variant="text+indicator+buttons" value="SN-00124" indicatorIcon={Img(info16, 16)} addIcon={Img(add24)} deleteIcon={Img(bin24)} noDivider />
+            </div>
+          </div>
+
+          <div>
+            <p style={{ fontSize: "12px", color: tokens.color.fg.disabled, fontFamily: "monospace", marginBottom: "8px" }}>badge</p>
+            <div style={{ border: `1px solid ${tokens.color.divider.border}`, borderRadius: tokens.borderRadius.lg, overflow: "hidden" }}>
+              <ProductListItem label="Certificate" variant="badge" badgeText="cert-2024.pdf" badgeIcon={<DocIcon16 />} noDivider />
+            </div>
+          </div>
+
+        </div>
+      </Section>
+
+      <PropsTable rows={[
+        { prop: "label",          type: "string",                                                                          def: "—",           desc: "Fixed 128px left column label" },
+        { prop: "variant",        type: '"text" | "action" | "text+buttons" | "text+indicator+buttons" | "badge"',        def: "—",           desc: "Which variant to render" },
+        { prop: "value",          type: "string",                                                                          def: "undefined",   desc: "Text value shown in text / text+buttons / text+indicator+buttons" },
+        { prop: "actionLabel",    type: "string",                                                                          def: '"+ Add NFC"', desc: "Label for the action button (action variant)" },
+        { prop: "actionIcon",     type: "ReactNode",                                                                       def: "undefined",   desc: "16px icon shown left of actionLabel" },
+        { prop: "onAction",       type: "() => void",                                                                     def: "undefined",   desc: "Click handler for the action button" },
+        { prop: "addIcon",        type: "ReactNode",                                                                       def: "undefined",   desc: "24px icon for the add icon-button" },
+        { prop: "deleteIcon",     type: "ReactNode",                                                                       def: "undefined",   desc: "24px icon for the delete icon-button" },
+        { prop: "onAdd",          type: "() => void",                                                                     def: "undefined",   desc: "Click handler for add button" },
+        { prop: "onDelete",       type: "() => void",                                                                     def: "undefined",   desc: "Click handler for delete button" },
+        { prop: "indicatorIcon",  type: "ReactNode",                                                                       def: "undefined",   desc: "16px info icon shown between value and buttons (text+indicator+buttons)" },
+        { prop: "badgeText",      type: "string",                                                                          def: "undefined",   desc: "Text inside the badge pill (badge variant)" },
+        { prop: "badgeIcon",      type: "ReactNode",                                                                       def: "undefined",   desc: "16px icon appended inside the badge pill" },
+        { prop: "noDivider",      type: "boolean",                                                                         def: "false",       desc: "Suppress bottom border (last item in a list)" },
+      ]} />
+    </div>
+  );
+}
+
+function ViewItemPageImgTab() {
+  const [platform, setPlatform] = useState<ViewItemPageImgPlatform>("mobile");
+  return (
+    <div>
+      <div style={{ marginBottom: "8px" }}>
+        <code style={{ fontSize: "12px", fontFamily: "monospace", background: tokens.color.bg.darkBg, padding: "2px 8px", borderRadius: tokens.borderRadius.sm, color: tokens.color.fg.support }}>components/ui/ViewItemPageImg.tsx</code>
+        <span style={{ fontSize: "12px", color: tokens.color.fg.disabled, marginLeft: "8px" }}>Figma node 2796:7479</span>
+      </div>
+      <p style={{ fontSize: "14px", color: tokens.color.fg.support, marginBottom: "32px", fontFamily: tokens.fontFamily.sans }}>
+        Product image carousel for the item detail page. Three platform variants: mobile, desktop, empty state.
+      </p>
+
+      <Section title="Live Playground">
+        <div style={{ marginBottom: "16px", display: "flex", gap: "6px" }}>
+          {(["mobile", "desktop", "empty"] as ViewItemPageImgPlatform[]).map(p => (
+            <Pill key={p} val={p} cur={platform} onClick={() => setPlatform(p)} />
+          ))}
+        </div>
+        <div style={{ border: `1px solid ${tokens.color.divider.border}`, borderRadius: tokens.borderRadius.lg, overflow: "hidden", maxWidth: "400px" }}>
+          <ViewItemPageImg platform={platform} />
+        </div>
+      </Section>
+
+      <Section title="All variants">
+        <div style={{ display: "flex", flexWrap: "wrap", gap: "24px" }}>
+          {(["mobile", "desktop", "empty"] as ViewItemPageImgPlatform[]).map(p => (
+            <div key={p}>
+              <p style={{ fontSize: "12px", color: tokens.color.fg.disabled, fontFamily: "monospace", marginBottom: "8px" }}>{p}</p>
+              <div style={{ border: `1px solid ${tokens.color.divider.border}`, borderRadius: tokens.borderRadius.lg, overflow: "hidden", width: "360px" }}>
+                <ViewItemPageImg platform={p} />
+              </div>
+            </div>
+          ))}
+        </div>
+      </Section>
+
+      <PropsTable rows={[
+        { prop: "platform",      type: '"mobile" | "desktop" | "empty"', def: "—",         desc: "Which platform variant to render" },
+        { prop: "images",        type: "string[]",                        def: "undefined", desc: "Array of image URLs for the carousel; falls back to placeholder if not provided" },
+        { prop: "currentIndex",  type: "number",                          def: "0",         desc: "Zero-based index of the active image" },
+        { prop: "onUpload",      type: "() => void",                      def: "undefined", desc: "Upload button callback — mobile only" },
+        { prop: "onAddImage",    type: "() => void",                      def: "undefined", desc: '"Add Image" button callback — empty state only' },
+      ]} />
+    </div>
+  );
+}
+
+// ---------------------------------------------------------------------------
+// EmptyState tab
+// ---------------------------------------------------------------------------
+function EmptyStateTab() {
+  const [size, setSize] = useState<"large" | "small">("large");
+  const [showDesc, setShowDesc] = useState(true);
+  const [showAction, setShowAction] = useState(true);
+
+  // Placeholder icon that matches the "large" 64px sizing used in Capture Serials
+  const LargePlaceholderIcon = () => (
+    <svg width="64" height="64" viewBox="0 0 64 64" fill="none" aria-hidden>
+      <rect x="12" y="12" width="40" height="40" rx="8" stroke={tokens.color.fg.disabled} strokeWidth="2.5" fill="none" />
+      <circle cx="32" cy="32" r="8" stroke={tokens.color.fg.disabled} strokeWidth="2.5" fill="none" />
+      <path d="M20 20l8 8M44 20l-8 8M20 44l8-8M44 44l-8-8" stroke={tokens.color.fg.disabled} strokeWidth="1.5" strokeLinecap="round" />
+    </svg>
+  );
+
+  const SmallPlaceholderIcon = () => (
+    <svg width="24" height="24" viewBox="0 0 24 24" fill="none" aria-hidden>
+      <circle cx="12" cy="12" r="8" stroke={tokens.color.fg.disabled} strokeWidth="1.5" fill="none" />
+      <path d="M12 8v4M12 16h.01" stroke={tokens.color.fg.disabled} strokeWidth="1.5" strokeLinecap="round" />
+    </svg>
+  );
+
+  const iconEl = size === "large" ? <LargePlaceholderIcon /> : <SmallPlaceholderIcon />;
+
+  const actionEl = showAction ? (
+    <GloryItem type="chip" label="Learn More" onClick={() => {}} />
+  ) : undefined;
+
+  const codeStr = `import { EmptyState } from "@/components/ui/EmptyState";
+
+<EmptyState
+  size="${size}"
+  icon={<YourIcon />}
+  title="No items yet"${showDesc ? `\n  description="Add your first item to get started."` : ""}${showAction ? `\n  action={<Button variant="primary" label="Get started" />}` : ""}
+/>`;
+
+  return (
+    <div>
+      <div style={{ marginBottom: "8px" }}>
+        <code style={{ fontSize: "12px", fontFamily: "monospace", background: tokens.color.bg.darkBg, padding: "2px 8px", borderRadius: tokens.borderRadius.sm, color: tokens.color.fg.support }}>components/ui/EmptyState.tsx</code>
+        <span style={{ fontSize: "12px", color: tokens.color.fg.disabled, marginLeft: "8px" }}>Figma node 2204:2632</span>
+      </div>
+      <p style={{ fontSize: "14px", color: tokens.color.fg.support, marginBottom: "32px", fontFamily: tokens.fontFamily.sans }}>2 sizes · icon container · title + optional description · optional CTA action</p>
+
+      <div style={{ background: tokens.color.base.white, border: `1px solid ${tokens.color.divider.border}`, borderRadius: tokens.borderRadius.lg, padding: "24px", marginBottom: "40px" }}>
+        <p style={{ fontSize: tokens.fontSize.h5, fontWeight: tokens.fontWeight.semiBold, color: tokens.color.fg.primary, fontFamily: tokens.fontFamily.sans, marginBottom: "20px" }}>Live Playground</p>
+        <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: "32px" }}>
+          <div style={{ display: "flex", flexDirection: "column", gap: "16px" }}>
+            <div>
+              <p style={{ fontSize: "12px", fontWeight: "600", color: tokens.color.fg.primary, fontFamily: tokens.fontFamily.sans, marginBottom: "8px" }}>Size</p>
+              <div style={{ display: "flex", gap: "6px" }}>
+                {(["large", "small"] as const).map(s => (
+                  <Pill key={s} val={s} cur={size} onClick={() => setSize(s)} />
+                ))}
+              </div>
+            </div>
+            <div>
+              <p style={{ fontSize: "12px", fontWeight: "600", color: tokens.color.fg.primary, fontFamily: tokens.fontFamily.sans, marginBottom: "8px" }}>Options</p>
+              <div style={{ display: "flex", gap: "6px" }}>
+                <PillToggle active={showDesc}   label="Description" onClick={() => setShowDesc(v => !v)} />
+                <PillToggle active={showAction} label="Action CTA"  onClick={() => setShowAction(v => !v)} />
+              </div>
+            </div>
+          </div>
+
+          <div style={{ background: tokens.color.bg.bg, borderRadius: tokens.borderRadius.md, padding: "32px 24px", display: "flex", alignItems: "center", justifyContent: "center" }}>
+            <div style={{ width: size === "large" ? "280px" : "240px" }}>
+              <EmptyState
+                size={size}
+                icon={iconEl}
+                title="No items yet"
+                description={showDesc ? "Add your first item to get started." : undefined}
+                action={actionEl}
+              />
+            </div>
+          </div>
+        </div>
+        <CodeSnippet code={codeStr} />
+      </div>
+
+      <Section title="Sizes">
+        <Row label="large — 96px container, borderRadius 3xl (24px)">
+          <div style={{ background: tokens.color.bg.bg, borderRadius: tokens.borderRadius.md, padding: "32px 24px", width: "300px" }}>
+            <EmptyState size="large" icon={<LargePlaceholderIcon />} title="No items yet" description="Add your first item to get started." action={<GloryItem type="chip" label="Get started" onClick={() => {}} />} />
+          </div>
+        </Row>
+        <Row label="small — 40px container, borderRadius lg (8px)">
+          <div style={{ background: tokens.color.bg.bg, borderRadius: tokens.borderRadius.md, padding: "24px", width: "300px" }}>
+            <EmptyState size="small" icon={<SmallPlaceholderIcon />} title="No results" description="Try adjusting your search." />
+          </div>
+        </Row>
+      </Section>
+
+      <PropsTable rows={[
+        { prop: "icon",        type: "React.ReactNode", def: "—",        desc: "Icon rendered inside the grey container. Use 64px for large, 24px for small." },
+        { prop: "size",        type: '"large" | "small"', def: '"large"', desc: "large = 96px container with 3xl radius. small = 40px container with lg radius." },
+        { prop: "title",       type: "string",         def: "—",        desc: "Heading text — rendered at h5 (16px/500)." },
+        { prop: "description", type: "string",         def: "undefined", desc: "Optional body copy — bodyR (14px/400), fg.support colour." },
+        { prop: "action",      type: "React.ReactNode", def: "undefined", desc: "Optional CTA — pass a <Button>, <GloryItem type=\"chip\">, or any ReactNode." },
+      ]} />
+    </div>
+  );
+}
+
+// ---------------------------------------------------------------------------
+// StepsTab
+// ---------------------------------------------------------------------------
+const DEMO_STEPS = [
+  { label: "Serial details" },
+  { label: "Apply to products" },
+  { label: "Review" },
+  { label: "Confirm" },
+];
+
+function StepsTab() {
+  const [currentStep, setCurrentStep] = useState(2);
+  const [variant, setVariant]         = useState<StepsVariant>("labeled");
+
+  const variants: StepsVariant[] = ["labeled", "indicators", "dots"];
+
+  const codeStr = `import { Steps } from "@/components/ui/Steps";
+
+<Steps
+  steps={[
+    { label: "Serial details" },
+    { label: "Apply to products" },
+    { label: "Review" },
+    { label: "Confirm" },
+  ]}
+  currentStep={${currentStep}}
+  variant="${variant}"
+/>`;
+
+  return (
+    <div>
+      <div style={{ marginBottom: "8px" }}>
+        <code style={{ fontSize: "12px", fontFamily: "monospace", background: tokens.color.bg.darkBg, padding: "2px 8px", borderRadius: tokens.borderRadius.sm, color: tokens.color.fg.support }}>components/ui/Steps.tsx</code>
+        <span style={{ fontSize: "12px", color: tokens.color.fg.disabled, marginLeft: "8px" }}>Figma nodes 1733:2164 · 5870:2479 · 1734:2142 · 1733:2254</span>
+      </div>
+      <p style={{ fontSize: "14px", color: tokens.color.fg.support, marginBottom: "32px", fontFamily: tokens.fontFamily.sans }}>
+        Step progress indicator · 3 variants: labeled, indicators, dots
+      </p>
+
+      {/* Live playground */}
+      <div style={{ background: tokens.color.base.white, border: `1px solid ${tokens.color.divider.border}`, borderRadius: tokens.borderRadius.lg, padding: "24px", marginBottom: "40px" }}>
+        <p style={{ fontSize: tokens.fontSize.h5, fontWeight: tokens.fontWeight.semiBold, color: tokens.color.fg.primary, fontFamily: tokens.fontFamily.sans, marginBottom: "20px" }}>Live Playground</p>
+        <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: "32px" }}>
+          <div style={{ display: "flex", flexDirection: "column", gap: "16px" }}>
+            <div>
+              <p style={{ fontSize: "12px", fontWeight: "600", color: tokens.color.fg.primary, fontFamily: tokens.fontFamily.sans, marginBottom: "8px" }}>Variant</p>
+              <div style={{ display: "flex", gap: "6px" }}>
+                {variants.map((v) => (
+                  <Pill key={v} val={v} cur={variant} onClick={() => setVariant(v)} />
+                ))}
+              </div>
+            </div>
+            <div>
+              <p style={{ fontSize: "12px", fontWeight: "600", color: tokens.color.fg.primary, fontFamily: tokens.fontFamily.sans, marginBottom: "8px" }}>Current step</p>
+              <div style={{ display: "flex", gap: "6px" }}>
+                {DEMO_STEPS.map((_, i) => (
+                  <Pill key={i} val={String(i + 1)} cur={String(currentStep)} onClick={() => setCurrentStep(i + 1)} />
+                ))}
+              </div>
+            </div>
+          </div>
+          <div>
+            <p style={{ fontSize: "12px", fontWeight: "600", color: tokens.color.fg.primary, fontFamily: tokens.fontFamily.sans, marginBottom: "12px" }}>Preview</p>
+            <div style={{ padding: "16px 0", overflow: "visible" }}>
+              <Steps steps={DEMO_STEPS} currentStep={currentStep} variant={variant} />
+            </div>
+          </div>
+        </div>
+        <CodeSnippet code={codeStr} />
+      </div>
+
+      {/* All variants */}
+      <Section title="Variants">
+        <div style={{ background: tokens.color.base.white, border: `1px solid ${tokens.color.divider.border}`, borderRadius: tokens.borderRadius.lg, padding: "24px", display: "flex", flexDirection: "column", gap: "32px" }}>
+          {variants.map((v) => (
+            <div key={v}>
+              <p style={{ fontSize: "12px", fontWeight: 600, color: tokens.color.fg.support, fontFamily: tokens.fontFamily.sans, marginBottom: "16px", textTransform: "capitalize" as const }}>{v}</p>
+              <div style={{ display: "flex", flexDirection: "column", gap: "16px", padding: "16px 0", overflow: "visible" }}>
+                {[1, 2, 3, 4].map((step) => (
+                  <Steps key={step} steps={DEMO_STEPS} currentStep={step} variant={v} />
+                ))}
+              </div>
+            </div>
+          ))}
+        </div>
+      </Section>
+
+      <PropsTable rows={[
+        { prop: "steps",       type: "StepItem[]",    def: "—",          desc: "Ordered array of step objects, each with a label string." },
+        { prop: "currentStep", type: "number",        def: "—",          desc: "1-indexed active step. Steps before it are complete, after are incomplete." },
+        { prop: "variant",     type: '"labeled" | "indicators" | "dots"', def: '"labeled"', desc: 'labeled = circles + labels + chevrons; indicators = circles + chevrons; dots = 10px bullet dots.' },
+      ]} />
+    </div>
+  );
+}
+
+// ScanInputTab
+// ---------------------------------------------------------------------------
+function ScanInputTab() {
+  const [val1, setVal1] = useState("");
+  const [val2, setVal2] = useState("");
+
+  const searchIcon = (
+    <svg width="24" height="24" viewBox="0 0 24 24" fill="none" aria-hidden>
+      <circle cx="11" cy="11" r="7" stroke={tokens.color.fg.disabled} strokeWidth="1.5" />
+      <path d="M16.5 16.5L21 21" stroke={tokens.color.fg.disabled} strokeWidth="1.5" strokeLinecap="round" />
+    </svg>
+  );
+
+  return (
+    <div>
+      <div style={{ marginBottom: "8px" }}>
+        <code style={{ fontSize: "12px", fontFamily: "monospace", background: tokens.color.bg.darkBg, padding: "2px 8px", borderRadius: tokens.borderRadius.sm, color: tokens.color.fg.support }}>components/ui/ScanInput.tsx</code>
+      </div>
+      <p style={{ fontSize: "14px", color: tokens.color.fg.support, marginBottom: "32px", fontFamily: tokens.fontFamily.sans }}>
+        Input + Scan button pre-wired. Owns the inline button, clear ×, and disabled forwarding.
+      </p>
+
+      {/* Without leading icon */}
+      <Section title="No Leading Icon">
+        <div style={{ background: tokens.color.base.white, border: `1px solid ${tokens.color.divider.border}`, borderRadius: tokens.borderRadius.lg, padding: "24px" }}>
+          <div style={{ display: "grid", gridTemplateColumns: "repeat(auto-fill, minmax(300px, 1fr))", gap: "24px" }}>
+            <div>
+              <p style={{ fontSize: "11px", color: tokens.color.fg.support, fontFamily: "monospace", marginBottom: "8px" }}>default</p>
+              <ScanInput label="Label" placeholder="Placeholder" value="" onChange={() => {}} />
+            </div>
+            <div>
+              <p style={{ fontSize: "11px", color: tokens.color.fg.support, fontFamily: "monospace", marginBottom: "8px" }}>filled + clear ×</p>
+              <ScanInput label="Label" placeholder="Placeholder" value={val1 || "12344433-43"} onChange={(e) => setVal1(e.target.value)} />
+            </div>
+            <div>
+              <p style={{ fontSize: "11px", color: tokens.color.fg.support, fontFamily: "monospace", marginBottom: "8px" }}>error</p>
+              <ScanInput label="Label" placeholder="Placeholder" value="12344433-43" onChange={() => {}} errorMessage="Invalid format" />
+            </div>
+            <div>
+              <p style={{ fontSize: "11px", color: tokens.color.fg.support, fontFamily: "monospace", marginBottom: "8px" }}>disabled</p>
+              <ScanInput label="Label" placeholder="Invalid inputs" value="" onChange={() => {}} disabled />
+            </div>
+          </div>
+        </div>
+      </Section>
+
+      {/* With leading search icon */}
+      <Section title="With Leading Search Icon">
+        <div style={{ background: tokens.color.base.white, border: `1px solid ${tokens.color.divider.border}`, borderRadius: tokens.borderRadius.lg, padding: "24px" }}>
+          <div style={{ display: "grid", gridTemplateColumns: "repeat(auto-fill, minmax(300px, 1fr))", gap: "24px" }}>
+            <div>
+              <p style={{ fontSize: "11px", color: tokens.color.fg.support, fontFamily: "monospace", marginBottom: "8px" }}>search + scan — default</p>
+              <ScanInput label="Label" placeholder="Placeholder" leadingIcon={searchIcon} value="" onChange={() => {}} />
+            </div>
+            <div>
+              <p style={{ fontSize: "11px", color: tokens.color.fg.support, fontFamily: "monospace", marginBottom: "8px" }}>search + scan — filled + clear ×</p>
+              <ScanInput label="Label" placeholder="Placeholder" leadingIcon={searchIcon} value={val2 || "327"} onChange={(e) => setVal2(e.target.value)} />
+            </div>
+            <div>
+              <p style={{ fontSize: "11px", color: tokens.color.fg.support, fontFamily: "monospace", marginBottom: "8px" }}>search + scan — error</p>
+              <ScanInput label="Label" placeholder="Placeholder" leadingIcon={searchIcon} value="327" onChange={() => {}} errorMessage="Invalid format" />
+            </div>
+            <div>
+              <p style={{ fontSize: "11px", color: tokens.color.fg.support, fontFamily: "monospace", marginBottom: "8px" }}>search + scan — disabled</p>
+              <ScanInput label="Label" placeholder="Invalid inputs" leadingIcon={searchIcon} value="" onChange={() => {}} disabled />
+            </div>
+          </div>
+        </div>
+      </Section>
+
+      <CodeSnippet code={`import { ScanInput } from "@/components/ui/ScanInput";
+
+<ScanInput
+  label="Serial number"
+  placeholder="Scan or type..."
+  value={value}
+  onChange={(e) => setValue(e.target.value)}
+  onScan={() => setSheetOpen(true)}
+/>
+
+{/* With leading icon */}
+<ScanInput
+  label="Search"
+  placeholder="Search by name or code..."
+  leadingIcon={<SearchIcon />}
+  value={value}
+  onChange={(e) => setValue(e.target.value)}
+  onScan={() => setSheetOpen(true)}
+/>`} />
+
+      <PropsTable rows={[
+        { prop: "onScan",      type: "() => void",        def: "—",      desc: "Called when the Scan button is clicked. Wire to open a ScanSimulationSheet." },
+        { prop: "value",       type: "string",            def: "—",      desc: "Controlled input value." },
+        { prop: "onChange",    type: "ChangeEventHandler", def: "—",     desc: "Called on every keystroke." },
+        { prop: "leadingIcon", type: "ReactNode",          def: "—",     desc: "24px icon on the left, e.g. a search icon." },
+        { prop: "disabled",    type: "boolean",            def: "false", desc: "Disables both the text input and the Scan button together." },
+        { prop: "...rest",     type: "InputProps",         def: "—",     desc: "All other Input props (label, placeholder, errorMessage, etc.) are forwarded." },
+      ]} />
+    </div>
+  );
+}
+
 const COMPONENT_TABS = [
-  { id: "button",         label: "Button" },
-  { id: "input",          label: "Input" },
-  { id: "radio",          label: "Radio" },
+  { id: "button",          label: "Button" },
+  { id: "input",           label: "Input" },
+  { id: "select-input",    label: "Select Input" },
+  { id: "composite-input", label: "Composite Input" },
+  { id: "scan-input",      label: "Scan Input" },
+  { id: "radio",           label: "Radio" },
   { id: "checkbox",       label: "Checkbox" },
   { id: "selection-card", label: "Selection Card" },
-  { id: "badge",          label: "Badge" },
-  { id: "sidebar",        label: "Sidebar" },
+  { id: "badge",            label: "Badge" },
+  { id: "badge-actionable", label: "Badge Actionable" },
+  { id: "sidebar",          label: "Sidebar" },
   { id: "toast",          label: "Toast" },
   { id: "toggle",         label: "Toggle" },
-  { id: "context-menu",   label: "Context Menu" },
+  { id: "context-item",   label: "Context Menu Item" },
   { id: "alert",          label: "Alert" },
   { id: "section-header", label: "Section Header" },
   { id: "glory-items",    label: "Glory Items" },
   { id: "modal",          label: "Modal" },
   { id: "action-card",    label: "Action Card" },
+  { id: "product-img",    label: "Product Image" },
+  { id: "breadcrumb",     label: "Breadcrumb" },
+  { id: "appbar",         label: "App Bar" },
+  { id: "stat-card",      label: "Stat Card" },
+  { id: "list-view-item", label: "List View Item" },
+  { id: "data-table",     label: "Data Table" },
+  { id: "pagination",     label: "Pagination" },
+  { id: "apply-to-product",   label: "Apply to Product"  },
+  { id: "search-dropdown",    label: "Search Dropdown"   },
+  { id: "tabs",               label: "Tabs"              },
+  { id: "product-list-item",  label: "Product List Item"  },
+  { id: "view-item-img",      label: "View Item Img"      },
+  { id: "empty-state",        label: "Empty State"        },
+  { id: "steps",              label: "Steps"              },
 ];
 
 export default function ComponentsPage() {
@@ -2297,7 +3774,7 @@ export default function ComponentsPage() {
         <div style={{ maxWidth: "1200px", margin: "0 auto", padding: "0 40px", display: "flex", gap: "4px", overflowX: "auto" as const }}>
           {TOP_NAV.map(item => (
             <a key={item}
-              href={item === "Components" ? "/styleguide/components" : item === "Patterns" ? "/styleguide/patterns" : `/styleguide#${item.toLowerCase().replace(" ","-")}`}
+              href={item === "Components" ? "/styleguide/components" : item === "Patterns" ? "/styleguide/patterns" : item === "Mobile" ? "/styleguide/mobile" : `/styleguide#${item.toLowerCase().replace(" ","-")}`}
               style={{ display: "inline-block", padding: "12px 16px", fontSize: tokens.fontSize.bodySmall, fontWeight: item === "Components" ? tokens.fontWeight.semiBold : tokens.fontWeight.medium, color: item === "Components" ? tokens.color.fg.primary : tokens.color.fg.support, textDecoration: "none", whiteSpace: "nowrap" as const, borderBottom: item === "Components" ? `2px solid ${tokens.color.brand.lime}` : "2px solid transparent" }}>
               {item}
             </a>
@@ -2316,21 +3793,39 @@ export default function ComponentsPage() {
           ))}
         </div>
 
-        {activeTab === "button"         && <ButtonTab svgs={svgs} />}
-        {activeTab === "input"          && <InputTab  svgs={svgs} />}
-        {activeTab === "radio"          && <RadioTab />}
+        {activeTab === "button"          && <ButtonTab svgs={svgs} />}
+        {activeTab === "input"           && <InputTab  svgs={svgs} />}
+        {activeTab === "select-input"    && <SelectInputTab />}
+        {activeTab === "composite-input" && <CompositeInputTab />}
+        {activeTab === "radio"           && <RadioTab />}
         {activeTab === "checkbox"       && <CheckboxTab />}
         {activeTab === "selection-card" && <SelectionCardTab />}
-        {activeTab === "badge"          && <BadgeTab />}
-        {activeTab === "sidebar"        && <SidebarTab />}
+        {activeTab === "badge"            && <BadgeTab />}
+        {activeTab === "badge-actionable" && <BadgeActionableTab />}
+        {activeTab === "sidebar"          && <SidebarTab />}
         {activeTab === "toast"          && <ToastTab />}
         {activeTab === "toggle"         && <ToggleTab />}
-        {activeTab === "context-menu"   && <ContextMenuTab />}
+        {activeTab === "context-item"   && <ContextMenuItemTab />}
         {activeTab === "alert"          && <AlertTab />}
         {activeTab === "section-header" && <SectionHeaderTab />}
         {activeTab === "glory-items"    && <GloryItemsTab />}
         {activeTab === "modal"          && <ModalTab />}
         {activeTab === "action-card"    && <ActionCardTab />}
+        {activeTab === "product-img"      && <ProductImgTab />}
+        {activeTab === "breadcrumb"       && <BreadcrumbTab />}
+        {activeTab === "appbar"           && <AppBarTab />}
+        {activeTab === "stat-card"        && <DashboardStatCardTab />}
+        {activeTab === "list-view-item"   && <ListViewItemTab />}
+        {activeTab === "data-table"       && <DataTableTab />}
+        {activeTab === "pagination"       && <PaginationTab />}
+        {activeTab === "apply-to-product" && <ApplyToProductTab />}
+        {activeTab === "search-dropdown"  && <SearchDropdownTab />}
+        {activeTab === "tabs"             && <TabsTab svgs={svgs} />}
+        {activeTab === "product-list-item" && <ProductListItemTab svgs={svgs} />}
+        {activeTab === "view-item-img"     && <ViewItemPageImgTab />}
+        {activeTab === "empty-state"       && <EmptyStateTab />}
+        {activeTab === "steps"             && <StepsTab />}
+        {activeTab === "scan-input"        && <ScanInputTab />}
 
         <div style={{ borderTop: `1px solid ${tokens.color.divider.frame}`, paddingTop: "24px", marginTop: "48px", display: "flex", justifyContent: "space-between" }}>
           <a href="/styleguide" style={{ fontSize: tokens.fontSize.bodySmall, color: tokens.color.fg.support, fontFamily: tokens.fontFamily.sans, textDecoration: "none" }}>← Design Tokens</a>

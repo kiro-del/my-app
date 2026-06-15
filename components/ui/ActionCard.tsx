@@ -1,3 +1,5 @@
+"use client";
+
 // components/ui/ActionCard.tsx
 // Figma: Scannable Design System — node 3263:2039 (Actionable Cards)
 // All values reference design-tokens — never hardcoded.
@@ -6,15 +8,20 @@
 // but apply universally to all card types per user instruction.
 //
 // Design system compliance:
-//   - action buttons  → Button component (variant="icon" / "secondary")
+//   - action icon btn  → Button variant="icon framed" + Figma arrow-right node 46:2885
+//   - action text btn  → Button variant="secondary"
 //   - leadingIcon="icon"    → DecoIcon component (40px, typed tone)
-//   - leadingIcon="product" → 56×56 product image (Figma node 2319:1415)
+//   - leadingIcon="product" → ProductImg 56px (Figma node 2319:1509)
 
 import React from "react";
 import tokens from "@/styles/design-tokens";
 import { Button } from "@/components/ui/Button";
 import { DecoIcon, type DecoIcon40Tone } from "@/components/ui/DecoIcon";
-import { IconArrowRight } from "@/components/icons";
+import { ProductImg } from "@/components/ui/ProductImg";
+import { useFigmaIcons } from "@/hooks/useFigmaIcons";
+
+// Arrow right icon — Figma node 46:2885
+const ARROW_RIGHT_NODE = "46:2885";
 
 // ---------------------------------------------------------------------------
 // Types
@@ -69,6 +76,10 @@ export function ActionCard({
   const [hovered, setHovered] = React.useState(false);
   const [focused, setFocused] = React.useState(false);
 
+  // Fetch arrow-right icon from Figma (node 46:2885) — cached by useFigmaIcons
+  const icons        = useFigmaIcons([ARROW_RIGHT_NODE]);
+  const arrowIconUrl = icons[ARROW_RIGHT_NODE];
+
   const effectiveDisabled = state === "Disable"   || disabled;
   const effectiveSelected = state === "Selected"  || selected;
   const effectiveHovered  = !effectiveDisabled && (state === "Hover"  || hovered);
@@ -115,50 +126,29 @@ export function ActionCard({
       style={{
         display:       "flex",
         alignItems:    "center",
-        gap:           tokens.spacing[3],       // 12px
+        gap:           tokens.spacing[4],       // 16px — Figma
         width:         "362px",
-        boxSizing:     "border-box",
-        padding:       tokens.spacing[4],       // 16px all sides
-        borderRadius:  tokens.borderRadius.lg,  // 8px
+        boxSizing:     "border-box" as const,
+        // text btn: pl-16 pr-8 py-8 — icon btn: p-16 — Figma
+        paddingTop:    action === "text btn" ? tokens.spacing[2]  : tokens.spacing[4],
+        paddingBottom: action === "text btn" ? tokens.spacing[2]  : tokens.spacing[4],
+        paddingLeft:   tokens.spacing[4],
+        paddingRight:  action === "text btn" ? tokens.spacing[2]  : tokens.spacing[4],
+        borderRadius:  tokens.borderRadius.md,  // 6px — Figma rounded-s-md
         background:    bg,
         border:        `${borderWidth} solid ${borderColor}`,
         boxShadow,
         opacity,
         cursor:        effectiveDisabled ? "not-allowed" : "pointer",
-        userSelect:    "none",
+        userSelect:    "none" as const,
         transition:    "background 150ms ease, border-color 150ms ease, box-shadow 150ms ease",
         overflow:      "hidden",
       }}
     >
       {/* ── Leading: product image — 56×56, white bg, gray-200 border ── */}
+      {/* ── Leading: product image — 56×56, ProductImg component ── */}
       {leadingIcon === "product" && (
-        productImageSrc ? (
-          <img
-            src={productImageSrc}
-            alt=""
-            style={{
-              width:        "56px",
-              height:       "56px",
-              borderRadius: tokens.borderRadius.md,   // 6px
-              objectFit:    "cover",
-              flexShrink:   0,
-              border:       `1px solid ${tokens.color.divider.border}`,  // gray-200
-              background:   tokens.color.base.white,
-            }}
-          />
-        ) : (
-          /* Placeholder when no src provided */
-          <div
-            style={{
-              width:        "56px",
-              height:       "56px",
-              borderRadius: tokens.borderRadius.md,
-              background:   tokens.color.base.white,
-              border:       `1px solid ${tokens.color.divider.border}`,
-              flexShrink:   0,
-            }}
-          />
-        )
+        <ProductImg size={56} image={productImageSrc} />
       )}
 
       {/* ── Leading: DecoIcon — 40px design system icon ──────────── */}
@@ -173,19 +163,16 @@ export function ActionCard({
           minWidth:      0,
           display:       "flex",
           flexDirection: "column",
-          gap:           tokens.spacing[0.5],  // 2px
+          gap:           tokens.spacing[1],    // 4px — Figma
         }}
       >
         <span
           style={{
-            fontFamily:   tokens.fontFamily.sans,
-            fontSize:     tokens.fontSize.body,
-            fontWeight:   tokens.fontWeight.medium,
-            lineHeight:   tokens.lineHeight.body,
-            color:        textColor,
-            overflow:     "hidden",
-            textOverflow: "ellipsis",
-            whiteSpace:   "nowrap",
+            fontFamily: tokens.fontFamily.sans,
+            fontSize:   tokens.fontSize.body,
+            fontWeight: tokens.fontWeight.medium,
+            lineHeight: tokens.lineHeight.body,
+            color:      textColor,
           }}
         >
           {label}
@@ -199,9 +186,6 @@ export function ActionCard({
               fontWeight:   tokens.fontWeight.regular,
               lineHeight:   tokens.lineHeight.bodySmall,
               color:        supportColor,
-              overflow:     "hidden",
-              textOverflow: "ellipsis",
-              whiteSpace:   "nowrap",
             }}
           >
             {description}
@@ -209,15 +193,42 @@ export function ActionCard({
         )}
       </div>
 
-      {/* ── Action: icon button — arrow right ────────────────────── */}
+      {/* ── Action: icon button — arrow right (Figma node 46:2885) ── */}
       {action === "icon btn" && (
         <div
           onClick={(e) => { e.stopPropagation(); onActionClick?.(e) ?? onClick?.(); }}
           style={{ flexShrink: 0 }}
         >
           <Button
-            variant={effectiveDisabled ? "disabled" : "icon"}
-            icon={<IconArrowRight color={effectiveDisabled ? tokens.color.fg.disabled : tokens.color.fg.primary} />}
+            variant={effectiveDisabled ? "disabled" : "icon framed"}
+            icon={
+              arrowIconUrl ? (
+                <span
+                  style={{
+                    display:            "inline-block",
+                    width:              "24px",
+                    height:             "24px",
+                    background:         effectiveDisabled ? tokens.color.fg.disabled : tokens.color.fg.primary,
+                    maskImage:          `url(${arrowIconUrl})`,
+                    maskSize:           "contain",
+                    maskRepeat:         "no-repeat",
+                    maskPosition:       "center",
+                    WebkitMaskImage:    `url(${arrowIconUrl})`,
+                    WebkitMaskSize:     "contain",
+                    WebkitMaskRepeat:   "no-repeat",
+                    WebkitMaskPosition: "center",
+                  } as React.CSSProperties}
+                  aria-hidden
+                />
+              ) : (
+                // Fallback while Figma URL loads
+                <svg width="24" height="24" viewBox="0 0 24 24" fill="none" aria-hidden>
+                  <path d="M13 6L19 12M19 12L13 18M19 12L5 12"
+                    stroke={effectiveDisabled ? tokens.color.fg.disabled : tokens.color.fg.primary}
+                    strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" />
+                </svg>
+              )
+            }
             disabled={effectiveDisabled}
             aria-label={`${label} — ${actionLabel}`}
           />

@@ -8,12 +8,16 @@ import tokens from "@/styles/design-tokens";
 import { AppShell } from "@/components/ui/AppShell";
 import { Badge } from "@/components/ui/Badge";
 import { Button } from "@/components/ui/Button";
+import { DashboardStatStrip } from "@/components/ui/DashboardStatCard";
 import { DataTable, DataTableColumn } from "@/components/ui/DataTable";
 import { TableFooter } from "@/components/ui/Pagination";
-import { ContextMenu } from "@/components/ui/ContextMenu";
+import { ContextMenu } from "@/components/patterns/ContextMenu";
 import { ContextMenuItem } from "@/components/ui/ContextMenuItem";
-import { Toggle } from "@/components/ui/Toggle";
+import { ListViewItem } from "@/components/ui/ListViewItem";
+import { ProductListItem } from "@/components/ui/ProductListItem";
+import { SectionHeader } from "@/components/ui/SectionHeader";
 import { Toast } from "@/components/ui/Toast";
+import { SelectInput } from "@/components/ui/SelectInput";
 import { useFigmaIcons } from "@/hooks/useFigmaIcons";
 
 // ---------------------------------------------------------------------------
@@ -37,9 +41,28 @@ const SIDEBAR_ICON_IDS = {
 
 // Context-menu action icons — from Scannable Design System (j8hy0yzSKPyh1yRKOh4tuU)
 const MENU_ICON_IDS = {
-  createSerials:  "46:2936",   // + add icon
-  captureSerials: "94:553",    // barcode / serials icon
-  ropeSerials:    "2119:4324", // rope carabiner icon
+  createSerials:  "46:2936",    // + add icon
+  captureSerials: "94:553",     // barcode / serials icon
+  ropeSerials:    "2119:4324",  // rope carabiner icon
+  importSerials:  "2974:11454", // import / download tray icon
+} as const;
+
+// Stat strip icon node IDs — one unique icon per card (Figma node 3371:24897)
+const STAT_ICON_IDS = {
+  serialsCreate:   "94:554",     // serials create  — Created serials card
+  serialsCapture:  "5846:2623",  // serials capture — Captured serials card
+  rope:            "2119:4324",  // rope carabiner  — Cut rope serials card
+  inventory:       "92:758",     // kit list        — Serial formats card
+} as const;
+
+// Panel icon node IDs
+const CAPTURED_STATUS_ICON_NODE = "5530:29916"; // NFC tag round — 16px composite icon
+
+// Options bottom-sheet icon node IDs
+const OPTIONS_ICON_IDS = {
+  copy:  "149:362",
+  print: "46:2312",
+  bin:   "46:2282",
 } as const;
 
 // ---------------------------------------------------------------------------
@@ -124,56 +147,7 @@ const MoreIcon = () => (
   </svg>
 );
 
-// Panel close (X) icon — 20px
-const XIcon = () => (
-  <svg width="20" height="20" viewBox="0 0 20 20" fill="none" aria-hidden>
-    <path d="M5 5l10 10M15 5L5 15" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round"/>
-  </svg>
-);
-
-// Options menu icons — 24px, use currentColor
-const CaptureSerialIcon = () => (
-  <svg width="24" height="24" viewBox="0 0 24 24" fill="none">
-    <rect x="3" y="3" width="7" height="7" rx="1" stroke="currentColor" strokeWidth="1.5"/>
-    <rect x="14" y="3" width="7" height="7" rx="1" stroke="currentColor" strokeWidth="1.5"/>
-    <rect x="3" y="14" width="7" height="7" rx="1" stroke="currentColor" strokeWidth="1.5"/>
-    <path d="M14 17h7M17.5 13.5v7" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round"/>
-  </svg>
-);
-const CopyIcon = () => (
-  <svg width="24" height="24" viewBox="0 0 24 24" fill="none">
-    <rect x="9" y="9" width="11" height="11" rx="2" stroke="currentColor" strokeWidth="1.5"/>
-    <path d="M15 9V7a2 2 0 0 0-2-2H7a2 2 0 0 0-2 2v6a2 2 0 0 0 2 2h2" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round"/>
-  </svg>
-);
-const PrintIcon = () => (
-  <svg width="24" height="24" viewBox="0 0 24 24" fill="none">
-    <path d="M6 9V4h12v5" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round"/>
-    <rect x="3" y="9" width="18" height="8" rx="2" stroke="currentColor" strokeWidth="1.5"/>
-    <path d="M6 13v7h12v-7" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round"/>
-  </svg>
-);
-const ReloadIcon = () => (
-  <svg width="24" height="24" viewBox="0 0 24 24" fill="none">
-    <path d="M4 12a8 8 0 0 1 14.93-4H15" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round"/>
-    <path d="M20 12a8 8 0 0 1-14.93 4H9" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round"/>
-    <path d="M19 4v4h-4" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round"/>
-    <path d="M5 20v-4h4" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round"/>
-  </svg>
-);
-const TrashIcon = () => (
-  <svg width="24" height="24" viewBox="0 0 24 24" fill="none">
-    <path d="M3 6h18M8 6V4h8v2M19 6l-1 14a2 2 0 0 1-2 2H8a2 2 0 0 1-2-2L5 6" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round"/>
-    <path d="M10 11v6M14 11v6" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round"/>
-  </svg>
-);
-// Figma: node 5744:11135 — preview icon (eye with document)
-const PreviewIcon = () => (
-  <svg width="24" height="24" viewBox="0 0 24 24" fill="none">
-    <path d="M2 12s3.5-7 10-7 10 7 10 7-3.5 7-10 7S2 12 2 12z" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round"/>
-    <circle cx="12" cy="12" r="3" stroke="currentColor" strokeWidth="1.5"/>
-  </svg>
-);
+// (Options menu icons are loaded via useFigmaIcons — see OPTIONS_ICON_IDS above)
 
 // ---------------------------------------------------------------------------
 // Types
@@ -182,8 +156,7 @@ interface SerialRow {
   id:            string;
   source:        string;   // "Internal" | "External" | "Internal (Rope)"
   created:       string;
-  sessionStatus: "Active" | "Inactive" | "Pending";
-  printStatus:   string;
+  printStatus:   string;   // "Active" | "Closed task" | "" — shown as subtext for External rows
   serialFormat:  string;
   salesOrder:    string;
   purchaseOrder: string;
@@ -218,12 +191,12 @@ interface BatchDetail {
 // Mock data
 // ---------------------------------------------------------------------------
 const MOCK_DATA: SerialRow[] = [
-  { id: "1", source: "External",        created: "Mar 10, 2026", sessionStatus: "Active", printStatus: "Active",      serialFormat: "",                        salesOrder: "",      purchaseOrder: "",      batch: "",      dom: "Apr 11, 2026" },
-  { id: "2", source: "Internal",        created: "Apr 2, 2026",  sessionStatus: "Active", printStatus: "",            serialFormat: "Scannable Serial For...", salesOrder: "1223",  purchaseOrder: "1234",  batch: "1234",  dom: "Apr 10, 2026" },
-  { id: "3", source: "External",        created: "Mar 10, 2026", sessionStatus: "Active", printStatus: "Closed task", serialFormat: "",                        salesOrder: "",      purchaseOrder: "",      batch: "",      dom: "Apr 1, 2026"  },
-  { id: "4", source: "Internal",        created: "Apr 2, 2026",  sessionStatus: "Active", printStatus: "",            serialFormat: "Scannable Serial For...", salesOrder: "76543", purchaseOrder: "76543", batch: "76543", dom: "Apr 10, 2026" },
-  { id: "5", source: "Internal (Rop.)", created: "Apr 1, 2026",  sessionStatus: "Active", printStatus: "",            serialFormat: "Scannable Serial For...", salesOrder: "",      purchaseOrder: "",      batch: "",      dom: "Apr 2, 2026"  },
-  { id: "6", source: "Internal",        created: "Feb 4, 2026",  sessionStatus: "Active", printStatus: "",            serialFormat: "",                        salesOrder: "",      purchaseOrder: "",      batch: "",      dom: "Mar 10, 2026" },
+  { id: "1", source: "External",        created: "Mar 10, 2026", printStatus: "Active",      serialFormat: "",                        salesOrder: "",      purchaseOrder: "",      batch: "",      dom: "Apr 11, 2026" },
+  { id: "2", source: "Internal",        created: "Apr 2, 2026",  printStatus: "",            serialFormat: "Scannable Serial For...", salesOrder: "1223",  purchaseOrder: "1234",  batch: "1234",  dom: "Apr 10, 2026" },
+  { id: "3", source: "External",        created: "Mar 10, 2026", printStatus: "Closed task", serialFormat: "",                        salesOrder: "",      purchaseOrder: "",      batch: "",      dom: "Apr 1, 2026"  },
+  { id: "4", source: "Internal",        created: "Apr 2, 2026",  printStatus: "",            serialFormat: "Scannable Serial For...", salesOrder: "76543", purchaseOrder: "76543", batch: "76543", dom: "Apr 10, 2026" },
+  { id: "5", source: "Internal (Rop.)", created: "Apr 1, 2026",  printStatus: "",            serialFormat: "Scannable Serial For...", salesOrder: "",      purchaseOrder: "",      batch: "",      dom: "Apr 2, 2026"  },
+  { id: "6", source: "Internal",        created: "Feb 4, 2026",  printStatus: "",            serialFormat: "",                        salesOrder: "",      purchaseOrder: "",      batch: "",      dom: "Mar 10, 2026" },
 ];
 
 // Mock batch details per row id — shown in the View Serials panel
@@ -306,15 +279,105 @@ const MOCK_BATCH_DETAILS: Record<string, BatchDetail> = {
 };
 
 // ---------------------------------------------------------------------------
+// ---------------------------------------------------------------------------
+// CapturedStatusIcon — orange leading icon for captured serial badges
+// Uses CSS mask to recolour the DS icon in orange.
+// Falls back to an orange dot while the Figma URL loads.
+// ---------------------------------------------------------------------------
+// CapturedStatusIcon — "NFC tag round" (Figma node 5530:29916)
+// Composite icon (lime circle + NFC wave) — rendered as <img>, NOT CSS-masked.
+// Falls back to a lime circle pill while the URL is loading.
+function CapturedStatusIcon({ iconUrl }: { iconUrl?: string }) {
+  if (!iconUrl) {
+    // Fallback: lime circle matches the icon's dominant shape
+    return (
+      <span
+        style={{
+          display:      "inline-block",
+          width:        "16px",
+          height:       "16px",
+          borderRadius: "9999px",
+          background:   tokens.color.brand.lime,
+          flexShrink:   0,
+        }}
+        aria-hidden
+      />
+    );
+  }
+  return (
+    // eslint-disable-next-line @next/next/no-img-element
+    <img
+      src={iconUrl}
+      width={16}
+      height={16}
+      alt=""
+      aria-hidden
+      style={{ display: "block", flexShrink: 0 }}
+    />
+  );
+}
+
+// Figma-icon helper for Options menu items — renders via CSS mask at 24px
+function OptionsIcon({ iconUrl, color = tokens.color.fg.disabled }: { iconUrl?: string; color?: string }) {
+  if (!iconUrl) return null;
+  return (
+    <span
+      style={{
+        display:            "inline-block",
+        width:              "24px",
+        height:             "24px",
+        background:         color,
+        maskImage:          `url(${iconUrl})`,
+        maskSize:           "contain",
+        maskRepeat:         "no-repeat",
+        maskPosition:       "center",
+        WebkitMaskImage:    `url(${iconUrl})`,
+        WebkitMaskSize:     "contain",
+        WebkitMaskRepeat:   "no-repeat",
+        WebkitMaskPosition: "center",
+        flexShrink:         0,
+      } as React.CSSProperties}
+      aria-hidden
+    />
+  );
+}
+
+// Fallback reload icon used in cut-rope Options menu
+function ReloadIcon({ color = tokens.color.fg.disabled }: { color?: string }) {
+  return (
+    <svg width="24" height="24" viewBox="0 0 24 24" fill="none" aria-hidden style={{ display: "block", flexShrink: 0 }}>
+      <path
+        d="M4 4v5h5M20 20v-5h-5"
+        stroke={color}
+        strokeWidth="1.75"
+        strokeLinecap="round"
+        strokeLinejoin="round"
+      />
+      <path
+        d="M20 9A8 8 0 0 0 5.64 5.64L4 9m16 6-1.64 3.36A8 8 0 0 1 4 15"
+        stroke={color}
+        strokeWidth="1.75"
+        strokeLinecap="round"
+        strokeLinejoin="round"
+      />
+    </svg>
+  );
+}
+
 // View Serials panel
 // ---------------------------------------------------------------------------
 function ViewSerialsPanel({
   data,
+  source,
   onClose,
 }: {
-  data:    BatchDetail;
-  onClose: () => void;
+  data:     BatchDetail;
+  source?:  string;
+  onClose:  () => void;
 }) {
+  const panelIcons      = useFigmaIcons([CAPTURED_STATUS_ICON_NODE, ...Object.values(OPTIONS_ICON_IDS)]);
+  const capturedIconUrl = panelIcons[CAPTURED_STATUS_ICON_NODE];
+
   const [optionsOpen, setOptionsOpen] = useState(false);
   const footerRef = useRef<HTMLDivElement>(null);
 
@@ -330,14 +393,14 @@ function ViewSerialsPanel({
     return () => document.removeEventListener("mousedown", handleClick);
   }, [optionsOpen]);
 
-  const [availableToCapture, setAvailableToCapture] = useState(true);
-
+  // Meta rows — labels match Figma node 3341:77076, no trailing colons
   const metaRows: [string, string][] = [
-    ["Purchase order:",      data.purchaseOrder     || "—"],
-    ["Sales order:",         data.salesOrder        || "—"],
-    ["Date of manufacture:", data.dateOfManufacture || "—"],
-    ["Batch number:",        data.batchNumber       || "—"],
-    ["Total serials needed:", String(data.totalItemCount)],
+    ["Purchase order",     data.purchaseOrder     || "—"],
+    ["Sales order",        data.salesOrder        || "—"],
+    ["Source",             source                 || "—"],
+    ["Date of manufacture",data.dateOfManufacture || "—"],
+    ["Batch number",       data.batchNumber       || "—"],
+    ["Total Item count",   String(data.totalItemCount)],
   ];
 
   return (
@@ -357,325 +420,180 @@ function ViewSerialsPanel({
       }}
     >
       {/* ── Header ── */}
-      <div
-        style={{
-          display:         "flex",
-          alignItems:      "center",
-          justifyContent:  "space-between",
-          padding:         "15px 16px",
-          height:          "72px",
-          borderBottom:    `1px solid ${tokens.color.divider.border}`,
-          flexShrink:      0,
-          boxSizing:       "border-box" as const,
-        }}
-      >
-        <span
-          style={{
-            fontFamily:  tokens.fontFamily.sans,
-            fontSize:    "18px",
-            fontWeight:  tokens.fontWeight.medium,
-            lineHeight:  "24px",
-            color:       tokens.color.fg.primary,
-          }}
-        >
-          View Serials
-        </span>
-        <button
-          onClick={onClose}
-          aria-label="Close panel"
-          style={{
-            display:         "flex",
-            alignItems:      "center",
-            justifyContent:  "center",
-            width:           "32px",
-            height:          "32px",
-            background:      "none",
-            border:          "none",
-            cursor:          "pointer",
-            color:           tokens.color.fg.support,
-            borderRadius:    tokens.borderRadius.md,
-            flexShrink:      0,
-          }}
-        >
-          <XIcon />
-        </button>
-      </div>
+      <SectionHeader title="View Serials" onClose={onClose} style={{ flexShrink: 0 }} />
 
       {/* ── Scrollable body ── */}
-      <div style={{ flex: 1, overflowY: "auto", padding: "16px" }}>
-        {/* Batch metadata */}
-        <div style={{ display: "flex", flexDirection: "column", gap: "8px", marginBottom: "16px" }}>
+      <div style={{ flex: 1, overflowY: "auto" }}>
+        {/* Batch metadata — ProductListItem variant="text" */}
+        <div style={{ marginBottom: tokens.spacing[2] }}>
           {metaRows.map(([label, value]) => (
-            <div key={label} style={{ display: "flex", justifyContent: "space-between", gap: "8px" }}>
-              <span
-                style={{
-                  fontFamily:  tokens.fontFamily.sans,
-                  fontSize:    tokens.fontSize.body,
-                  fontWeight:  tokens.fontWeight.regular,
-                  lineHeight:  tokens.lineHeight.body,
-                  color:       tokens.color.fg.support,
-                  flexShrink:  0,
-                }}
-              >
-                {label}
-              </span>
-              <span
-                style={{
-                  fontFamily:  tokens.fontFamily.sans,
-                  fontSize:    tokens.fontSize.body,
-                  fontWeight:  tokens.fontWeight.medium,
-                  lineHeight:  tokens.lineHeight.body,
-                  color:       tokens.color.fg.primary,
-                  textAlign:   "right" as const,
-                }}
-              >
-                {value}
-              </span>
-            </div>
+            <ProductListItem
+              key={label}
+              variant="text"
+              label={label}
+              value={value}
+            />
           ))}
         </div>
 
-        {/* Products */}
-        {data.products.map((product, pi) => (
-          <div
-            key={product.id}
-            style={{
-              borderTop:  pi > 0 ? `1px solid ${tokens.color.divider.border}` : undefined,
-              paddingTop: pi > 0 ? "16px" : undefined,
-              marginTop:  pi > 0 ? "16px" : undefined,
-            }}
-          >
-            {/* Product row */}
-            <div style={{ display: "flex", gap: "12px", alignItems: "center", marginBottom: "10px" }}>
-              {/* Image placeholder */}
+        {/* Products — Figma node 3341:77080
+            Container: px-4, border-bottom per product block
+            ListViewItem: py-2
+            Serial quantity row: py-2, body-M (14px/500), two-span label + number
+            Badge group: py-2, flex-wrap, gap-2 (8px)
+        */}
+        <div style={{ paddingLeft: tokens.spacing[4], paddingRight: tokens.spacing[4] }}>
+          {data.products.map((product) => (
+            <div
+              key={product.id}
+              style={{
+                borderBottom: `1px solid ${tokens.color.divider.border}`,
+                paddingBottom: tokens.spacing[2],
+              }}
+            >
+              {/* Product row — ListViewItem */}
+              <ListViewItem
+                title={product.name}
+                subtitle={product.sku}
+                showDivider={false}
+              />
+
+              {/* Serial quantity row — body-M, two spans */}
               <div
                 style={{
-                  width:          "56px",
-                  height:         "56px",
-                  borderRadius:   tokens.borderRadius.md,
-                  background:     tokens.color.bg.lightBg,
-                  border:         `1px solid ${tokens.color.divider.border}`,
-                  flexShrink:     0,
-                  display:        "flex",
-                  alignItems:     "center",
-                  justifyContent: "center",
+                  display:    "flex",
+                  gap:        tokens.spacing[1],  // 4px between label and number
+                  alignItems: "center",
+                  paddingTop:    tokens.spacing[2],  // 8px
+                  paddingBottom: tokens.spacing[2],  // 8px
+                  fontFamily:  tokens.fontFamily.sans,
+                  fontSize:    tokens.fontSize.body,   // 14px
+                  fontWeight:  tokens.fontWeight.medium, // 500
+                  lineHeight:  tokens.lineHeight.body,  // 20px
                 }}
               >
-                {/* Simple product silhouette */}
-                <svg width="32" height="32" viewBox="0 0 32 32" fill="none" aria-hidden>
-                  <circle cx="16" cy="16" r="10" stroke={tokens.color.fg.disabled} strokeWidth="1.5"/>
-                  <circle cx="16" cy="16" r="5"  stroke={tokens.color.fg.disabled} strokeWidth="1.5"/>
-                </svg>
+                <span style={{ color: tokens.color.fg.support }}>Serial quantity:</span>
+                <span style={{ color: tokens.color.fg.primary }}>{product.serialQuantity}</span>
               </div>
-              <div style={{ minWidth: 0 }}>
-                <div
-                  style={{
-                    fontFamily:   tokens.fontFamily.sans,
-                    fontSize:     tokens.fontSize.body,
-                    fontWeight:   tokens.fontWeight.medium,
-                    lineHeight:   tokens.lineHeight.body,
-                    color:        tokens.color.fg.primary,
-                    overflow:     "hidden",
-                    textOverflow: "ellipsis",
-                    whiteSpace:   "nowrap" as const,
-                  }}
-                >
-                  {product.name}
-                </div>
-                <div
-                  style={{
-                    fontFamily: tokens.fontFamily.sans,
-                    fontSize:   tokens.fontSize.bodySmall,
-                    fontWeight: tokens.fontWeight.regular,
-                    lineHeight: tokens.lineHeight.bodySmall,
-                    color:      tokens.color.fg.support,
-                  }}
-                >
-                  {product.sku}
-                </div>
-              </div>
-            </div>
 
-            {/* Captured serials label */}
-            <div
-              style={{
-                fontFamily:  tokens.fontFamily.sans,
-                fontSize:    tokens.fontSize.bodySmall,
-                fontWeight:  tokens.fontWeight.regular,
-                lineHeight:  tokens.lineHeight.bodySmall,
-                color:       tokens.color.fg.support,
-                marginBottom: "8px",
-              }}
-            >
-              Captured serials: {product.serialQuantity}
-            </div>
-
-            {/* Serial chips */}
-            <div style={{ display: "flex", flexWrap: "wrap" as const, gap: "4px" }}>
-              {product.serials.map((serial) => (
-                <span
-                  key={serial.code}
-                  style={{
-                    display:      "inline-flex",
-                    alignItems:   "center",
-                    gap:          "4px",
-                    padding:      "2px 8px",
-                    borderRadius: "9999px",              // pill — Figma rounded-all
-                    background:   tokens.color.bg.bg,    // gray-100 #f3f4f6
-                    fontFamily:   tokens.fontFamily.sans,
-                    fontSize:     "12px",
-                    fontWeight:   tokens.fontWeight.semiBold,
-                    lineHeight:   "16px",
-                    color:        tokens.color.fg.primary,
-                    whiteSpace:   "nowrap" as const,
-                  }}
-                >
-                  {serial.status === "captured" && (
-                    <span
-                      style={{
-                        width:        "6px",
-                        height:       "6px",
-                        borderRadius: "50%",
-                        background:   "#f97316",   // orange-500 — captured indicator
-                        flexShrink:   0,
-                        display:      "inline-block",
-                      }}
+              {/* Serial chips — Badge color="gray", flex-wrap, gap-2 */}
+              <div
+                style={{
+                  display:       "flex",
+                  flexWrap:      "wrap" as const,
+                  gap:           tokens.spacing[2],   // 8px
+                  paddingTop:    tokens.spacing[2],   // 8px
+                  paddingBottom: tokens.spacing[2],   // 8px
+                }}
+              >
+                {product.serials.map((serial) => {
+                  const isCaptured = serial.status === "captured";
+                  return (
+                    <Badge
+                      key={serial.code}
+                      color="gray"
+                      label={serial.code}
+                      icon={isCaptured ? <CapturedStatusIcon iconUrl={capturedIconUrl} /> : undefined}
+                      iconPosition={isCaptured ? "leading" : "none"}
                     />
-                  )}
-                  {serial.code}
-                </span>
-              ))}
+                  );
+                })}
+              </div>
             </div>
-          </div>
-        ))}
-      </div>
+          ))}
+        </div>{/* /products */}
+      </div>{/* /scrollable body */}
 
-      {/* ── Inline actions ── */}
-      <div
-        style={{
-          borderTop:  `1px solid ${tokens.color.divider.border}`,
-          flexShrink: 0,
-        }}
-      >
-        {/* Available to capture toggle */}
-        <div
-          style={{
-            display:        "flex",
-            alignItems:     "center",
-            justifyContent: "space-between",
-            padding:        "12px 16px",
-            borderBottom:   `1px solid ${tokens.color.divider.border}`,
-          }}
-        >
-          <div style={{ display: "flex", alignItems: "center", gap: "10px" }}>
-            <CaptureSerialIcon />
-            <span
-              style={{
-                fontFamily: tokens.fontFamily.sans,
-                fontSize:   tokens.fontSize.body,
-                fontWeight: tokens.fontWeight.regular,
-                color:      tokens.color.fg.primary,
-              }}
-            >
-              Available to capture
-            </span>
-          </div>
-          <Toggle
-            checked={availableToCapture}
-            onChange={setAvailableToCapture}
-          />
-        </div>
-
-        {/* Capture serials */}
-        <ContextMenuItem
-          label="Capture serials"
-          icon={<CaptureSerialIcon />}
-          onClick={() => {}}
-        />
-        <ContextMenuItem
-          label="Copy ID"
-          icon={<CopyIcon />}
-          onClick={() => {}}
-        />
-        <ContextMenuItem
-          label="Print package"
-          icon={<PrintIcon />}
-          onClick={() => {}}
-        />
-        <ContextMenuItem
-          label="Reload"
-          icon={<ReloadIcon />}
-          divider
-          onClick={() => {}}
-        />
-        <ContextMenuItem
-          label="Delete"
-          icon={<TrashIcon />}
-          state="destructive"
-          onClick={() => {}}
-        />
-      </div>
-
-      {/* ── Options button → bottom sheet ── */}
+      {/* ── Footer: Options button + bottom sheet ── */}
       <div
         ref={footerRef}
         style={{
-          padding:    "15px 16px",
-          height:     "64px",
+          padding:    "12px 16px",
           borderTop:  `1px solid ${tokens.color.divider.border}`,
           position:   "relative",
           flexShrink: 0,
           boxSizing:  "border-box" as const,
         }}
       >
-        {/* Bottom sheet */}
+        {/* Bottom sheet — contents depend on source
+            Cut rope serials (source contains "cut rope"):
+              1. Print packaging  — print icon (46:2312)
+              2. Reload           — reload icon (SVG fallback), divider
+              3. Delete serials   — bin icon (46:2282), destructive
+            Default:
+              1. Copy url for preview  — copy icon (149:362),  divider
+              2. Print one(first) label — print icon (46:2312)
+              3. Print all labels      — print icon (46:2312)
+              4. Print one serial      — print icon (46:2312)
+              5. Print packaging       — print icon (46:2312),  divider
+              6. Delete serials        — bin icon  (46:2282),  destructive
+        */}
         <ContextMenu
           variant="bottom-sheet-web"
           open={optionsOpen}
           onClose={() => setOptionsOpen(false)}
           width={400}
+          contained
+          noBackdrop
         >
-          <ContextMenuItem
-            label="Available to capture"
-            icon={<CaptureSerialIcon />}
-            trailing="toggle"
-            toggleChecked={availableToCapture}
-            onToggleChange={setAvailableToCapture}
-          />
-          <ContextMenuItem
-            label="Preview"
-            supportText="View this batch in read-only mode."
-            icon={<PreviewIcon />}
-            divider
-            onClick={() => setOptionsOpen(false)}
-          />
-          <ContextMenuItem
-            label="Capture serials"
-            icon={<CaptureSerialIcon />}
-            onClick={() => setOptionsOpen(false)}
-          />
-          <ContextMenuItem
-            label="Copy ID"
-            icon={<CopyIcon />}
-            onClick={() => setOptionsOpen(false)}
-          />
-          <ContextMenuItem
-            label="Print package"
-            icon={<PrintIcon />}
-            onClick={() => setOptionsOpen(false)}
-          />
-          <ContextMenuItem
-            label="Reload"
-            icon={<ReloadIcon />}
-            divider
-            onClick={() => setOptionsOpen(false)}
-          />
-          <ContextMenuItem
-            label="Delete"
-            icon={<TrashIcon />}
-            state="destructive"
-            onClick={() => setOptionsOpen(false)}
-          />
+          {source?.toLowerCase().includes("cut rope") ? (
+            <>
+              <ContextMenuItem
+                label="Print packaging"
+                icon={<OptionsIcon iconUrl={panelIcons[OPTIONS_ICON_IDS.print]} />}
+                divider
+                onClick={() => setOptionsOpen(false)}
+              />
+              <ContextMenuItem
+                label="Reload"
+                icon={<ReloadIcon />}
+                divider
+                onClick={() => setOptionsOpen(false)}
+              />
+              <ContextMenuItem
+                label="Delete serials"
+                icon={<OptionsIcon iconUrl={panelIcons[OPTIONS_ICON_IDS.bin]} color={tokens.color.fg.red} />}
+                state="destructive"
+                onClick={() => setOptionsOpen(false)}
+              />
+            </>
+          ) : (
+            <>
+              <ContextMenuItem
+                label="Copy url for preview"
+                icon={<OptionsIcon iconUrl={panelIcons[OPTIONS_ICON_IDS.copy]} />}
+                divider
+                onClick={() => setOptionsOpen(false)}
+              />
+              <ContextMenuItem
+                label="Print one(first) label"
+                icon={<OptionsIcon iconUrl={panelIcons[OPTIONS_ICON_IDS.print]} />}
+                onClick={() => setOptionsOpen(false)}
+              />
+              <ContextMenuItem
+                label="Print all labels"
+                icon={<OptionsIcon iconUrl={panelIcons[OPTIONS_ICON_IDS.print]} />}
+                onClick={() => setOptionsOpen(false)}
+              />
+              <ContextMenuItem
+                label="Print one serial"
+                icon={<OptionsIcon iconUrl={panelIcons[OPTIONS_ICON_IDS.print]} />}
+                onClick={() => setOptionsOpen(false)}
+              />
+              <ContextMenuItem
+                label="Print packaging"
+                icon={<OptionsIcon iconUrl={panelIcons[OPTIONS_ICON_IDS.print]} />}
+                divider
+                onClick={() => setOptionsOpen(false)}
+              />
+              <ContextMenuItem
+                label="Delete serials"
+                icon={<OptionsIcon iconUrl={panelIcons[OPTIONS_ICON_IDS.bin]} color={tokens.color.fg.red} />}
+                state="destructive"
+                onClick={() => setOptionsOpen(false)}
+              />
+            </>
+          )}
         </ContextMenu>
 
         <button
@@ -704,83 +622,82 @@ function ViewSerialsPanel({
   );
 }
 
+
 // ---------------------------------------------------------------------------
-// Stat strip — 4 cards (Create Assembly removed), dark purple bg
+// Manage Printer Queue panel
+// Figma: Manufactures data — node 3208:80300
 // ---------------------------------------------------------------------------
-const STAT_CARDS = [
-  { icon: <CreateSerialsIcon />, label: "Create Serials",     count: 12676, action: "Create →",       key: "create"  },
-  { icon: <CaptureIcon />,       label: "Capture Serials",    count: 93,    action: "Create →",       key: "capture" },
-  { icon: <RopeIcon />,          label: "Create Rope Length", count: 443,   action: "Create →",       key: "rope"    },
-  { icon: <FormatIcon />,        label: "Serial Formats",     count: 13,    action: "View formats →", key: "formats" },
+const PRINTER_OPTIONS = [
+  { value: "CL4", label: "CL4" },
+  { value: "CL3", label: "CL3" },
+  { value: "CL2", label: "CL2" },
+  { value: "CL1", label: "CL1" },
 ];
 
-function StatStrip({ onCreateSerials }: { onCreateSerials: () => void }) {
+function ManagePrinterQueuePanel({ onClose }: { onClose: () => void }) {
+  const [selectedPrinter, setSelectedPrinter] = useState("CL4");
+
   return (
     <div
       style={{
-        display:      "flex",
-        background:   tokens.color.brand.darkPurple,   // #2c2258 — brand dark purple
-        borderRadius: tokens.borderRadius.lg,
-        overflow:     "hidden",
-        marginBottom: "24px",
+        position:      "fixed",
+        top:           0,
+        right:         0,
+        width:         "400px",
+        height:        "100vh",
+        background:    tokens.color.base.white,
+        boxShadow:     "-4px 0 16px rgba(0,0,0,0.08)",
+        display:       "flex",
+        flexDirection: "column",
+        zIndex:        50,
+        borderLeft:    `1px solid ${tokens.color.divider.border}`,
       }}
     >
-      {STAT_CARDS.map((card, i) => (
-        <div
-          key={card.key}
+      {/* Header */}
+      <SectionHeader title="Manage Printer Queue" onClose={onClose} style={{ flexShrink: 0 }} />
+
+      {/* Body */}
+      <div
+        style={{
+          flex:          "1 0 0",
+          minHeight:     0,
+          display:       "flex",
+          flexDirection: "column",
+          gap:           tokens.spacing[4],
+          padding:       tokens.spacing[4],
+          overflowY:     "auto",
+        }}
+      >
+        {/* Select printer */}
+        <SelectInput
+          label="Select printer"
+          options={PRINTER_OPTIONS}
+          value={selectedPrinter}
+          onChange={setSelectedPrinter}
+        />
+
+        {/* Clear Printer Queue — red underline link */}
+        <button
+          type="button"
+          onClick={() => {}}
           style={{
-            flex:           1,
-            display:        "flex",
-            flexDirection:  "column",
-            justifyContent: "space-between",
-            padding:        "16px 24px 8px",
-            borderRight:    i < STAT_CARDS.length - 1
-              ? `1px solid rgba(255,255,255,0.08)`
-              : "none",
-          }}
+            alignSelf:       "flex-start",
+            background:      "none",
+            border:          "none",
+            padding:         0,
+            cursor:          "pointer",
+            fontFamily:      tokens.fontFamily.sans,
+            fontSize:        tokens.fontSize.body,       // 14px
+            fontWeight:      tokens.fontWeight.medium,   // 500
+            lineHeight:      tokens.lineHeight.body,     // 20px
+            color:           tokens.color.fg.red,
+            textDecoration:  "underline",
+            textDecorationSkipInk: "none" as const,
+          } as React.CSSProperties}
         >
-          <div style={{ display: "flex", alignItems: "center", gap: "12px" }}>
-            <div
-              style={{
-                width:          "40px",
-                height:         "40px",
-                borderRadius:   tokens.borderRadius.lg,
-                background:     tokens.color.brand.lime,
-                display:        "flex",
-                alignItems:     "center",
-                justifyContent: "center",
-                flexShrink:     0,
-              }}
-            >
-              {card.icon}
-            </div>
-            <div style={{ display: "flex", flexDirection: "column", gap: "2px" }}>
-              <span style={{ fontFamily: tokens.fontFamily.sans, fontSize: tokens.fontSize.body, fontWeight: tokens.fontWeight.semiBold, color: tokens.color.fgReverse.primary, lineHeight: tokens.lineHeight.body }}>
-                {card.label}
-              </span>
-              <span style={{ fontFamily: tokens.fontFamily.sans, fontSize: "18px", fontWeight: tokens.fontWeight.medium, color: tokens.color.fgReverse.primary, lineHeight: "24px" }}>
-                {card.count.toLocaleString()}
-              </span>
-            </div>
-          </div>
-          <button
-            onClick={card.key === "create" ? onCreateSerials : undefined}
-            style={{
-              background: "none",
-              border:     "none",
-              padding:    "8px 0",
-              cursor:     "pointer",
-              fontFamily: tokens.fontFamily.sans,
-              fontSize:   tokens.fontSize.body,
-              fontWeight: tokens.fontWeight.regular,
-              color:      tokens.color.fgReverse.support,
-              textAlign:  "left" as const,
-            }}
-          >
-            {card.action}
-          </button>
-        </div>
-      ))}
+          Clear Printer Queue
+        </button>
+      </div>
     </div>
   );
 }
@@ -793,15 +710,18 @@ export default function SerialisationPage() {
   const icons  = useFigmaIcons([
     ...Object.values(SIDEBAR_ICON_IDS),
     ...Object.values(MENU_ICON_IDS),
+    ...Object.values(STAT_ICON_IDS),
   ]);
 
   const [rows,            setRows]            = useState<SerialRow[]>(MOCK_DATA);
+  const [batchDetails,    setBatchDetails]    = useState<Record<string, BatchDetail>>(MOCK_BATCH_DETAILS);
   const [sortKey,         setSortKey]         = useState("created");
   const [sortDir,         setSortDir]         = useState<"asc"|"desc"|"none">("desc");
   const [currentPage,     setCurrentPage]     = useState(1);
-  const [showBanner,      setShowBanner]      = useState(false);
-  const [serialsMenuOpen, setSerialsMenuOpen] = useState(false);
-  const [selectedRowId,   setSelectedRowId]   = useState<string | null>(null);
+  const [showBanner,        setShowBanner]        = useState(false);
+  const [serialsMenuOpen,   setSerialsMenuOpen]   = useState(false);
+  const [selectedRowId,     setSelectedRowId]     = useState<string | null>(null);
+  const [showPrinterQueue,  setShowPrinterQueue]  = useState(false);
   const serialsBtnRef = useRef<HTMLDivElement>(null);
   const PAGE_SIZE = 10;
 
@@ -812,22 +732,31 @@ export default function SerialisationPage() {
       try {
         const data = JSON.parse(stored) as {
           date: string; format: string; salesOrder: string;
-          purchaseOrder: string; batch: string; dom: string;
+          purchaseOrder: string; batch: string; dom: string; source?: string;
         };
         localStorage.removeItem("newSerialCreated");
+        const newId  = String(Date.now());
         const newRow: SerialRow = {
-          id:            String(Date.now()),
-          source:        (data as Record<string, string>).source ?? "Internal",
-          created:       data.date,
-          sessionStatus: "Active",
-          printStatus:   (data as Record<string, string>).source === "External" ? "Active" : "",
-          serialFormat:  data.format,
+          id:           newId,
+          source:       data.source ?? "Internal",
+          created:      data.date,
+          printStatus:  data.source === "External" ? "Active" : "",
+          serialFormat: data.format,
           salesOrder:    data.salesOrder,
           purchaseOrder: data.purchaseOrder,
           batch:         data.batch,
           dom:           data.dom,
         };
+        const newDetail: BatchDetail = {
+          purchaseOrder:     data.purchaseOrder ?? "",
+          salesOrder:        data.salesOrder    ?? "",
+          dateOfManufacture: data.dom           ?? "",
+          batchNumber:       data.batch         ?? "",
+          totalItemCount:    0,
+          products:          [],
+        };
         setRows((prev) => [newRow, ...prev]);
+        setBatchDetails((prev) => ({ ...prev, [newId]: newDetail }));
         setShowBanner(true);
         setTimeout(() => setShowBanner(false), 5000);
       } catch {}
@@ -868,34 +797,29 @@ export default function SerialisationPage() {
       width:    "113px",
     },
     {
-      key:   "sessionStatus",
-      label: "Session Status",
-      width: "140px",
-      render: (v) => (
-        <Badge
-          label={String(v)}
-          color={v === "Active" ? "green" : v === "Pending" ? "yellow" : "gray"}
-          withDot
-        />
-      ),
-    },
-    {
-      key:    "printStatus",
-      label:  "Print Status",
-      width:  "105px",
-      render: (v) =>
-        v === "Active" ? (
-          <Badge label="Active" color="green" withDot />
-        ) : (
-          <span style={{ fontFamily: tokens.fontFamily.sans, fontSize: tokens.fontSize.body, color: tokens.color.fg.support }}>
-            {String(v ?? "")}
-          </span>
-        ),
-    },
-    {
       key:   "source",
       label: "Source",
       width: "140px",
+      render: (v, row) => (
+        <div style={{ display: "flex", flexDirection: "column", alignItems: "flex-start", gap: tokens.spacing[1] }}>
+          <span
+            style={{
+              fontFamily: tokens.fontFamily.sans,
+              fontSize:   tokens.fontSize.body,
+              fontWeight: tokens.fontWeight.regular,
+              color:      tokens.color.fg.primary,
+            }}
+          >
+            {String(v)}
+          </span>
+          {row.source === "External" && row.printStatus && (
+            <Badge
+              label={row.printStatus}
+              color={row.printStatus === "Active" ? "green" : "gray"}
+            />
+          )}
+        </div>
+      ),
     },
     { key: "serialFormat", label: "Serial Format",   width: "160px" },
     {
@@ -967,7 +891,14 @@ export default function SerialisationPage() {
       >
         <div style={{ padding: "24px" }}>
           {/* Stat banner */}
-          <StatStrip onCreateSerials={() => router.push("/dashboard/create-serials")} />
+          <div style={{ marginBottom: "24px" }}>
+            <DashboardStatStrip cards={[
+              { iconUrl: icons[STAT_ICON_IDS.serialsCreate],   icon: <CreateSerialsIcon />, label: "Created serials",  count: 12676, actionLabel: "Create",       onActionClick: () => router.push("/dashboard/create-serials") },
+              { iconUrl: icons[STAT_ICON_IDS.serialsCapture],  icon: <CaptureIcon />,       label: "Captured serials", count: 93,    actionLabel: "Create",       onActionClick: () => router.push("/dashboard/capture-serials") },
+              { iconUrl: icons[STAT_ICON_IDS.rope],            icon: <RopeIcon />,          label: "Cut rope serials", count: 443,   actionLabel: "Create",       onActionClick: () => router.push("/dashboard/create-rope-serials") },
+              { iconUrl: icons[STAT_ICON_IDS.inventory],       icon: <FormatIcon />,        label: "Serial formats",   count: 13,    actionLabel: "View formats", actionHref: "#" },
+            ]} />
+          </div>
 
           {/* Table container */}
           <div
@@ -1052,7 +983,7 @@ export default function SerialisationPage() {
 
               {/* Right: Manage Printer Queue + +Serials (with context menu) */}
               <div style={{ display: "flex", alignItems: "center", gap: "12px" }}>
-                <Button label="Manage Printer Queue" variant="secondary" />
+                <Button label="Manage Printer Queue" variant="secondary" onClick={() => setShowPrinterQueue(true)} />
 
                 {/* +Serials with context menu */}
                 <div style={{ position: "relative" }} ref={serialsBtnRef}>
@@ -1067,20 +998,14 @@ export default function SerialisationPage() {
                     variant="floating"
                     open={serialsMenuOpen}
                     onClose={() => setSerialsMenuOpen(false)}
-                    width={240}
+                    width={280}
                     floatingStyle={{ top: "calc(100% + 4px)", right: 0 }}
                   >
-                    <ContextMenuItem
-                      label="Preview"
-                      supportText="View this batch in read-only mode."
-                      icon={<PreviewIcon />}
-                      divider
-                      onClick={() => setSerialsMenuOpen(false)}
-                    />
                     <ContextMenuItem
                       label="Create serials"
                       supportText="Generate IDs using Scannable's sequencer."
                       iconUrl={icons[MENU_ICON_IDS.createSerials]}
+                      divider
                       onClick={() => {
                         setSerialsMenuOpen(false);
                         router.push("/dashboard/create-serials");
@@ -1088,8 +1013,9 @@ export default function SerialisationPage() {
                     />
                     <ContextMenuItem
                       label="Capture serials"
-                      supportText="Scan or enter existing IDs from external sources."
+                      supportText="Capture existing IDs from external sources."
                       iconUrl={icons[MENU_ICON_IDS.captureSerials]}
+                      divider
                       onClick={() => {
                         setSerialsMenuOpen(false);
                         router.push("/dashboard/capture-serials");
@@ -1097,11 +1023,28 @@ export default function SerialisationPage() {
                     />
                     <ContextMenuItem
                       label="Create rope serials"
+                      supportText="Convert bulk rope into serialised lengths."
                       iconUrl={icons[MENU_ICON_IDS.ropeSerials]}
+                      divider
                       onClick={() => {
                         setSerialsMenuOpen(false);
                         router.push("/dashboard/create-rope-serials");
                       }}
+                    />
+                    <ContextMenuItem
+                      label="Create rope serials ver.2"
+                      supportText="Convert bulk rope into serialised lengths — record rope lengths."
+                      iconUrl={icons[MENU_ICON_IDS.ropeSerials]}
+                      divider
+                      onClick={() => {
+                        setSerialsMenuOpen(false);
+                        router.push("/dashboard/create-rope-serials-v2");
+                      }}
+                    />
+                    <ContextMenuItem
+                      label="Import serials"
+                      iconUrl={icons[MENU_ICON_IDS.importSerials]}
+                      onClick={() => setSerialsMenuOpen(false)}
                     />
                   </ContextMenu>
                 </div>
@@ -1119,26 +1062,12 @@ export default function SerialisationPage() {
                 borderBottom:   `1px solid ${tokens.color.divider.border}`,
               }}
             >
-              <button
-                style={{
-                  display:      "flex",
-                  alignItems:   "center",
-                  gap:          "8px",
-                  padding:      "8px",
-                  borderRadius: tokens.borderRadius.md,
-                  border:       `1px solid ${tokens.color.divider.frame}`,
-                  background:   tokens.color.base.white,
-                  fontFamily:   tokens.fontFamily.sans,
-                  fontSize:     tokens.fontSize.body,
-                  fontWeight:   tokens.fontWeight.regular,
-                  color:        tokens.color.fg.primary,
-                  cursor:       "pointer",
-                  lineHeight:   tokens.lineHeight.body,
-                }}
-              >
-                <FilterIcon />
-                Filters
-              </button>
+              <Button
+                variant="secondary"
+                label="Filters"
+                withIcon="heading"
+                icon={<FilterIcon />}
+              />
             </div>
 
             {/* Table — fixed column widths, actions column sticky-right */}
@@ -1182,11 +1111,17 @@ export default function SerialisationPage() {
         </div>
 
         {/* View Serials panel — fixed, full screen height, right edge */}
-        {selectedRowId && MOCK_BATCH_DETAILS[selectedRowId] && (
+        {selectedRowId && batchDetails[selectedRowId] && (
           <ViewSerialsPanel
-            data={MOCK_BATCH_DETAILS[selectedRowId]}
+            data={batchDetails[selectedRowId]}
+            source={rows.find((r) => r.id === selectedRowId)?.source}
             onClose={() => setSelectedRowId(null)}
           />
+        )}
+
+        {/* Manage Printer Queue panel */}
+        {showPrinterQueue && (
+          <ManagePrinterQueuePanel onClose={() => setShowPrinterQueue(false)} />
         )}
       </AppShell>
 
