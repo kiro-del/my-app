@@ -3,7 +3,7 @@
 // app/mobile/cut-rope-lengths/page.tsx
 // Figma: Serials file — nodes 32:4300, 34:4443, 34:2335 + states
 
-import React, { useState } from "react";
+import React, { useEffect, useRef, useState } from "react";
 import { useRouter } from "next/navigation";
 import tokens from "@/styles/design-tokens";
 import { MobileAppBar } from "@/components/ui/MobileAppBar";
@@ -29,7 +29,7 @@ interface SourceRope {
   image?:  string;
 }
 
-type Step = "select" | "details" | "cut-details" | "assign";
+type Step = "select" | "details" | "assign";
 
 // ── Static data ────────────────────────────────────────────────────────────────
 
@@ -76,15 +76,11 @@ const ROPE_SPECS: Record<string, RopeSpec> = {
 };
 
 const CUT_ROPE_PRODUCTS = [
-  { id: "cr1", name: "link rope - 3m", brand: "Reseller-cut", sku: "RCO11/3", lengthPerSerial: 3 },
-  { id: "cr2", name: "link rope - 5m", brand: "Reseller-cut", sku: "RCO11/5", lengthPerSerial: 5 },
+  { id: "cr1", name: "link rope - blue-5", brand: "ResellerA", sku: "RP192BL-100", lengthPerSerial: 5 },
+  { id: "cr2", name: "link rope - blue-3", brand: "ResellerA", sku: "RP192BL-100", lengthPerSerial: 3 },
 ];
 
-const SERIAL_FORMAT_OPTIONS = [
-  { id: "customer",  label: 'Format incl. "customer"',  description: "(DOM) YYMM | Customer (--) | Increments (0001)" },
-  { id: "scannable", label: "Scannable Serial Format",   description: "(DOM) YYMM | Increments (0001)"                },
-  { id: "nfc",       label: "NFC TAG PACKING ID",        description: "(Prefix) SCAN | Increments (0001)"             },
-];
+const QUANTITY_PRESETS = [5, 20, 40, 60, 100];
 
 const UNIT_OPTIONS = [
   { value: "m",  label: "m"  },
@@ -180,12 +176,28 @@ function ProductThumb({ size = 56, image }: { size?: number; image?: string }) {
   );
 }
 
+function StepIndicator({ step }: { step: number }) {
+  return (
+    <span style={{
+      fontFamily:    tokens.fontFamily.sans,
+      fontSize:      "12px",
+      fontWeight:    tokens.fontWeight.semiBold,
+      lineHeight:    "16px",
+      letterSpacing: "0.06em",
+      color:         tokens.color.fg.support,
+      textTransform: "uppercase",
+    }}>
+      Step {step}/3
+    </span>
+  );
+}
+
 function SectionHeading({ title, subtitle }: { title: string; subtitle?: string }) {
   return (
     <div style={{ display: "flex", flexDirection: "column", gap: tokens.spacing[1] }}>
       <h2 style={{ margin: 0, ...tokens.typography.h4, color: tokens.color.fg.primary }}>{title}</h2>
       {subtitle && (
-        <p style={{ margin: 0, ...tokens.typography.smallBodyR, color: tokens.color.fg.support }}>{subtitle}</p>
+        <p style={{ margin: 0, ...tokens.typography.bodyR, color: tokens.color.fg.support }}>{subtitle}</p>
       )}
     </div>
   );
@@ -482,7 +494,7 @@ function RecentReelCard({ reel, onSelect }: { reel: RecentReel; onSelect: () => 
         display:      "flex",
         alignItems:   "center",
         gap:          tokens.spacing[2],
-        padding:      tokens.spacing[2],
+        padding:      tokens.spacing[4],
         border:       `1px solid ${tokens.color.divider.frame}`,
         borderRadius: tokens.borderRadius.lg,
         background:   tokens.color.base.white,
@@ -499,7 +511,7 @@ function RecentReelCard({ reel, onSelect }: { reel: RecentReel; onSelect: () => 
         <div style={{ display: "flex", alignItems: "center", gap: tokens.spacing[4] }}>
           <ProductThumb size={56} image={reel.rope.image} />
           <div style={{ flex: "1 1 0", minWidth: 0, display: "flex", flexDirection: "column", gap: tokens.spacing[1] }}>
-            {/* Name + type badge */}
+            {/* Name */}
             <div style={{ display: "flex", alignItems: "center", gap: tokens.spacing[1] }}>
               <span style={{
                 ...tokens.typography.bodyM,
@@ -511,17 +523,6 @@ function RecentReelCard({ reel, onSelect }: { reel: RecentReel; onSelect: () => 
                 whiteSpace:   "nowrap",
               }}>
                 {reel.rope.name}
-              </span>
-              <span style={{
-                ...tokens.typography.smallBodySB,
-                color:        isItem ? tokens.color.fg.green : tokens.color.fg.primary,
-                background:   isItem ? tokens.color.tint.green : "#F3F4F6",
-                padding:      `2px ${tokens.spacing[2]}`,
-                borderRadius: tokens.borderRadius.full,
-                whiteSpace:   "nowrap",
-                flexShrink:   0,
-              }}>
-                {isItem ? "Item" : "Product"}
               </span>
             </div>
             {/* Brand | SKU */}
@@ -598,36 +599,58 @@ export default function CutRopeLengthsPage() {
   const [batchNumber,  setBatchNumber]  = useState("");
   const [detailsDate,  setDetailsDate]  = useState("");
 
-  // ── Step 3: Form ─────────────────────────────────────────────────────────────
+  // ── Step 3: Assign ───────────────────────────────────────────────────────────
   const [productMode,       setProductMode]       = useState<"existing" | "new" | null>(null);
-  const [selectedProductId, setSelectedProductId] = useState<string | null>(null);
+  const [cutProductId, setSelectedProductId] = useState<string | null>(null);
+  const [productSheetOpen,  setProductSheetOpen]  = useState(false);
+  const [pendingProductId,  setPendingProductId]  = useState<string | null>(null);
   const [newLength,         setNewLength]         = useState("");
   const [newLengthUnit,     setNewLengthUnit]      = useState("m");
   const [newSplice,         setNewSplice]         = useState("");
   const [newPartNumber,     setNewPartNumber]     = useState("");
   const [newSkuName,        setNewSkuName]        = useState("");
-  const [quantity,          setQuantity]          = useState("");
-  const [serialFormat,      setSerialFormat]      = useState("customer");
-  const [purchaseOrder,     setPurchaseOrder]     = useState("");
-  const [salesOrder,        setSalesOrder]        = useState("");
-  const [customerRef,       setCustomerRef]       = useState("");
-  const [formBatch,         setFormBatch]         = useState("");
-  const [formDate,          setFormDate]          = useState("");
-  const [successSheetOpen,  setSuccessSheetOpen]  = useState(false);
+  const [quantity,          setQuantity]          = useState(0);
+  const [stepperFocused,    setStepperFocused]    = useState(false);
+
+  // Insufficient length resolution
+  const [addSpoolSheetOpen,   setAddSpoolSheetOpen]   = useState(false);
+  const [stopTrackSheetOpen,  setStopTrackSheetOpen]  = useState(false);
+  const [trackingDisabled,    setTrackingDisabled]    = useState(false);
+  const [newSpoolLength,      setNewSpoolLength]      = useState("200");
+  const [newSpoolUnit,        setNewSpoolUnit]        = useState("m");
+  const [newSpoolSerial,      setNewSpoolSerial]      = useState("");
+  const [newSpoolUseMode,     setNewSpoolUseMode]     = useState<"use-remaining" | "start-new">("use-remaining");
+  const [spoolScanOpen,       setSpoolScanOpen]       = useState(false);
+
+  const bannerRef          = useRef<HTMLDivElement>(null);
+  const scrollContainerRef = useRef<HTMLDivElement>(null);
+  const prevQtyRef         = useRef(0);
+  useEffect(() => {
+    const wasZero = prevQtyRef.current === 0;
+    prevQtyRef.current = quantity;
+    if (wasZero && quantity > 0 && appliedRope) {
+      const el = scrollContainerRef.current;
+      if (el) el.scrollTo({ top: el.scrollHeight, behavior: "instant" });
+    }
+  }, [quantity, appliedRope]);
 
   // ── Remaining length calculation ─────────────────────────────────────────────
   const cutProduct =
-    productMode === "existing" ? CUT_ROPE_PRODUCTS.find(p => p.id === selectedProductId) ?? null : null;
+    productMode === "existing" ? CUT_ROPE_PRODUCTS.find(p => p.id === cutProductId) ?? null : null;
   const newLengthNum = productMode === "new" && newLength ? parseFloat(newLength) : null;
   const lengthPerSerial = cutProduct?.lengthPerSerial ?? newLengthNum ?? null;
 
   const remainingAfterCut: number | null = (() => {
     if (!appliedRope || !quantity || !lengthPerSerial) return null;
     const total = appliedInitial !== null ? appliedInitial : appliedRope.lengthM;
-    const used  = parseFloat(quantity) * lengthPerSerial;
+    const used  = quantity * lengthPerSerial;
     if (isNaN(used)) return null;
     return total - used;
   })();
+
+  const isInsufficient   = !trackingDisabled && remainingAfterCut !== null && remainingAfterCut < 0;
+  const insufficientM    = isInsufficient && remainingAfterCut !== null ? Math.abs(Math.round(remainingAfterCut)) : 0;
+  const showInfoBanner   = !trackingDisabled && quantity > 0 && appliedRope && !isInsufficient && remainingAfterCut !== null;
 
   // ── Filtered search results ──────────────────────────────────────────────────
   const q = searchQuery.trim().toLowerCase();
@@ -645,9 +668,8 @@ export default function CutRopeLengthsPage() {
   }
 
   function handleBack() {
-    if (step === "details")     setStep("select");
-    else if (step === "cut-details") setStep("details");
-    else if (step === "assign") setStep("cut-details");
+    if (step === "details") setStep("select");
+    else if (step === "assign") setStep("details");
   }
 
   function openApplySheet(rope: SourceRope) {
@@ -674,7 +696,7 @@ export default function CutRopeLengthsPage() {
     setStep("details");
   }
 
-  const STEP_NUMBER: Record<Step, number> = { "select": 1, "details": 2, "cut-details": 3, "assign": 4 };
+  const STEP_NUMBER: Record<Step, number> = { "select": 1, "details": 2, "assign": 3 };
 
   function handleSelectRecentReel(reel: RecentReel) {
     const rope = reel.rope;
@@ -699,6 +721,23 @@ export default function CutRopeLengthsPage() {
       setDetailsDate("");
       setStep("details");
     }
+  }
+
+  function handleAddSpool() {
+    const len = parseFloat(newSpoolLength);
+    if (!isNaN(len) && len > 0) {
+      setAppliedInitial(prev => (prev ?? 0) + len);
+    }
+    setAddSpoolSheetOpen(false);
+    setNewSpoolLength("200");
+    setNewSpoolSerial("");
+    setNewSpoolUseMode("use-remaining");
+  }
+
+  function handleStopTracking() {
+    setAppliedInitial(null);
+    setTrackingDisabled(true);
+    setStopTrackSheetOpen(false);
   }
 
   function handleSubmit() {
@@ -730,24 +769,6 @@ export default function CutRopeLengthsPage() {
         onBack={handleBack}
       />
 
-      {/* Step indicator */}
-      <div style={{
-        padding:        `${tokens.spacing[2]} ${tokens.spacing[4]} 0`,
-        flexShrink:     0,
-      }}>
-        <span style={{
-          fontFamily:  tokens.fontFamily.sans,
-          fontSize:    "12px",
-          fontWeight:  tokens.fontWeight.semiBold,
-          lineHeight:  "16px",
-          letterSpacing: "0.06em",
-          color:       tokens.color.fg.support,
-          textTransform: "uppercase",
-        }}>
-          Step {STEP_NUMBER[step]}/4
-        </span>
-      </div>
-
       {/* ── Step 1: Select source reel ─────────────────────────────────────── */}
       {step === "select" && (
         <>
@@ -760,6 +781,7 @@ export default function CutRopeLengthsPage() {
             flexDirection: "column",
             gap:           tokens.spacing[4],
           }}>
+            <StepIndicator step={STEP_NUMBER[step]} />
             <SectionHeading
               title="Select source reel"
               subtitle="Search and select the source reel being cut."
@@ -846,6 +868,7 @@ export default function CutRopeLengthsPage() {
             flexDirection: "column",
             gap:           tokens.spacing[4],
           }}>
+            <StepIndicator step={STEP_NUMBER[step]} />
             <SectionHeading
               title="Source reel details"
               subtitle="Enter traceability details for the source reel. These will be linked to all cut rope items created from it."
@@ -907,177 +930,391 @@ export default function CutRopeLengthsPage() {
             )}
           </div>
 
-          <Footer label="Next step" onClick={() => setStep("cut-details")} />
+          <Footer label="Continue to cut rope" onClick={() => setStep("assign")} />
         </>
       )}
 
-      {/* ── Step 3: Cut rope details ──────────────────────────────────────── */}
-      {step === "cut-details" && (
-        <>
-          <div style={{ flex: "1 0 0", minHeight: 0, overflowY: "auto" }}>
-            <div style={{
-              padding:       tokens.spacing[4],
-              display:       "flex",
-              flexDirection: "column",
-              gap:           tokens.spacing[4],
-            }}>
-              <SectionHeading title="Cut rope details" />
-
-              <div style={{ display: "flex", flexDirection: "column", gap: tokens.spacing[2] }}>
-                <span style={{ ...tokens.typography.bodyM, color: tokens.color.fg.primary }}>
-                  Select a serial format (required)
-                </span>
-                {SERIAL_FORMAT_OPTIONS.map(opt => (
-                  <RadioCard
-                    key={opt.id}
-                    selected={serialFormat === opt.id}
-                    label={opt.label}
-                    description={opt.description}
-                    onClick={() => setSerialFormat(opt.id)}
-                  />
-                ))}
-              </div>
-
-              <TextField label="Purchase order"        value={purchaseOrder} onChange={setPurchaseOrder} />
-              <TextField label="Sales order number"    value={salesOrder}    onChange={setSalesOrder}    />
-              <TextField label="Customer reference"    value={customerRef}   onChange={setCustomerRef}   />
-              <TextField label="Cut rope batch number" value={formBatch}     onChange={setFormBatch}     />
-              <DateInput label="Date of manufacture"   value={formDate}      onChange={setFormDate}      />
-            </div>
-          </div>
-
-          <Footer label="Next step" onClick={() => setStep("assign")} />
-        </>
-      )}
-
-      {/* ── Step 4: Assign cut ropes to product ──────────────────────────── */}
+      {/* ── Step 3: Finished ropes ───────────────────────────────── */}
       {step === "assign" && (
         <>
-          <div style={{ flex: "1 0 0", minHeight: 0, overflowY: "auto" }}>
+          <div ref={scrollContainerRef} style={{ flex: "1 0 0", minHeight: 0, overflowY: "auto" }}>
             <div style={{
               padding:       tokens.spacing[4],
               display:       "flex",
               flexDirection: "column",
-              gap:           tokens.spacing[4],
+              gap:           tokens.spacing[6],
             }}>
-              <SectionHeading
-                title="Assign cut ropes to product"
-                subtitle="Set the product details for the rope you are creating from this cut."
-              />
+              <StepIndicator step={STEP_NUMBER[step]} />
+              <SectionHeading title="Finished ropes" />
 
-              <div style={{ display: "flex", flexDirection: "column", gap: tokens.spacing[2] }}>
-                <RadioCard
-                  selected={productMode === "existing"}
-                  label="Select from existing product"
-                  description="Search your catalog for the finished product SKU"
-                  onClick={() => setProductMode("existing")}
-                />
+              {/* Select product subsection */}
+              <div style={{ display: "flex", flexDirection: "column", gap: tokens.spacing[3] }}>
+                <div style={{ display: "flex", flexDirection: "column", gap: tokens.spacing[1] }}>
+                  <span style={{ ...tokens.typography.h5, color: tokens.color.fg.primary }}>Select product</span>
+                  <span style={{ ...tokens.typography.bodyR, color: tokens.color.fg.support }}>
+                    Select an existing product or create a new one for the cut ropes.
+                  </span>
+                </div>
 
-                {productMode === "existing" && (
-                  <div style={{
-                    background:    tokens.color.bg.lightBg,
-                    borderRadius:  tokens.borderRadius.lg,
-                    paddingTop:    tokens.spacing[2],
-                    paddingBottom: tokens.spacing[2],
-                    display:       "flex",
-                    flexDirection: "column",
-                  }}>
-                    {CUT_ROPE_PRODUCTS.map((product, idx) => {
-                      const isSelected = selectedProductId === product.id;
-                      return (
-                        <button
-                          key={product.id}
-                          onClick={() => setSelectedProductId(product.id)}
-                          style={{
-                            display:      "flex",
-                            alignItems:   "center",
-                            gap:          tokens.spacing[3],
-                            width:        "100%",
-                            padding:      `${tokens.spacing[2.5]} ${tokens.spacing[3]}`,
-                            background:   "transparent",
-                            border:       "none",
-                            borderBottom: idx < CUT_ROPE_PRODUCTS.length - 1
-                              ? `1px solid ${tokens.color.divider.border}` : "none",
-                            cursor:    "pointer",
-                            textAlign: "left",
-                          }}
-                        >
-                          <div style={{
-                            width:        "16px",
-                            height:       "16px",
-                            borderRadius: "50%",
-                            border:       `${isSelected ? 5 : 1.5}px solid ${isSelected ? tokens.color.divider.blue : tokens.color.divider.frame}`,
-                            flexShrink:   0,
-                            boxSizing:    "border-box",
-                            transition:   "border 150ms ease",
-                          }} />
-                          <div style={{ flex: "1 1 0", minWidth: 0 }}>
-                            <div style={{ ...tokens.typography.bodyM, color: tokens.color.fg.primary }}>{product.name}</div>
-                            <div style={{ display: "flex", alignItems: "center", gap: tokens.spacing[1], marginTop: "2px" }}>
-                              <span style={{ ...tokens.typography.smallBodyR, color: tokens.color.fg.support }}>{product.brand}</span>
-                              <div style={{ width: "1px", height: "10px", background: tokens.color.divider.frame }} />
-                              <span style={{ ...tokens.typography.smallBodyR, color: tokens.color.fg.support }}>{product.sku}</span>
-                            </div>
-                          </div>
-                        </button>
-                      );
-                    })}
-                  </div>
-                )}
+                {/* Cards group */}
+                <div style={{ display: "flex", flexDirection: "column", gap: tokens.spacing[2] }}>
 
-                <RadioCard
-                  selected={productMode === "new"}
-                  label="Create a new product"
-                  description="This product will be available in your catalogue after creation."
-                  onClick={() => setProductMode("new")}
-                />
+                  {/* Select existing product card */}
+                  <button
+                    onClick={() => {
+                      setProductMode("existing");
+                      setProductSheetOpen(true);
+                    }}
+                    style={{
+                      display:      "flex",
+                      alignItems:   productMode === "existing" && cutProduct ? "flex-start" : "center",
+                      gap:          tokens.spacing[2],
+                      width:        "100%",
+                      padding:      tokens.spacing[4],
+                      background:   tokens.color.base.white,
+                      borderRadius: tokens.borderRadius.md,
+                      border:       productMode === "existing"
+                        ? `2px solid ${tokens.color.palette.indigo[500]}`
+                        : `1px solid ${tokens.color.divider.frame}`,
+                      cursor:    "pointer",
+                      textAlign: "left",
+                      boxSizing: "border-box",
+                    }}
+                  >
+                    <div style={{
+                      width:          16,
+                      height:         16,
+                      borderRadius:   "50%",
+                      flexShrink:     0,
+                      marginTop:      productMode === "existing" && cutProduct ? "2px" : 0,
+                      boxSizing:      "border-box",
+                      background:     productMode === "existing" ? tokens.color.palette.indigo[500] : tokens.color.base.white,
+                      border:         productMode === "existing"
+                        ? `1.5px solid ${tokens.color.palette.indigo[500]}`
+                        : `1px solid ${tokens.color.divider.frame}`,
+                      display:        "flex",
+                      alignItems:     "center",
+                      justifyContent: "center",
+                    }}>
+                      {productMode === "existing" && (
+                        <div style={{ width: 6, height: 6, borderRadius: "50%", background: tokens.color.base.white }} />
+                      )}
+                    </div>
+                    <div style={{ flex: "1 1 0", minWidth: 0, display: "flex", flexDirection: "column", gap: tokens.spacing[0.5] }}>
+                      <span style={{ ...tokens.typography.bodyR, color: tokens.color.fg.primary }}>Select existing product</span>
+                      {productMode === "existing" && cutProduct && (
+                        <>
+                          <span style={{ ...tokens.typography.bodyR, color: tokens.color.fg.support }}>{cutProduct.name}</span>
+                          <button
+                            type="button"
+                            onClick={e => {
+                              e.stopPropagation();
+                              setProductSheetOpen(true);
+                            }}
+                            style={{
+                              background:     "transparent",
+                              border:         "none",
+                              padding:        0,
+                              cursor:         "pointer",
+                              fontFamily:     tokens.fontFamily.sans,
+                              fontSize:       "14px",
+                              fontWeight:     tokens.fontWeight.medium,
+                              lineHeight:     "20px",
+                              color:          tokens.color.divider.blue,
+                              textAlign:      "left",
+                              textDecoration: "underline",
+                              alignSelf:      "flex-start",
+                            }}
+                          >
+                            Change
+                          </button>
+                        </>
+                      )}
+                    </div>
+                  </button>
 
-                {productMode === "new" && (
-                  <div style={{
-                    background:    tokens.color.bg.lightBg,
-                    borderRadius:  tokens.borderRadius.lg,
-                    padding:       tokens.spacing[3],
-                    display:       "flex",
-                    flexDirection: "column",
-                    gap:           tokens.spacing[3],
-                  }}>
-                    <span style={{ ...tokens.typography.bodyM, color: tokens.color.fg.primary }}>New product info</span>
-                    <CompositeInput
-                      label="Length"
-                      value={newLength}
-                      onChange={setNewLength}
-                      unitOptions={UNIT_OPTIONS}
-                      unitValue={newLengthUnit}
-                      onUnitChange={setNewLengthUnit}
-                    />
-                    <SelectInput
-                      label="Splice"
-                      options={SPLICE_OPTIONS}
-                      value={newSplice}
-                      onChange={setNewSplice}
-                      placeholder="Select..."
-                    />
-                    <TextField label="Part number" value={newPartNumber} onChange={setNewPartNumber} />
-                    <TextField label="SKU name"    value={newSkuName}    onChange={setNewSkuName}    />
-                  </div>
-                )}
-              </div>
+                  {/* Create a new product card */}
+                  <button
+                    onClick={() => { setProductMode("new"); setSelectedProductId(null); }}
+                    style={{
+                      display:      "flex",
+                      alignItems:   "center",
+                      gap:          tokens.spacing[2],
+                      width:        "100%",
+                      padding:      tokens.spacing[4],
+                      background:   tokens.color.base.white,
+                      borderRadius: tokens.borderRadius.md,
+                      border:       productMode === "new"
+                        ? `2px solid ${tokens.color.palette.indigo[500]}`
+                        : `1px solid ${tokens.color.divider.frame}`,
+                      cursor:    "pointer",
+                      textAlign: "left",
+                      boxSizing: "border-box",
+                    }}
+                  >
+                    <div style={{
+                      width:          16,
+                      height:         16,
+                      borderRadius:   "50%",
+                      flexShrink:     0,
+                      boxSizing:      "border-box",
+                      background:     productMode === "new" ? tokens.color.palette.indigo[500] : tokens.color.base.white,
+                      border:         productMode === "new"
+                        ? `1.5px solid ${tokens.color.palette.indigo[500]}`
+                        : `1px solid ${tokens.color.divider.frame}`,
+                      display:        "flex",
+                      alignItems:     "center",
+                      justifyContent: "center",
+                    }}>
+                      {productMode === "new" && (
+                        <div style={{ width: 6, height: 6, borderRadius: "50%", background: tokens.color.base.white }} />
+                      )}
+                    </div>
+                    <span style={{ ...tokens.typography.bodyR, color: tokens.color.fg.primary }}>Create a new product</span>
+                  </button>
+
+                  {/* Create new product sub-form */}
+                  {productMode === "new" && (
+                    <div style={{
+                      background:    tokens.color.bg.lightBg,
+                      borderRadius:  tokens.borderRadius.lg,
+                      padding:       tokens.spacing[3],
+                      display:       "flex",
+                      flexDirection: "column",
+                      gap:           tokens.spacing[3],
+                    }}>
+                      <span style={{ ...tokens.typography.bodyR, color: tokens.color.fg.support }}>
+                        This product will be available in your catalogue after creation.
+                      </span>
+                      <TextField label="Length" value={newLength} onChange={setNewLength} />
+                      <SelectInput
+                        label="Unit"
+                        options={UNIT_OPTIONS}
+                        value={newLengthUnit}
+                        onChange={setNewLengthUnit}
+                        placeholder="Select..."
+                      />
+                      <TextField label="Part number" value={newPartNumber} onChange={setNewPartNumber} />
+                      <TextField label="SKU name"    value={newSkuName}    onChange={setNewSkuName}    />
+                      <SelectInput
+                        label="Splice"
+                        options={SPLICE_OPTIONS}
+                        value={newSplice}
+                        onChange={setNewSplice}
+                        placeholder="Select..."
+                      />
+                    </div>
+                  )}
+
+                </div>{/* end cards group */}
+              </div>{/* end select product subsection */}
 
               {/* Number of cut ropes */}
-              <div style={{ borderTop: `1px solid ${tokens.color.divider.border}`, paddingTop: tokens.spacing[6] }}>
-                <SectionHeading title="Number of cut ropes" />
+              <div style={{
+                borderTop:     `1px solid ${tokens.color.divider.border}`,
+                paddingTop:    tokens.spacing[6],
+                display:       "flex",
+                flexDirection: "column",
+                gap:           tokens.spacing[4],
+              }}>
+                <span style={{ ...tokens.typography.h5, color: tokens.color.fg.primary }}>
+                  Number of cut ropes
+                </span>
+
+                {/* Stepper — single container matching Figma */}
+                <div style={{
+                  display:        "flex",
+                  alignItems:     "center",
+                  justifyContent: "space-between",
+                  background:     tokens.color.base.white,
+                  border:         stepperFocused
+                    ? `2px solid ${tokens.color.divider.blue}`
+                    : `1px solid ${tokens.color.divider.frame}`,
+                  borderRadius:   "8px",
+                  padding:        tokens.spacing[2],
+                  boxShadow:      tokens.shadows.sm,
+                  boxSizing:      "border-box",
+                }}>
+                  <button
+                    onClick={() => setQuantity(q => Math.max(0, q - 1))}
+                    style={{
+                      width:          40,
+                      height:         40,
+                      flexShrink:     0,
+                      display:        "flex",
+                      alignItems:     "center",
+                      justifyContent: "center",
+                      border:         `1px solid ${tokens.color.divider.frame}`,
+                      borderRadius:   tokens.borderRadius.md,
+                      background:     tokens.color.base.white,
+                      cursor:         "pointer",
+                      fontSize:       20,
+                      color:          tokens.color.fg.primary,
+                      boxSizing:      "border-box",
+                    }}
+                  >−</button>
+                  <input
+                    type="number"
+                    min={0}
+                    value={quantity === 0 ? "" : quantity}
+                    placeholder="0"
+                    onFocus={() => setStepperFocused(true)}
+                    onBlur={() => setStepperFocused(false)}
+                    onChange={e => {
+                      const v = parseInt(e.target.value, 10);
+                      setQuantity(isNaN(v) || v < 0 ? 0 : v);
+                    }}
+                    style={{
+                      fontFamily:  tokens.fontFamily.sans,
+                      fontSize:    "18px",
+                      fontWeight:  tokens.fontWeight.medium,
+                      lineHeight:  "24px",
+                      color:       tokens.color.fg.primary,
+                      textAlign:   "center",
+                      flex:        "1 1 0",
+                      border:      "none",
+                      outline:     "none",
+                      background:  "transparent",
+                      minWidth:    0,
+                    }}
+                  />
+                  <button
+                    onClick={() => setQuantity(q => q + 1)}
+                    style={{
+                      width:          40,
+                      height:         40,
+                      flexShrink:     0,
+                      display:        "flex",
+                      alignItems:     "center",
+                      justifyContent: "center",
+                      border:         `1px solid ${tokens.color.divider.frame}`,
+                      borderRadius:   tokens.borderRadius.md,
+                      background:     tokens.color.base.white,
+                      cursor:         "pointer",
+                      fontSize:       20,
+                      color:          tokens.color.fg.primary,
+                      boxSizing:      "border-box",
+                    }}
+                  >+</button>
+                </div>
+
+                {/* Quick-select chips */}
+                <div style={{ display: "flex", alignItems: "center", gap: tokens.spacing[2] }}>
+                  {QUANTITY_PRESETS.map(preset => (
+                    <button
+                      key={preset}
+                      onClick={() => setQuantity(preset)}
+                      style={{
+                        flex:         "1 1 0",
+                        height:       32,
+                        display:      "flex",
+                        alignItems:   "center",
+                        justifyContent: "center",
+                        border:       quantity === preset
+                          ? `1.5px solid ${tokens.color.palette.indigo[500]}`
+                          : `1px solid ${tokens.color.divider.frame}`,
+                        borderRadius: tokens.borderRadius.full,
+                        background:   quantity === preset ? "#eef2ff" : tokens.color.base.white,
+                        cursor:       "pointer",
+                        fontFamily:   tokens.fontFamily.sans,
+                        fontSize:     "14px",
+                        fontWeight:   tokens.fontWeight.medium,
+                        lineHeight:   "20px",
+                        color:        quantity === preset ? tokens.color.palette.indigo[500] : tokens.color.fg.primary,
+                        boxSizing:    "border-box",
+                      }}
+                    >
+                      {preset}
+                    </button>
+                  ))}
+                </div>
+
+                {/* Info banner — blue if sufficient, red if insufficient */}
+                {(isInsufficient || showInfoBanner) && (
+                  isInsufficient ? (
+                    <div ref={bannerRef} style={{
+                      display:      "flex",
+                      alignItems:   "flex-start",
+                      gap:          tokens.spacing[3],
+                      padding:      tokens.spacing[4],
+                      borderRadius: tokens.borderRadius.md,
+                      background:   tokens.color.tint.red,
+                    }}>
+                      <span style={{ flexShrink: 0, width: 24, height: 24, display: "flex", alignItems: "center", justifyContent: "center" }}>
+                        <svg width="24" height="24" viewBox="0 0 24 24" fill="none" aria-hidden>
+                          <circle cx="12" cy="12" r="9" stroke={tokens.color.fg.red} strokeWidth="1.5" />
+                          <rect x="11.25" y="7" width="1.5" height="6" rx="0.75" fill={tokens.color.fg.red} />
+                          <circle cx="12" cy="16" r="0.85" fill={tokens.color.fg.red} />
+                        </svg>
+                      </span>
+                      <div style={{ flex: "1 1 0", minWidth: 0, display: "flex", flexDirection: "column", gap: tokens.spacing[4] }}>
+                        <div style={{ display: "flex", flexDirection: "column", gap: tokens.spacing[2] }}>
+                          <span style={{ ...tokens.typography.bodyM, color: tokens.color.fg.red }}>
+                            Insufficient Length
+                          </span>
+                          <span style={{ ...tokens.typography.bodyR, color: tokens.color.fg.red }}>
+                            You need {insufficientM}m more to complete these cuts.
+                          </span>
+                        </div>
+                        <div style={{ display: "flex", alignItems: "center", gap: "20px" }}>
+                          <button
+                            type="button"
+                            onClick={() => setAddSpoolSheetOpen(true)}
+                            style={{
+                              background:     "transparent",
+                              border:         "none",
+                              padding:        0,
+                              cursor:         "pointer",
+                              fontFamily:     tokens.fontFamily.sans,
+                              fontSize:       "14px",
+                              fontWeight:     tokens.fontWeight.medium,
+                              lineHeight:     "20px",
+                              color:          tokens.color.fg.red,
+                              textDecoration: "underline",
+                            }}
+                          >
+                            Add new spool
+                          </button>
+                          <button
+                            type="button"
+                            onClick={() => setStopTrackSheetOpen(true)}
+                            style={{
+                              background:     "transparent",
+                              border:         "none",
+                              padding:        0,
+                              cursor:         "pointer",
+                              fontFamily:     tokens.fontFamily.sans,
+                              fontSize:       "14px",
+                              fontWeight:     tokens.fontWeight.medium,
+                              lineHeight:     "20px",
+                              color:          tokens.color.fg.red,
+                              textDecoration: "underline",
+                            }}
+                          >
+                            Stop tracking length
+                          </button>
+                        </div>
+                      </div>
+                    </div>
+                  ) : (
+                    <div ref={bannerRef} style={{
+                      display:      "flex",
+                      alignItems:   "flex-start",
+                      gap:          tokens.spacing[3],
+                      padding:      tokens.spacing[4],
+                      borderRadius: tokens.borderRadius.md,
+                      background:   tokens.color.tint.blue,
+                    }}>
+                      <span style={{ flexShrink: 0, width: 24, height: 24, display: "flex", alignItems: "center", justifyContent: "center" }}>
+                        <InfoIcon color={tokens.color.fg.blue} />
+                      </span>
+                      <span style={{ ...tokens.typography.bodyM, color: tokens.color.fg.blue }}>
+                        Source rope left after cut: {remainingAfterCut}m
+                      </span>
+                    </div>
+                  )
+                )}
               </div>
-
-              <TextField
-                label="Number of pieces (required)"
-                placeholder="Enter number of pieces"
-                value={quantity}
-                onChange={setQuantity}
-              />
-
-              {remainingAfterCut !== null && (
-                <InfoBanner message={`Source reel left after cut: ${remainingAfterCut}m`} />
-              )}
             </div>
           </div>
 
@@ -1090,8 +1327,8 @@ export default function CutRopeLengthsPage() {
             flexDirection: "column",
             gap:           tokens.spacing[3],
           }}>
-            <Button variant="primary"   label="Generate serials"         onClick={() => setSuccessSheetOpen(true)} style={{ width: "100%" }} />
-            <Button variant="secondary" label="Link to existing serials"  onClick={() => router.push("/mobile/capture-serials?mode=link")} style={{ width: "100%" }} />
+            <Button variant="primary"   label="Generate serials"        onClick={handleSubmit} style={{ width: "100%" }} />
+            <Button variant="secondary" label="Link to existing serials" onClick={() => router.push("/mobile/link-rope-serials")} style={{ width: "100%" }} />
           </div>
         </>
       )}
@@ -1107,6 +1344,80 @@ export default function CutRopeLengthsPage() {
           setScanSheetOpen(false);
         }}
       />
+
+      {/* ── Product selection sheet ──────────────────────────────────────── */}
+      <BottomSheet
+        variant="bottom-sheet-mobile"
+        open={productSheetOpen}
+        onClose={() => setProductSheetOpen(false)}
+        contained
+      >
+        <div style={{
+          display:       "flex",
+          flexDirection: "column",
+          gap:           tokens.spacing[4],
+          paddingTop:    tokens.spacing[2],
+          paddingLeft:   tokens.spacing[4],
+          paddingRight:  tokens.spacing[4],
+          paddingBottom: tokens.spacing[6],
+        }}>
+          <h3 style={{ margin: 0, ...tokens.typography.h4, color: tokens.color.fg.primary }}>
+            Select a product
+          </h3>
+          <div style={{ display: "flex", flexDirection: "column" }}>
+            {CUT_ROPE_PRODUCTS.map(product => (
+              <button
+                key={product.id}
+                onClick={() => {
+                  setSelectedProductId(product.id);
+                  setProductSheetOpen(false);
+                }}
+                style={{
+                  display:      "flex",
+                  alignItems:   "flex-start",
+                  gap:          tokens.spacing[3],
+                  width:        "100%",
+                  background:   "transparent",
+                  border:       "none",
+                  borderBottom: `1px solid ${tokens.color.divider.border}`,
+                  cursor:       "pointer",
+                  textAlign:    "left",
+                  padding:      `${tokens.spacing[3]} 0`,
+                }}
+              >
+                <div style={{
+                  width:          16,
+                  height:         16,
+                  borderRadius:   "50%",
+                  flexShrink:     0,
+                  marginTop:      "3px",
+                  boxSizing:      "border-box",
+                  background:     cutProductId === product.id ? tokens.color.palette.indigo[500] : tokens.color.base.white,
+                  border:         cutProductId === product.id
+                    ? `1.5px solid ${tokens.color.palette.indigo[500]}`
+                    : `1.5px solid ${tokens.color.divider.frame}`,
+                  display:        "flex",
+                  alignItems:     "center",
+                  justifyContent: "center",
+                }}>
+                  {cutProductId === product.id && (
+                    <div style={{ width: 6, height: 6, borderRadius: "50%", background: tokens.color.base.white }} />
+                  )}
+                </div>
+                <div style={{ flex: "1 1 0", minWidth: 0, display: "flex", flexDirection: "column", gap: tokens.spacing[0.5] }}>
+                  <span style={{ ...tokens.typography.bodyM, color: tokens.color.fg.primary }}>{product.name}</span>
+                  <span style={{ ...tokens.typography.smallBodyR, color: tokens.color.fg.support }}>
+                    {product.brand} | {product.sku}
+                  </span>
+                  <span style={{ ...tokens.typography.smallBodyR, color: tokens.color.fg.primary }}>
+                    Length: {product.lengthPerSerial}m
+                  </span>
+                </div>
+              </button>
+            ))}
+          </div>
+        </div>
+      </BottomSheet>
 
       {/* ── Apply new source reel sheet ───────────────────────────────────── */}
       <BottomSheet
@@ -1180,87 +1491,245 @@ export default function CutRopeLengthsPage() {
         )}
       </BottomSheet>
 
-      {/* ── Serials generated success sheet ──────────────────────────────────── */}
+      {/* ── Add new source reels sheet ───────────────────────────────────── */}
       <BottomSheet
         variant="bottom-sheet-mobile"
-        open={successSheetOpen}
-        onClose={() => setSuccessSheetOpen(false)}
+        open={addSpoolSheetOpen}
+        onClose={() => setAddSpoolSheetOpen(false)}
         contained
       >
         <div style={{
           display:       "flex",
           flexDirection: "column",
-          gap:           tokens.spacing[4],
-          paddingTop:    tokens.spacing[2],
+          gap:           tokens.spacing[6],
+          paddingTop:    tokens.spacing[4],
           paddingLeft:   tokens.spacing[4],
           paddingRight:  tokens.spacing[4],
-          paddingBottom: tokens.spacing[6],
+          paddingBottom: tokens.spacing[0],
         }}>
-          {/* Success icon */}
-          <div style={{ display: "flex", justifyContent: "center", paddingTop: tokens.spacing[2] }}>
+          <h3 style={{ margin: 0, ...tokens.typography.h3, color: tokens.color.fg.primary, textAlign: "center" }}>
+            Add new source reels
+          </h3>
+
+          {/* Initial length */}
+          <CompositeInput
+            label="Initial length"
+            value={newSpoolLength}
+            onChange={setNewSpoolLength}
+            unitOptions={UNIT_OPTIONS}
+            unitValue={newSpoolUnit}
+            onUnitChange={setNewSpoolUnit}
+          />
+
+          {/* Trace serial */}
+          <ScanInput
+            label="Trace serial of source rope"
+            placeholder="Scan or enter serial number"
+            value={newSpoolSerial}
+            onChange={e => setNewSpoolSerial(e.target.value)}
+            onScan={() => setSpoolScanOpen(true)}
+          />
+
+          {/* Use of current rope */}
+          <div style={{ display: "flex", flexDirection: "column", gap: tokens.spacing[2] }}>
+            <span style={{ ...tokens.typography.bodyM, color: tokens.color.fg.primary }}>
+              Use of current rope
+            </span>
+            <div style={{ display: "flex", flexDirection: "column", gap: tokens.spacing[4] }}>
+              <button
+                type="button"
+                onClick={() => setNewSpoolUseMode("use-remaining")}
+                style={{
+                  display:    "flex",
+                  alignItems: "flex-start",
+                  gap:        tokens.spacing[2],
+                  background: "transparent",
+                  border:     "none",
+                  padding:    0,
+                  cursor:     "pointer",
+                  textAlign:  "left",
+                }}
+              >
+                <div style={{
+                  width:          16,
+                  height:         16,
+                  borderRadius:   "50%",
+                  flexShrink:     0,
+                  marginTop:      "2px",
+                  boxSizing:      "border-box",
+                  background:     newSpoolUseMode === "use-remaining" ? tokens.color.palette.indigo[500] : tokens.color.base.white,
+                  border:         newSpoolUseMode === "use-remaining"
+                    ? `1.5px solid ${tokens.color.palette.indigo[500]}`
+                    : `1px solid ${tokens.color.divider.frame}`,
+                  display:        "flex",
+                  alignItems:     "center",
+                  justifyContent: "center",
+                }}>
+                  {newSpoolUseMode === "use-remaining" && (
+                    <div style={{ width: 6, height: 6, borderRadius: "50%", background: tokens.color.base.white }} />
+                  )}
+                </div>
+                <div style={{ flex: "1 1 0", minWidth: 0, display: "flex", flexDirection: "column", gap: tokens.spacing[0.5] }}>
+                  <span style={{ ...tokens.typography.bodyR, color: tokens.color.fg.primary }}>Use up remaining rope first</span>
+                  <span style={{ ...tokens.typography.smallBodyR, color: tokens.color.fg.support }}>Finish the current spool before starting the new one.</span>
+                </div>
+              </button>
+
+              <button
+                type="button"
+                onClick={() => setNewSpoolUseMode("start-new")}
+                style={{
+                  display:    "flex",
+                  alignItems: "flex-start",
+                  gap:        tokens.spacing[2],
+                  background: "transparent",
+                  border:     "none",
+                  padding:    0,
+                  cursor:     "pointer",
+                  textAlign:  "left",
+                }}
+              >
+                <div style={{
+                  width:          16,
+                  height:         16,
+                  borderRadius:   "50%",
+                  flexShrink:     0,
+                  marginTop:      "2px",
+                  boxSizing:      "border-box",
+                  background:     newSpoolUseMode === "start-new" ? tokens.color.palette.indigo[500] : tokens.color.base.white,
+                  border:         newSpoolUseMode === "start-new"
+                    ? `1.5px solid ${tokens.color.palette.indigo[500]}`
+                    : `1px solid ${tokens.color.divider.frame}`,
+                  display:        "flex",
+                  alignItems:     "center",
+                  justifyContent: "center",
+                }}>
+                  {newSpoolUseMode === "start-new" && (
+                    <div style={{ width: 6, height: 6, borderRadius: "50%", background: tokens.color.base.white }} />
+                  )}
+                </div>
+                <div style={{ flex: "1 1 0", minWidth: 0, display: "flex", flexDirection: "column", gap: tokens.spacing[0.5] }}>
+                  <span style={{ ...tokens.typography.bodyR, color: tokens.color.fg.primary }}>Start new spool now</span>
+                  <span style={{ ...tokens.typography.smallBodyR, color: tokens.color.fg.support }}>Mark the current spool as empty and deduct the full amount from the new one.</span>
+                </div>
+              </button>
+            </div>
+          </div>
+        </div>
+
+        <div style={{
+          padding:    tokens.spacing[4],
+          borderTop:  `1px solid ${tokens.color.divider.border}`,
+          background: tokens.color.base.white,
+          flexShrink: 0,
+          marginTop:  tokens.spacing[6],
+        }}>
+          <Button variant="primary" label="Add" onClick={handleAddSpool} style={{ width: "100%" }} />
+        </div>
+      </BottomSheet>
+
+      {/* ── Stop tracking length? sheet ──────────────────────────────────── */}
+      <BottomSheet
+        variant="bottom-sheet-mobile"
+        open={stopTrackSheetOpen}
+        onClose={() => setStopTrackSheetOpen(false)}
+        contained
+      >
+        <div style={{
+          display:       "flex",
+          flexDirection: "column",
+          gap:           tokens.spacing[6],
+          paddingTop:    tokens.spacing[4],
+          paddingLeft:   tokens.spacing[4],
+          paddingRight:  tokens.spacing[4],
+          paddingBottom: tokens.spacing[0],
+        }}>
+          {/* Warning icon */}
+          <div style={{ display: "flex", flexDirection: "column", alignItems: "center", gap: tokens.spacing[2] }}>
             <div style={{
-              width:          56,
-              height:         56,
-              borderRadius:   tokens.borderRadius.full,
-              background:     tokens.color.tint.green,
+              width:          40,
+              height:         40,
+              borderRadius:   tokens.borderRadius.lg,
+              background:     tokens.color.tint.red,
               display:        "flex",
               alignItems:     "center",
               justifyContent: "center",
             }}>
-              <svg width="28" height="28" viewBox="0 0 28 28" fill="none" aria-hidden>
-                <path d="M6 14l6 6 10-12" stroke={tokens.color.fg.green} strokeWidth="2.2" strokeLinecap="round" strokeLinejoin="round" />
+              <svg width="24" height="24" viewBox="0 0 24 24" fill="none" aria-hidden>
+                <path d="M12 8v5M12 16.5v.5" stroke={tokens.color.fg.red} strokeWidth="1.8" strokeLinecap="round" />
+                <circle cx="12" cy="12" r="9" stroke={tokens.color.fg.red} strokeWidth="1.5" />
               </svg>
             </div>
+            <h3 style={{ margin: 0, ...tokens.typography.h3, color: tokens.color.fg.primary, textAlign: "center" }}>
+              Stop tracking length?
+            </h3>
           </div>
 
-          {/* Title */}
-          <h2 style={{ margin: 0, ...tokens.typography.h3, color: tokens.color.fg.primary, textAlign: "center" }}>
-            Serials generated!
-          </h2>
-
-          {/* Label preview */}
+          {/* Description */}
           <div style={{ display: "flex", flexDirection: "column", gap: tokens.spacing[2] }}>
-            <span style={{ ...tokens.typography.bodyR, color: tokens.color.fg.support }}>Label preview</span>
-            <div style={{
-              display:        "flex",
-              justifyContent: "center",
-              padding:        tokens.spacing[4],
-              background:     tokens.color.bg.lightBg,
-              borderRadius:   tokens.borderRadius.lg,
-            }}>
-              <img
-                src="/label.png"
-                alt="Label preview"
-                style={{ height: 200, width: "auto", display: "block" }}
-              />
-            </div>
+            <p style={{ margin: 0, ...tokens.typography.bodyR, color: tokens.color.fg.support, textAlign: "center" }}>
+              You are about to disconnect length tracking for this spool.
+            </p>
+            <ul style={{ margin: 0, paddingLeft: "20px", display: "flex", flexDirection: "column", gap: tokens.spacing[2] }}>
+              <li style={{ ...tokens.typography.bodyR, color: tokens.color.fg.support }}>
+                <strong style={{ fontWeight: tokens.fontWeight.medium, color: tokens.color.fg.primary }}>The length record will be wiped:</strong>{" "}
+                You will no longer see "remaining meters" for this spool.
+              </li>
+              <li style={{ ...tokens.typography.bodyR, color: tokens.color.fg.support }}>
+                <strong style={{ fontWeight: tokens.fontWeight.medium, color: tokens.color.fg.primary }}>Downgrade to SKU level:</strong>{" "}
+                This rope will only be saved as a recently used product, not as a specific tracked serial.
+              </li>
+            </ul>
           </div>
+        </div>
 
-          {/* Printer row */}
-          <div style={{ display: "flex", alignItems: "center", gap: tokens.spacing[2] }}>
-            <span style={{ ...tokens.typography.bodyR, color: tokens.color.fg.support, flex: "0 0 auto" }}>Printer:</span>
-            <span style={{ ...tokens.typography.bodyM, color: tokens.color.fg.primary }}>Sato CT4-LX</span>
-          </div>
-
-          {/* CTAs */}
-          <Button variant="primary"   label="Print NFC rope label" onClick={handleSubmit} style={{ width: "100%" }} />
+        <div style={{
+          padding:       tokens.spacing[4],
+          borderTop:     `1px solid ${tokens.color.divider.border}`,
+          background:    tokens.color.base.white,
+          flexShrink:    0,
+          marginTop:     tokens.spacing[6],
+          display:       "flex",
+          flexDirection: "column",
+          gap:           tokens.spacing[3],
+        }}>
           <button
-            onClick={handleSubmit}
+            type="button"
+            onClick={handleStopTracking}
             style={{
-              background:  "transparent",
-              border:      "none",
-              cursor:      "pointer",
-              ...tokens.typography.bodyR,
-              color:       tokens.color.fg.blue,
-              textDecoration: "underline",
-              textAlign:   "center",
-              width:       "100%",
+              width:          "100%",
+              height:         "44px",
+              display:        "flex",
+              alignItems:     "center",
+              justifyContent: "center",
+              background:     tokens.color.bg.red,
+              border:         `1px solid ${tokens.color.bg.red}`,
+              borderRadius:   tokens.borderRadius.md,
+              fontFamily:     tokens.fontFamily.sans,
+              fontSize:       "14px",
+              fontWeight:     tokens.fontWeight.medium,
+              lineHeight:     "20px",
+              color:          tokens.color.base.white,
+              cursor:         "pointer",
             }}
           >
-            Not now
+            Stop tracking & wipe data
           </button>
+          <Button variant="secondary" label="Keep tracking" onClick={() => setStopTrackSheetOpen(false)} style={{ width: "100%" }} />
         </div>
       </BottomSheet>
+
+      {/* Scan sheet for new spool serial */}
+      <ScanSimulationSheet
+        open={spoolScanOpen}
+        onClose={() => setSpoolScanOpen(false)}
+        contained
+        onDetected={value => {
+          setNewSpoolSerial(value);
+          setSpoolScanOpen(false);
+        }}
+      />
+
     </div>
   );
 }

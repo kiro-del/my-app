@@ -16,6 +16,8 @@ import { SearchScanSheet, type ScanResult } from "@/components/patterns/SearchSc
 
 // ── Data ───────────────────────────────────────────────────────────────────────
 
+const QUANTITY_PRESETS = [5, 20, 40, 60, 100];
+
 const SERIAL_FORMATS = [
   {
     id:          "customer",
@@ -178,14 +180,14 @@ function SelectedProductRow({
   onRemove:         () => void;
   onQuantityChange: (q: number) => void;
 }) {
+  const [stepperFocused, setStepperFocused] = useState(false);
+
   return (
     <div style={{ display: "flex", flexDirection: "column", gap: tokens.spacing[2] }}>
       {/* Product info row */}
       <div style={{ display: "flex", alignItems: "center", gap: tokens.spacing[3] }}>
-        {/* Thumbnail */}
         <ProductImg size={56} />
 
-        {/* Name + brand/sku */}
         <div style={{ flex: "1 1 0", minWidth: 0 }}>
           <div style={{
             fontFamily:   tokens.fontFamily.sans,
@@ -210,7 +212,7 @@ function SelectedProductRow({
           </div>
         </div>
 
-        {/* Remove button */}
+        {/* Remove button — 24px icon, 4px padding */}
         <button
           type="button"
           onClick={onRemove}
@@ -218,8 +220,7 @@ function SelectedProductRow({
             display:        "flex",
             alignItems:     "center",
             justifyContent: "center",
-            width:          "36px",
-            height:         "36px",
+            padding:        "4px",
             flexShrink:     0,
             border:         `1px solid ${tokens.color.divider.frame}`,
             borderRadius:   tokens.borderRadius.md,
@@ -230,44 +231,134 @@ function SelectedProductRow({
           <MaskIcon
             url={trashIconUrl}
             color={tokens.color.fg.red}
-            size={16}
+            size={24}
             fallback={<TrashFallback color={tokens.color.fg.red} />}
           />
         </button>
       </div>
 
-      {/* Quantity input — simple, like the web version */}
-      <div style={{ display: "flex", flexDirection: "column", gap: tokens.spacing[1] }}>
+      {/* Quantity of serials — stepper */}
+      <div style={{ display: "flex", flexDirection: "column", gap: tokens.spacing[2] }}>
         <span style={{
           fontFamily: tokens.fontFamily.sans,
-          fontSize:   tokens.fontSize.bodySmall,
+          fontSize:   "14px",
           fontWeight: tokens.fontWeight.medium,
-          color:      tokens.color.fg.support,
+          lineHeight: "20px",
+          color:      tokens.color.fg.primary,
         }}>
           Quantity of serials
         </span>
-        <input
-          type="number"
-          min={1}
-          value={product.quantity}
-          onChange={e => {
-            const n = parseInt(e.target.value, 10);
-            if (!isNaN(n) && n > 0) onQuantityChange(n);
-          }}
-          style={{
-            width:        "100%",
-            padding:      `${tokens.spacing[2.5]} ${tokens.spacing[3]}`,
-            border:       `1px solid ${tokens.color.divider.frame}`,
-            borderRadius: tokens.borderRadius.md,
-            fontFamily:   tokens.fontFamily.sans,
-            fontSize:     tokens.fontSize.body,
-            lineHeight:   tokens.lineHeight.body,
-            color:        tokens.color.fg.primary,
-            background:   tokens.color.base.white,
-            outline:      "none",
-            boxSizing:    "border-box",
-          } as React.CSSProperties}
-        />
+
+        {/* Stepper container */}
+        <div style={{
+          display:        "flex",
+          alignItems:     "center",
+          justifyContent: "space-between",
+          background:     tokens.color.base.white,
+          border:         stepperFocused
+            ? `2px solid ${tokens.color.divider.blue}`
+            : `1px solid ${tokens.color.divider.frame}`,
+          borderRadius:   "8px",
+          padding:        tokens.spacing[2],
+          boxShadow:      tokens.shadows.sm,
+          boxSizing:      "border-box",
+        }}>
+          <button
+            type="button"
+            onClick={() => onQuantityChange(Math.max(0, product.quantity - 1))}
+            style={{
+              width:          40,
+              height:         40,
+              flexShrink:     0,
+              display:        "flex",
+              alignItems:     "center",
+              justifyContent: "center",
+              border:         `1px solid ${tokens.color.divider.frame}`,
+              borderRadius:   tokens.borderRadius.md,
+              background:     tokens.color.base.white,
+              cursor:         "pointer",
+              fontSize:       20,
+              color:          tokens.color.fg.primary,
+              boxSizing:      "border-box",
+            }}
+          >−</button>
+          <input
+            type="number"
+            min={0}
+            value={product.quantity === 0 ? "" : product.quantity}
+            placeholder="0"
+            onFocus={() => setStepperFocused(true)}
+            onBlur={() => setStepperFocused(false)}
+            onChange={e => {
+              const v = parseInt(e.target.value, 10);
+              onQuantityChange(isNaN(v) || v < 0 ? 0 : v);
+            }}
+            style={{
+              fontFamily:  tokens.fontFamily.sans,
+              fontSize:    "18px",
+              fontWeight:  tokens.fontWeight.medium,
+              lineHeight:  "24px",
+              color:       tokens.color.fg.primary,
+              textAlign:   "center",
+              flex:        "1 1 0",
+              border:      "none",
+              outline:     "none",
+              background:  "transparent",
+              minWidth:    0,
+            }}
+          />
+          <button
+            type="button"
+            onClick={() => onQuantityChange(product.quantity + 1)}
+            style={{
+              width:          40,
+              height:         40,
+              flexShrink:     0,
+              display:        "flex",
+              alignItems:     "center",
+              justifyContent: "center",
+              border:         `1px solid ${tokens.color.divider.frame}`,
+              borderRadius:   tokens.borderRadius.md,
+              background:     tokens.color.base.white,
+              cursor:         "pointer",
+              fontSize:       20,
+              color:          tokens.color.fg.primary,
+              boxSizing:      "border-box",
+            }}
+          >+</button>
+        </div>
+
+        {/* Quick-select chips */}
+        <div style={{ display: "flex", alignItems: "center", gap: tokens.spacing[2] }}>
+          {QUANTITY_PRESETS.map(preset => (
+            <button
+              key={preset}
+              type="button"
+              onClick={() => onQuantityChange(preset)}
+              style={{
+                flex:           "1 1 0",
+                height:         32,
+                display:        "flex",
+                alignItems:     "center",
+                justifyContent: "center",
+                border:         product.quantity === preset
+                  ? `1.5px solid ${tokens.color.palette.indigo[500]}`
+                  : `1px solid ${tokens.color.divider.frame}`,
+                borderRadius:   tokens.borderRadius.full,
+                background:     product.quantity === preset ? "#eef2ff" : tokens.color.base.white,
+                cursor:         "pointer",
+                fontFamily:     tokens.fontFamily.sans,
+                fontSize:       "14px",
+                fontWeight:     tokens.fontWeight.medium,
+                lineHeight:     "20px",
+                color:          product.quantity === preset ? tokens.color.palette.indigo[500] : tokens.color.fg.primary,
+                boxSizing:      "border-box",
+              }}
+            >
+              {preset}
+            </button>
+          ))}
+        </div>
       </div>
     </div>
   );
@@ -466,7 +557,7 @@ export default function CreateSerialsPage() {
         </div>
 
         {/* Search + Scan bar */}
-        <div style={{ marginBottom: tokens.spacing[4] }}>
+        <div style={{ marginBottom: tokens.spacing[6] }}>
           <ScanInput
             placeholder="Search by SKU name or code"
             leadingIcon={<SearchIcon />}
@@ -479,16 +570,7 @@ export default function CreateSerialsPage() {
 
         {/* Selected products */}
         {selectedProducts.length > 0 && (
-          <div style={{ display: "flex", flexDirection: "column", gap: tokens.spacing[2] }}>
-            <span style={{
-              fontFamily: tokens.fontFamily.sans,
-              fontSize:   tokens.fontSize.bodySmall,
-              fontWeight: tokens.fontWeight.medium,
-              color:      tokens.color.fg.support,
-            }}>
-              Selected products
-            </span>
-            <div style={{ display: "flex", flexDirection: "column", gap: tokens.spacing[5] }}>
+          <div style={{ display: "flex", flexDirection: "column", gap: tokens.spacing[5] }}>
               {selectedProducts.map(p => (
                 <SelectedProductRow
                   key={p.id}
@@ -498,7 +580,6 @@ export default function CreateSerialsPage() {
                   onQuantityChange={q => handleQuantityChange(p.id, q)}
                 />
               ))}
-            </div>
           </div>
         )}
       </div>

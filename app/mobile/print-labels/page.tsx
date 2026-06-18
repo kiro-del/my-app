@@ -224,6 +224,10 @@ export default function PrintLabelsPage() {
       {/* Fixed Print button */}
       <div style={{ borderTop: `1px solid ${C_BORDER_LIGHT}`, padding: 16, background: C_WHITE, flexShrink: 0 }}>
         <button
+          onClick={() => {
+            localStorage.setItem("mobilePrintLabels", "1");
+            router.back();
+          }}
           style={{
             display:        "flex",
             alignItems:     "center",

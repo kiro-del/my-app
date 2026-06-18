@@ -22,7 +22,7 @@ const ARROW_UP_ID      = "151:1503";  // Arrow up — trend indicator 16px
 const INSPECT_ID       = "92:1150";   // Quick action — Inspect
 const CREATE_SER_ID    = "94:554";    // Quick action — Create serials
 const PRINT_LABELS_ID  = "2171:2524"; // Quick action — Print labels
-const ICON_CAPTURE_SER = "5846:2623"; // Quick action — Capture serials
+const ICON_CAPTURE_SER = "6258:3868"; // Quick action — Capture serials
 const ISSUE_RECALL_ID  = "6040:1824"; // Quick action — Issue Recall
 const ICON_ROPE_SER    = "2119:4324"; // Quick action — Cut rope lengths
 const HOME_ID          = "2307:2449"; // Bottom nav — Home
@@ -44,12 +44,13 @@ interface StatCard {
   label:   string;
   value:   string;
   trend?:  { value: string; label: string };
+  chevron?: boolean;
 }
 
 const STAT_CARDS: StatCard[] = [
-  { id: "ppe-produced", label: "Smart PPE produced", value: "12345" },
-  { id: "ppe-claimed",  label: "Smart PPE claimed",  value: "1543", trend: { value: "69", label: "this week" } },
-  { id: "scans",        label: "Scans",              value: "6557", trend: { value: "21", label: "this week" } },
+  { id: "ppe-produced", label: "Smart PPE produced", value: "12345", trend: { value: "765", label: "last week" }, chevron: true },
+  { id: "ppe-claimed",  label: "Smart PPE claimed",  value: "1543",  trend: { value: "69",  label: "last week" } },
+  { id: "scans",        label: "Scans",              value: "6557",  trend: { value: "21",  label: "last week" } },
   { id: "recalls",      label: "Active recalls",     value: "3" },
 ];
 
@@ -278,71 +279,66 @@ export default function SerialsHomePage() {
               style={{
                 background:    "rgba(255,255,255,0.05)",
                 borderRadius:  tokens.borderRadius.lg,
-                padding:       `${tokens.spacing[4]} ${tokens.spacing[1]} ${tokens.spacing[4]} ${tokens.spacing[4]}`,
+                padding:       "12px 10px 12px 16px",
                 display:       "flex",
                 flexDirection: "column",
-                gap:           0,
+                gap:           "10px",
               }}
             >
               {/* Label */}
-              <span style={{ ...tokens.typography.bodyR, fontSize: "14px", color: tokens.color.fgReverse.primary }}>
+              <span style={{ ...tokens.typography.bodyR, color: tokens.color.fgReverse.primary }}>
                 {card.label}
               </span>
 
-              {/* Number row */}
-              <div
-                style={{
-                  display:    "flex",
-                  alignItems: "center",
-                  marginTop:  tokens.spacing[2],
-                }}
-              >
-                <span
-                  style={{
-                    ...tokens.typography.h2,
-                    color:    tokens.color.fgReverse.primary,
-                    flex:     "1 0 0",
-                    minWidth: 0,
-                  }}
-                >
-                  {card.value}
-                </span>
-              </div>
+              {/* Value + trend group */}
+              <div style={{ display: "flex", flexDirection: "column", gap: "2px" }}>
+                {/* Number row */}
+                <div style={{ display: "flex", alignItems: "center", gap: "4px" }}>
+                  <span style={{
+                    fontFamily:    tokens.fontFamily.sans,
+                    fontSize:      "24px",
+                    fontWeight:    tokens.fontWeight.medium,
+                    lineHeight:    "1.4",
+                    letterSpacing: "0.03em",
+                    color:         tokens.color.fgReverse.primary,
+                    flex:          "1 0 0",
+                    minWidth:      0,
+                  }}>
+                    {card.value}
+                  </span>
+                  {card.chevron && (
+                    <MaskIcon url={icons[CHEVRON_RIGHT_ID]} color={tokens.color.fgReverse.support} size={16} fallback={
+                      <svg width="16" height="16" viewBox="0 0 16 16" fill="none" aria-hidden>
+                        <path d="M6 4l4 4-4 4" stroke={tokens.color.fgReverse.support} strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round" />
+                      </svg>
+                    } />
+                  )}
+                </div>
 
-              {/* Trend row (optional) */}
-              {card.trend && (
-                <div
-                  style={{
-                    display:    "flex",
-                    alignItems: "center",
-                    gap:        tokens.spacing[1],
-                    marginTop:  tokens.spacing[0],
-                  }}
-                >
-                  <div style={{ display: "flex", alignItems: "center", gap: "2px" }}>
-                    <ArrowUpIcon url={icons[ARROW_UP_ID]} color={tokens.color.bg.green} />
-                    <span
-                      style={{
-                        fontFamily: tokens.fontFamily.sans,
-                        fontSize:   tokens.fontSize.body,
-                        fontWeight: tokens.fontWeight.semiBold,
-                        lineHeight: tokens.lineHeight.body,
-                        color:      tokens.color.bg.green,
-                      }}
-                    >
+                {/* Trend row (optional) */}
+                {card.trend && (
+                  <div style={{ display: "flex", alignItems: "center", gap: "4px" }}>
+                    <span style={{
+                      fontFamily: tokens.fontFamily.sans,
+                      fontSize:   tokens.fontSize.body,
+                      fontWeight: tokens.fontWeight.semiBold,
+                      lineHeight: tokens.lineHeight.body,
+                      color:      "#a5b4fc",
+                    }}>
                       {card.trend.value}
                     </span>
+                    <span style={{
+                      fontFamily: tokens.fontFamily.sans,
+                      fontSize:   tokens.fontSize.bodySmall,
+                      fontWeight: tokens.fontWeight.regular,
+                      lineHeight: "16px",
+                      color:      tokens.color.fgReverse.support,
+                    }}>
+                      {card.trend.label}
+                    </span>
                   </div>
-                  <span
-                    style={{
-                      ...tokens.typography.bodyR,
-                      color: tokens.color.fgReverse.support,
-                    }}
-                  >
-                    {card.trend.label}
-                  </span>
-                </div>
-              )}
+                )}
+              </div>
             </div>
           ))}
         </div>
@@ -358,7 +354,7 @@ export default function SerialsHomePage() {
           <span
             style={{
               ...tokens.typography.bodyR,
-              color: tokens.color.fgReverse.support,
+              color: tokens.color.fgReverse.primary,
             }}
           >
             Quick actions
@@ -387,7 +383,7 @@ export default function SerialsHomePage() {
                   justifyContent: "center",
                   gap:            tokens.spacing[2],
                   padding:        tokens.spacing[4],
-                  background:     "rgba(255,255,255,0.6)",
+                  background:     "rgba(255,255,255,0.5)",
                   borderRadius:   tokens.borderRadius.lg,
                   border:         "none",
                   cursor:         "pointer",

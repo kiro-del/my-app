@@ -141,7 +141,7 @@ export const lineHeight = {
 export const typography = {
   display: { fontSize: "32px", fontWeight: "500", lineHeight: "140%", fontFamily: "Inter, ui-sans-serif, system-ui, -apple-system, sans-serif" },
   h1:      { fontSize: "28px", fontWeight: "600", lineHeight: "140%", fontFamily: "Inter, ui-sans-serif, system-ui, -apple-system, sans-serif" },
-  h2:      { fontSize: "24px", fontWeight: "500", lineHeight: "140%", fontFamily: "Inter, ui-sans-serif, system-ui, -apple-system, sans-serif" },
+  h2:      { fontSize: "24px", fontWeight: "500", lineHeight: "140%", letterSpacing: "0.03em", fontFamily: "Inter, ui-sans-serif, system-ui, -apple-system, sans-serif" },
   h3:      { fontSize: "20px", fontWeight: "500", lineHeight: "28px", fontFamily: "Inter, ui-sans-serif, system-ui, -apple-system, sans-serif" },
   h4:      { fontSize: "18px", fontWeight: "500", lineHeight: "24px", fontFamily: "Inter, ui-sans-serif, system-ui, -apple-system, sans-serif" },
   h5:      { fontSize: "16px", fontWeight: "500", lineHeight: "22px", fontFamily: "Inter, ui-sans-serif, system-ui, -apple-system, sans-serif" },

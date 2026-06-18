@@ -36,7 +36,7 @@ const CALENDAR_ID = "2150:1814";  // 20px — mask
 
 type Scene = "details" | "capture";
 
-interface SelectedProduct extends ScanResult { quantity: number }
+type SelectedProduct = ScanResult
 interface LoggedSerial   { value: string }
 
 // ── Shared icon helpers ────────────────────────────────────────────────────────
@@ -128,35 +128,26 @@ function SectionDivider() {
 
 // ── Selected product row (Phase 1) ────────────────────────────────────────────
 
-function ProductRow({ product, trashIconUrl, onRemove, onQuantityChange }: {
+function ProductRow({ product, trashIconUrl, onRemove }: {
   product: SelectedProduct; trashIconUrl?: string;
-  onRemove: () => void; onQuantityChange: (q: number) => void;
+  onRemove: () => void;
 }) {
   return (
-    <div style={{ display: "flex", flexDirection: "column", gap: tokens.spacing[2] }}>
-      <div style={{ display: "flex", alignItems: "center", gap: tokens.spacing[3] }}>
-        <ProductImg size={56} />
-        <div style={{ flex: "1 1 0", minWidth: 0 }}>
-          <div style={{ fontFamily: tokens.fontFamily.sans, fontSize: tokens.fontSize.body, fontWeight: tokens.fontWeight.medium, color: tokens.color.fg.primary, overflow: "hidden", textOverflow: "ellipsis", whiteSpace: "nowrap" }}>
-            {product.name}
-          </div>
-          <div style={{ display: "flex", alignItems: "center", gap: "4px", marginTop: "2px" }}>
-            <span style={{ fontFamily: tokens.fontFamily.sans, fontSize: tokens.fontSize.bodySmall, color: tokens.color.fg.support }}>{product.brand}</span>
-            <div style={{ width: "1px", height: "10px", background: tokens.color.divider.frame, flexShrink: 0 }} />
-            <span style={{ fontFamily: tokens.fontFamily.sans, fontSize: tokens.fontSize.bodySmall, color: tokens.color.fg.support }}>{product.sku}</span>
-          </div>
+    <div style={{ display: "flex", alignItems: "center", gap: tokens.spacing[3] }}>
+      <ProductImg size={56} />
+      <div style={{ flex: "1 1 0", minWidth: 0 }}>
+        <div style={{ fontFamily: tokens.fontFamily.sans, fontSize: tokens.fontSize.body, fontWeight: tokens.fontWeight.medium, color: tokens.color.fg.primary, overflow: "hidden", textOverflow: "ellipsis", whiteSpace: "nowrap" }}>
+          {product.name}
         </div>
-        <button type="button" onClick={onRemove} style={{ display: "flex", alignItems: "center", justifyContent: "center", width: "36px", height: "36px", flexShrink: 0, border: `1px solid ${tokens.color.divider.frame}`, borderRadius: tokens.borderRadius.md, background: tokens.color.base.white, cursor: "pointer" }}>
-          <MaskIcon url={trashIconUrl} color={tokens.color.fg.red} size={16} fallback={<BinFallback />} />
-        </button>
+        <div style={{ display: "flex", alignItems: "center", gap: "4px", marginTop: "2px" }}>
+          <span style={{ fontFamily: tokens.fontFamily.sans, fontSize: tokens.fontSize.bodySmall, color: tokens.color.fg.support }}>{product.brand}</span>
+          <div style={{ width: "1px", height: "10px", background: tokens.color.divider.frame, flexShrink: 0 }} />
+          <span style={{ fontFamily: tokens.fontFamily.sans, fontSize: tokens.fontSize.bodySmall, color: tokens.color.fg.support }}>{product.sku}</span>
+        </div>
       </div>
-      <div style={{ display: "flex", flexDirection: "column", gap: tokens.spacing[1] }}>
-        <span style={{ fontFamily: tokens.fontFamily.sans, fontSize: tokens.fontSize.bodySmall, fontWeight: tokens.fontWeight.medium, color: tokens.color.fg.support }}>Quantity of serials</span>
-        <input type="number" min={1} value={product.quantity}
-          onChange={e => { const n = parseInt(e.target.value, 10); if (!isNaN(n) && n > 0) onQuantityChange(n); }}
-          style={{ width: "100%", padding: `${tokens.spacing[2.5]} ${tokens.spacing[3]}`, border: `1px solid ${tokens.color.divider.frame}`, borderRadius: tokens.borderRadius.md, fontFamily: tokens.fontFamily.sans, fontSize: tokens.fontSize.body, color: tokens.color.fg.primary, background: tokens.color.base.white, outline: "none", boxSizing: "border-box" } as React.CSSProperties}
-        />
-      </div>
+      <button type="button" onClick={onRemove} style={{ display: "flex", alignItems: "center", justifyContent: "center", width: "36px", height: "36px", flexShrink: 0, border: `1px solid ${tokens.color.divider.frame}`, borderRadius: tokens.borderRadius.md, background: tokens.color.base.white, cursor: "pointer" }}>
+        <MaskIcon url={trashIconUrl} color={tokens.color.fg.red} size={16} fallback={<BinFallback />} />
+      </button>
     </div>
   );
 }
@@ -181,12 +172,14 @@ function SerialRow({ serial, onRemove, binUrl }: { serial: LoggedSerial; onRemov
 function CaptureSerialsMobilePageInner() {
   const router       = useRouter();
   const searchParams = useSearchParams();
-  const isLinkMode   = searchParams.get("mode") === "link";
+  const isLinkMode    = searchParams.get("mode") === "link";
+  const isCaptureMode = searchParams.get("mode") === "capture";
+  const taskName      = searchParams.get("task") ?? "";
   const icons    = useFigmaIcons([SCAN_NFC_ID, SCAN_ID, NFC_ADD_ID, BIN_ID, TRASH_ID, CALENDAR_ID]);
   const dateRef  = useRef<HTMLInputElement>(null);
   const serialRef = useRef<HTMLInputElement>(null);
 
-  const [scene, setScene] = useState<Scene>(isLinkMode ? "capture" : "details");
+  const [scene, setScene] = useState<Scene>((isLinkMode || isCaptureMode) ? "capture" : "details");
 
   // Phase 1 state
   const [selectedFormat,   setSelectedFormat]   = useState<string | null>(null);
@@ -194,28 +187,34 @@ function CaptureSerialsMobilePageInner() {
   const [orderNumber,      setOrderNumber]      = useState("B213456");
   const [customerRef,      setCustomerRef]      = useState("");
   const [batchNumber,      setBatchNumber]      = useState("");
-  const [selectedProducts, setSelectedProducts] = useState<SelectedProduct[]>([]);
+  const [selectedProduct,  setSelectedProduct]  = useState<SelectedProduct | null>(null);
   const [batchScanOpen,    setBatchScanOpen]    = useState(false);
   const [productScanOpen,  setProductScanOpen]  = useState(false);
   const [productSheetTab,  setProductSheetTab]  = useState<"scan" | "search">("scan");
 
   // Phase 2 state
   const [serialInput,   setSerialInput]   = useState("");
-  const [serials,       setSerials]       = useState<LoggedSerial[]>([]);
+  const [serials,       setSerials]       = useState<LoggedSerial[]>(
+    isCaptureMode
+      ? [{ value: "abcd" }, { value: "201320801030302" }]
+      : []
+  );
+
+  // Phase 2 scan sheet
+  const [scanOpen, setScanOpen] = useState(false);
 
   // Save progress dialog (X close only)
   const [saveDialogOpen, setSaveDialogOpen] = useState(false);
 
   // Helpers
-  const totalQuantity    = selectedProducts.reduce((s, p) => s + p.quantity, 0);
-  const firstProductName = selectedProducts[0]?.name ?? "product";
+  const firstProductName = selectedProduct?.name ?? "product";
   const captureEnabled   = serials.length > 0;
 
   function openProductScan()   { setProductSheetTab("scan");   setProductScanOpen(true); }
   function openProductSearch() { setProductSheetTab("search"); setProductScanOpen(true); }
 
   function handleProductSelected(p: ScanResult) {
-    setSelectedProducts(prev => prev.find(x => x.id === p.id) ? prev : [...prev, { ...p, quantity: 1 }]);
+    setSelectedProduct(p);
   }
 
   function addSerial(value?: string) {
@@ -227,7 +226,11 @@ function CaptureSerialsMobilePageInner() {
   }
 
   function handleComplete() {
-    localStorage.setItem(isLinkMode ? "mobileCutRopeCreated" : "mobileSerialCreated", "1");
+    if (isLinkMode) {
+      localStorage.setItem("mobileCutRopeCreated", "1");
+    } else {
+      localStorage.setItem("mobileSerialCreated", "1");
+    }
     router.push("/mobile/serialisation");
   }
 
@@ -277,17 +280,6 @@ function CaptureSerialsMobilePageInner() {
             Serial details
           </h2>
 
-          {/* Format */}
-          <div style={{ display: "flex", flexDirection: "column", gap: tokens.spacing[4], marginBottom: tokens.spacing[5] }}>
-            <FieldLabel text="Select a serial format (required)" />
-            <div style={{ display: "flex", flexDirection: "column", gap: tokens.spacing[2] }}>
-              {SERIAL_FORMATS.map(fmt => (
-                <SelectionCard key={fmt.id} type="radio" label={fmt.name} description={fmt.description}
-                  checked={selectedFormat === fmt.id} onChange={() => setSelectedFormat(fmt.id)} />
-              ))}
-            </div>
-          </div>
-
           {/* Purchase order */}
           <div style={{ display: "flex", flexDirection: "column", gap: tokens.spacing[1.5], marginBottom: tokens.spacing[4] }}>
             <FieldLabel text="Purchase order" />
@@ -320,35 +312,26 @@ function CaptureSerialsMobilePageInner() {
 
           <SectionDivider />
 
-          {/* Assign to products */}
+          {/* Assign to product */}
           <div style={{ marginBottom: tokens.spacing[3] }}>
             <h2 style={{ fontFamily: tokens.fontFamily.sans, fontSize: tokens.fontSize.h4, fontWeight: tokens.fontWeight.semiBold, lineHeight: tokens.lineHeight.h4, color: tokens.color.fg.primary, margin: `0 0 ${tokens.spacing[2]}` }}>
-              Assign to products
+              Assign to product
             </h2>
             <p style={{ fontFamily: tokens.fontFamily.sans, fontSize: tokens.fontSize.bodySmall, color: tokens.color.fg.support, margin: 0, lineHeight: "1.5" }}>
-              Select one or more products to assign these serials to. Note: This tool is not available for Assembly product types.
+              Select a product to assign these serials to. Note: This tool is not available for Assembly product types.
             </p>
           </div>
 
-          <div style={{ marginBottom: tokens.spacing[4] }}>
-            <ScanInput placeholder="Search by SKU name or code" leadingIcon={<SearchIconSVG />}
-              value="" readOnly onClick={openProductSearch} onScan={openProductScan} />
-          </div>
-
-          {selectedProducts.length > 0 && (
-            <div style={{ display: "flex", flexDirection: "column", gap: tokens.spacing[2] }}>
-              <span style={{ fontFamily: tokens.fontFamily.sans, fontSize: tokens.fontSize.bodySmall, fontWeight: tokens.fontWeight.medium, color: tokens.color.fg.support }}>
-                Selected products
-              </span>
-              <div style={{ display: "flex", flexDirection: "column", gap: tokens.spacing[5] }}>
-                {selectedProducts.map(p => (
-                  <ProductRow key={p.id} product={p} trashIconUrl={icons[TRASH_ID]}
-                    onRemove={() => setSelectedProducts(prev => prev.filter(x => x.id !== p.id))}
-                    onQuantityChange={q => setSelectedProducts(prev => prev.map(x => x.id === p.id ? { ...x, quantity: q } : x))}
-                  />
-                ))}
-              </div>
+          {!selectedProduct && (
+            <div style={{ marginBottom: tokens.spacing[4] }}>
+              <ScanInput placeholder="Search by SKU name or code" leadingIcon={<SearchIconSVG />}
+                value="" readOnly onClick={openProductSearch} onScan={openProductScan} />
             </div>
+          )}
+
+          {selectedProduct && (
+            <ProductRow product={selectedProduct} trashIconUrl={icons[TRASH_ID]}
+              onRemove={() => setSelectedProduct(null)} />
           )}
         </div>
 
@@ -393,11 +376,11 @@ function CaptureSerialsMobilePageInner() {
       <MobileAppBar
         page="task"
         taskNavIcon="back"
-        title={isLinkMode ? "Cut rope lengths" : "Capture Serials"}
-        subText={!isLinkMode}
-        subTextContent={isLinkMode ? undefined : `to ${firstProductName}`}
-        onBack={() => isLinkMode ? router.back() : setScene("details")}
-        onClose={isLinkMode ? undefined : () => setSaveDialogOpen(true)}
+        title={isLinkMode ? "Cut rope lengths" : "Capture serials"}
+        subText={!isLinkMode || isCaptureMode}
+        subTextContent={isLinkMode ? undefined : (isCaptureMode ? taskName : `to ${firstProductName}`)}
+        onBack={() => (isLinkMode || isCaptureMode) ? router.back() : setScene("details")}
+        onClose={(isLinkMode || isCaptureMode) ? undefined : () => setSaveDialogOpen(true)}
       />
 
       {/* Input area */}
@@ -413,7 +396,7 @@ function CaptureSerialsMobilePageInner() {
               onClear={serialInput ? () => setSerialInput("") : undefined}
               onKeyDown={(e: React.KeyboardEvent) => { if (e.key === "Enter") addSerial(); }}
               inlineButton={
-                <button type="button" onClick={() => addSerial()}
+                <button type="button" onClick={() => setScanOpen(true)}
                   style={{ display: "flex", alignItems: "center", gap: tokens.spacing[1], height: "100%", paddingTop: tokens.spacing[2.5], paddingBottom: tokens.spacing[2.5], paddingLeft: tokens.spacing[2], paddingRight: tokens.spacing[3], background: tokens.color.brand.lime, border: `1px solid ${tokens.color.divider.lime}`, borderTopLeftRadius: 0, borderBottomLeftRadius: 0, borderTopRightRadius: 0, borderBottomRightRadius: 0, cursor: "pointer", fontFamily: tokens.fontFamily.sans, fontSize: tokens.fontSize.body, fontWeight: tokens.fontWeight.medium, color: tokens.color.fg.primary, whiteSpace: "nowrap", flexShrink: 0 } as React.CSSProperties}
                 >
                   <MaskIcon url={icons[SCAN_ID]} color={tokens.color.fg.primary} size={16} fallback={<NfcFallback />} />
@@ -434,7 +417,7 @@ function CaptureSerialsMobilePageInner() {
         </div>
 
         {/* Add another */}
-        <div style={{ display: "flex", justifyContent: "flex-end", marginTop: tokens.spacing[2], paddingBottom: tokens.spacing[3] }}>
+        <div style={{ display: "flex", justifyContent: "flex-end", marginTop: tokens.spacing[4], paddingBottom: tokens.spacing[3] }}>
           <button type="button" onClick={() => addSerial()}
             style={{ background: "transparent", border: "none", padding: 0, cursor: "pointer", fontFamily: tokens.fontFamily.sans, fontSize: tokens.fontSize.body, color: tokens.color.fg.blue, textDecoration: "underline" }}>
             Add another
@@ -463,9 +446,16 @@ function CaptureSerialsMobilePageInner() {
             <p style={{ fontFamily: tokens.fontFamily.sans, fontSize: tokens.fontSize.bodySmall, color: tokens.color.fg.support, margin: `0 0 ${tokens.spacing[2]}` }}>
               {isLinkMode ? `Serials to link (${serials.length}):` : `Serials to capture (${serials.length}):`}
             </p>
-            <div style={{ display: "flex", flexDirection: "column", gap: tokens.spacing[1.5] }}>
+            <div style={{ display: "flex", flexDirection: "column" }}>
               {serials.map((s, i) => (
-                <SerialRow key={i} serial={s} onRemove={() => setSerials(prev => prev.filter((_, j) => j !== i))} binUrl={icons[BIN_ID]} />
+                <div key={i} style={{ display: "flex", alignItems: "center", gap: tokens.spacing[4], paddingTop: tokens.spacing[2], paddingBottom: tokens.spacing[2], borderBottom: `1px solid ${tokens.color.divider.border}` }}>
+                  <span style={{ flex: "1 1 0", minWidth: 0, fontFamily: tokens.fontFamily.sans, fontSize: tokens.fontSize.body, color: tokens.color.fg.primary }}>
+                    #{s.value}
+                  </span>
+                  <button type="button" onClick={() => setSerials(prev => prev.filter((_, j) => j !== i))} style={{ display: "flex", alignItems: "center", justifyContent: "center", background: tokens.color.base.white, border: `1px solid ${tokens.color.divider.frame}`, borderRadius: tokens.borderRadius.md, padding: tokens.spacing[1], cursor: "pointer", flexShrink: 0 }}>
+                    <MaskIcon url={icons[BIN_ID]} color={tokens.color.fg.red} size={24} fallback={<BinFallback />} />
+                  </button>
+                </div>
               ))}
             </div>
           </div>
@@ -488,6 +478,14 @@ function CaptureSerialsMobilePageInner() {
         />
       </div>
 
+      {/* Scan simulation */}
+      <ScanSimulationSheet
+        open={scanOpen}
+        onClose={() => setScanOpen(false)}
+        contained
+        onDetected={value => { addSerial(value); setScanOpen(false); }}
+      />
+
       {/* Save progress dialog (X close only) */}
       <BottomSheet variant="bottom-sheet-mobile" open={saveDialogOpen} onClose={() => setSaveDialogOpen(false)} contained>
         <div style={{ padding: `${tokens.spacing[2]} ${tokens.spacing[4]} ${tokens.spacing[8]}` }}>
@@ -495,7 +493,7 @@ function CaptureSerialsMobilePageInner() {
             Save progress?
           </h3>
           <p style={{ fontFamily: tokens.fontFamily.sans, fontSize: tokens.fontSize.body, color: tokens.color.fg.support, margin: `0 0 ${tokens.spacing[5]}`, lineHeight: "1.5" }}>
-            You have captured {serials.length} of {totalQuantity || "–"} serials. Would you like to save these to the task or discard them?
+            You have captured {serials.length} serial{serials.length !== 1 ? "s" : ""}. Would you like to save these to the task or discard them?
           </p>
           <div style={{ display: "flex", flexDirection: "column", gap: tokens.spacing[2] }}>
             <Button variant="primary" label="Save and exit" style={{ width: "100%" }} onClick={handleSaveAndExit} />

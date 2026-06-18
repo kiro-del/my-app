@@ -26,10 +26,11 @@ const PRODUCTS_ID       = "3628:9949"; // Products
 const ME_ID             = "1613:107";
 // Add-menu icons
 const ICON_CREATE_SER   = "94:554";    // Create serials
-const ICON_CAPTURE_SER  = "5846:2623"; // Capture serials
+const ICON_CAPTURE_SER  = "6258:3868"; // Capture serials
 const ICON_ROPE_SER     = "2119:4324"; // Create cut rope serials
 // Context-menu icons
 const ICON_COPY         = "149:364";   // Copy
+const ICON_EDIT         = "46:2933";   // Edit / pencil
 const ICON_PRINT_LABEL  = "6040:1824"; // Printer label
 const ICON_REFRESH      = "46:2937";   // Refresh / Reload
 const ICON_BIN          = "49:967";    // Bin / Delete
@@ -37,7 +38,7 @@ const ICON_BIN          = "49:967";    // Bin / Delete
 const ALL_ICON_IDS = [
   FILTER_ICON_ID, HOME_ID, SERIALS_ID, PRODUCTS_ID, ME_ID,
   ICON_CREATE_SER, ICON_CAPTURE_SER, ICON_ROPE_SER,
-  ICON_COPY, ICON_PRINT_LABEL, ICON_REFRESH, ICON_BIN,
+  ICON_COPY, ICON_EDIT, ICON_PRINT_LABEL, ICON_REFRESH, ICON_BIN,
 ];
 
 // ── Static data ────────────────────────────────────────────────────────────────
@@ -186,15 +187,25 @@ export default function SerialisationPage() {
   const icons = useFigmaIcons(ALL_ICON_IDS);
   const toast = useToast({ bottom: "90px" });
 
-  // Show success toast when arriving from create-serials or cut-rope-lengths
+  const [successSheetOpen, setSuccessSheetOpen] = useState(false);
+
+  // Show success toast/sheet when arriving from create-serials or cut-rope-lengths
   useEffect(() => {
     if (localStorage.getItem("mobileSerialCreated")) {
       localStorage.removeItem("mobileSerialCreated");
-      toast.show({ variant: "success", message: "Serials added", duration: 3000 });
+      toast.show({ variant: "success", message: "Serials captured", duration: 3000 });
     }
     if (localStorage.getItem("mobileCutRopeCreated")) {
       localStorage.removeItem("mobileCutRopeCreated");
-      toast.show({ variant: "success", message: "Cut rope lengths generated", duration: 3000 });
+      setSuccessSheetOpen(true);
+    }
+    if (localStorage.getItem("mobileCutRopeLinked")) {
+      localStorage.removeItem("mobileCutRopeLinked");
+      toast.show({ variant: "success", message: "Cut rope length created", duration: 3000 });
+    }
+    if (localStorage.getItem("mobilePrintLabels")) {
+      localStorage.removeItem("mobilePrintLabels");
+      toast.show({ variant: "success", message: "Printing labels...", duration: 3000 });
     }
   }, []);
 
@@ -487,13 +498,14 @@ export default function SerialisationPage() {
           {menuVariant === "generated" && (
             <>
               <ContextMenuItem label="Copy url for preview" iconUrl={icons[ICON_COPY]} onClick={() => setMenuTaskId(null)} />
+              <ContextMenuItem label="Edit order details" iconUrl={icons[ICON_EDIT]} onClick={() => { setMenuTaskId(null); router.push("/mobile/edit-order-details"); }} />
               <ContextMenuItem label="Print labels" iconUrl={icons[ICON_PRINT_LABEL]} divider onClick={() => { setMenuTaskId(null); router.push("/mobile/print-labels"); }} />
               <ContextMenuItem label="Delete serials" iconUrl={icons[ICON_BIN]} state="destructive" onClick={() => setMenuTaskId(null)} />
             </>
           )}
           {menuVariant === "captured-active" && (
             <>
-              <ContextMenuItem label="Capture serials" iconUrl={icons[ICON_CAPTURE_SER]} onClick={() => setMenuTaskId(null)} />
+              <ContextMenuItem label="Capture serials" iconUrl={icons[ICON_CAPTURE_SER]} onClick={() => { const name = menuTask?.name ?? ""; setMenuTaskId(null); router.push(`/mobile/capture-serials?mode=capture&task=${encodeURIComponent(name)}`); }} />
               <ContextMenuItem label="Copy ID" iconUrl={icons[ICON_COPY]} onClick={() => setMenuTaskId(null)} />
               <ContextMenuItem label="Print labels" iconUrl={icons[ICON_PRINT_LABEL]} onClick={() => { setMenuTaskId(null); router.push("/mobile/print-labels"); }} />
               <ContextMenuItem label="Reload" iconUrl={icons[ICON_REFRESH]} divider onClick={() => setMenuTaskId(null)} />
@@ -527,6 +539,88 @@ export default function SerialisationPage() {
 
       {/* ── Toast notifications ──────────────────────────────────────────────── */}
       <toast.ToastContainer />
+
+      {/* ── Serials generated success sheet ─────────────────────────────────── */}
+      <BottomSheet
+        variant="bottom-sheet-mobile"
+        open={successSheetOpen}
+        onClose={() => setSuccessSheetOpen(false)}
+        contained
+      >
+        <div style={{
+          display:       "flex",
+          flexDirection: "column",
+          gap:           tokens.spacing[4],
+          paddingTop:    tokens.spacing[2],
+          paddingLeft:   tokens.spacing[4],
+          paddingRight:  tokens.spacing[4],
+          paddingBottom: tokens.spacing[6],
+        }}>
+          {/* Success icon */}
+          <div style={{ display: "flex", justifyContent: "center", paddingTop: tokens.spacing[2] }}>
+            <div style={{
+              width:          56,
+              height:         56,
+              borderRadius:   tokens.borderRadius.full,
+              background:     tokens.color.tint.green,
+              display:        "flex",
+              alignItems:     "center",
+              justifyContent: "center",
+            }}>
+              <svg width="28" height="28" viewBox="0 0 28 28" fill="none" aria-hidden>
+                <path d="M6 14l6 6 10-12" stroke={tokens.color.fg.green} strokeWidth="2.2" strokeLinecap="round" strokeLinejoin="round" />
+              </svg>
+            </div>
+          </div>
+
+          <h2 style={{ margin: 0, ...tokens.typography.h3, color: tokens.color.fg.primary, textAlign: "center" }}>
+            Serials generated!
+          </h2>
+
+          <div style={{ display: "flex", flexDirection: "column", gap: tokens.spacing[2] }}>
+            <span style={{ ...tokens.typography.bodyR, color: tokens.color.fg.support }}>Label preview</span>
+            <div style={{
+              display:        "flex",
+              justifyContent: "center",
+              padding:        tokens.spacing[4],
+              background:     tokens.color.bg.lightBg,
+              borderRadius:   tokens.borderRadius.lg,
+            }}>
+              <img src="/label.png" alt="Label preview" style={{ height: 200, width: "auto", display: "block" }} />
+            </div>
+          </div>
+
+          <div style={{ display: "flex", alignItems: "center", gap: tokens.spacing[2] }}>
+            <span style={{ ...tokens.typography.bodyR, color: tokens.color.fg.support, flex: "0 0 auto" }}>Printer:</span>
+            <span style={{ ...tokens.typography.bodyM, color: tokens.color.fg.primary }}>Sato CT4-LX</span>
+          </div>
+
+          <Button
+            variant="primary"
+            label="Print NFC rope label"
+            onClick={() => { setSuccessSheetOpen(false); router.push("/mobile/print-labels"); }}
+            style={{ width: "100%" }}
+          />
+          <button
+            onClick={() => { setSuccessSheetOpen(false); router.push("/mobile/edit-order-details"); }}
+            style={{
+              background:     "transparent",
+              border:         "none",
+              cursor:         "pointer",
+              fontFamily:     tokens.fontFamily.sans,
+              fontSize:       "14px",
+              fontWeight:     tokens.fontWeight.medium,
+              lineHeight:     "20px",
+              color:          tokens.color.fg.blue,
+              textDecoration: "underline",
+              textAlign:      "center",
+              width:          "100%",
+            }}
+          >
+            Edit order details
+          </button>
+        </div>
+      </BottomSheet>
     </div>
   );
 }

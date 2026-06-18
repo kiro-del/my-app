@@ -1,7 +1,7 @@
 // @refresh reset
 "use client";
 // app/mobile/serialisation/[id]/page.tsx
-// Figma: nodes 91:7825 (collapsed) and 91:10465 (expanded)
+// Figma: nodes 174:10624, 171:16796
 
 import React, { useState } from "react";
 import { useRouter, useParams } from "next/navigation";
@@ -9,15 +9,18 @@ import tokens from "@/styles/design-tokens";
 import { MobileAppBar } from "@/components/ui/MobileAppBar";
 import { BottomSheet } from "@/components/ui/BottomSheet";
 import { ContextMenuItem } from "@/components/ui/ContextMenuItem";
+import { Badge } from "@/components/ui/Badge";
 import { useFigmaIcons } from "@/hooks/useFigmaIcons";
 
 // ── DS icon node IDs (design system file j8hy0yzSKPyh1yRKOh4tuU) ─────────────
-const ICON_CAPTURE_SER = "5846:2623";
-const ICON_COPY        = "149:364";
-const ICON_PRINT_LABEL = "6040:1824";
-const ICON_REFRESH     = "46:2937";
-const ICON_BIN         = "49:967";
-const ALL_MENU_ICON_IDS = [ICON_CAPTURE_SER, ICON_COPY, ICON_PRINT_LABEL, ICON_REFRESH, ICON_BIN];
+const ICON_CAPTURE_SER   = "6258:3868";
+const ICON_COPY          = "149:364";
+const ICON_PRINT_LABEL   = "6040:1824";
+const ICON_REFRESH       = "46:2937";
+const ICON_BIN           = "49:967";
+const ICON_CHEVRON_DOWN  = "144:817";
+const ICON_NFC_TAG       = "5530:29916";
+const ALL_MENU_ICON_IDS  = [ICON_CAPTURE_SER, ICON_COPY, ICON_PRINT_LABEL, ICON_REFRESH, ICON_BIN, ICON_CHEVRON_DOWN, ICON_NFC_TAG];
 
 // ── Serial tasks data (mirrors serialisation/page.tsx) ────────────────────────
 
@@ -44,6 +47,15 @@ const SERIAL_TASKS: SerialTask[] = [
   { id: "6", name: "Trance L / HU102PR-L",                          date: "Created on April 8, 2026",  count: "400 serials",  product: "Trance L",                        brand: "Petzl", sku: "HU102PR-L", quantity: 400, menuVariant: "generated"       },
 ];
 
+const STATIC_DETAILS = [
+  { label: "Purchase order",    value: "1234-44"     },
+  { label: "Sales order",       value: "1234-44"     },
+  { label: "Date of manufacture", value: "Apr 10, 2026" },
+  { label: "Batch number",      value: "323"         },
+  { label: "Type",              value: "Generated"   },
+];
+
+const CHUNK_SIZE = 50;
 
 // ── Icons ─────────────────────────────────────────────────────────────────────
 
@@ -52,22 +64,6 @@ function CameraIcon({ color }: { color: string }) {
     <svg width="24" height="24" viewBox="0 0 24 24" fill="none" aria-hidden>
       <path d="M23 19C23 19.5304 22.7893 20.0391 22.4142 20.4142C22.0391 20.7893 21.5304 21 21 21H3C2.46957 21 1.96086 20.7893 1.58579 20.4142C1.21071 20.0391 1 19.5304 1 19V8C1 7.46957 1.21071 6.96086 1.58579 6.58579C1.96086 6.21071 2.46957 6 3 6H7L9 3H15L17 6H21C21.5304 6 22.0391 6.21071 22.4142 6.58579C22.7893 6.96086 23 7.46957 23 8V19Z" stroke={color} strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round"/>
       <path d="M12 17C14.2091 17 16 15.2091 16 13C16 10.7909 14.2091 9 12 9C9.79086 9 8 10.7909 8 13C8 15.2091 9.79086 17 12 17Z" stroke={color} strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round"/>
-    </svg>
-  );
-}
-
-function ChevronDownIcon({ color }: { color: string }) {
-  return (
-    <svg width="16" height="16" viewBox="0 0 16 16" fill="none" aria-hidden>
-      <path d="M3.5 6L8 10.5L12.5 6" stroke={color} strokeWidth="1.4" strokeLinecap="round" strokeLinejoin="round" />
-    </svg>
-  );
-}
-
-function ChevronUpIcon({ color }: { color: string }) {
-  return (
-    <svg width="16" height="16" viewBox="0 0 16 16" fill="none" aria-hidden>
-      <path d="M3.5 10L8 5.5L12.5 10" stroke={color} strokeWidth="1.4" strokeLinecap="round" strokeLinejoin="round" />
     </svg>
   );
 }
@@ -81,24 +77,60 @@ function SearchIcon({ color }: { color: string }) {
   );
 }
 
-function SortIcon({ color }: { color: string }) {
+// NFC tag — lime circle with NFC wave (DS node 5530:29916)
+function NfcTagIcon() {
   return (
-    <svg width="24" height="24" viewBox="0 0 24 24" fill="none" aria-hidden>
-      <path d="M8 9l4-4 4 4"   stroke={color} strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round" />
-      <path d="M8 15l4 4 4-4"  stroke={color} strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round" />
+    <svg width="16" height="16" viewBox="0 0 16 16" fill="none" aria-hidden>
+      <circle cx="8" cy="8" r="7" fill={tokens.color.brand.lime} />
+      <path d="M8 11.5a.75.75 0 1 0 0-1.5.75.75 0 0 0 0 1.5Z" fill={tokens.color.brand.darkPurple} />
+      <path d="M5.8 9.6A3 3 0 0 1 8 4.5a3 3 0 0 1 2.2 5.1" stroke={tokens.color.brand.darkPurple} strokeWidth="1.1" strokeLinecap="round" fill="none" />
+      <path d="M7 8.25A1 1 0 0 1 8 6.5a1 1 0 0 1 1 1.75" stroke={tokens.color.brand.darkPurple} strokeWidth="1.1" strokeLinecap="round" fill="none" />
     </svg>
   );
 }
 
-// ── Static detail data (prototype) ────────────────────────────────────────────
+// Mask icon for DS icons
+function MaskIcon({
+  url, color, size = 16, fallback,
+}: { url?: string; color: string; size?: number; fallback: React.ReactNode }) {
+  if (!url) return <>{fallback}</>;
+  return (
+    <span
+      aria-hidden
+      style={{
+        display:            "inline-block",
+        width:              size,
+        height:             size,
+        flexShrink:         0,
+        background:         color,
+        maskImage:          `url(${url})`,
+        maskSize:           "contain",
+        maskRepeat:         "no-repeat",
+        maskPosition:       "center",
+        WebkitMaskImage:    `url(${url})`,
+        WebkitMaskSize:     "contain",
+        WebkitMaskRepeat:   "no-repeat",
+        WebkitMaskPosition: "center",
+      } as React.CSSProperties}
+    />
+  );
+}
 
-const STATIC_DETAILS = [
-  { label: "Purchase order",    value: "1234-44"     },
-  { label: "Sales order",       value: "1234-44"     },
-  { label: "Date of manufacture", value: "Apr 10, 2026" },
-  { label: "Batch number",      value: "323"         },
-  { label: "Type",              value: "Generated"   },
-];
+function ChevronDownFallback({ color }: { color: string }) {
+  return (
+    <svg width="16" height="16" viewBox="0 0 16 16" fill="none" aria-hidden>
+      <path d="M3.5 6L8 10.5L12.5 6" stroke={color} strokeWidth="1.4" strokeLinecap="round" strokeLinejoin="round" />
+    </svg>
+  );
+}
+
+function ChevronUpFallback({ color }: { color: string }) {
+  return (
+    <svg width="16" height="16" viewBox="0 0 16 16" fill="none" aria-hidden>
+      <path d="M3.5 10L8 5.5L12.5 10" stroke={color} strokeWidth="1.4" strokeLinecap="round" strokeLinejoin="round" />
+    </svg>
+  );
+}
 
 // ── Page ───────────────────────────────────────────────────────────────────────
 
@@ -115,10 +147,24 @@ export default function ViewSerialsPage() {
   const [optionsOpen,     setOptionsOpen]     = useState(false);
   const [captureOpen,     setCaptureOpen]     = useState(false);
 
-  // Generate serial numbers for display
-  const serials = Array.from({ length: task.quantity > 30 ? 30 : task.quantity }, (_, i) =>
-    String(23060000 + i)
-  );
+  // Generate serial numbers in 001M07816826 format, split into groups of 50
+  const formatSerial = (n: number) => `${String(n).padStart(3, "0")}M07816826`;
+  const allSerials = Array.from({ length: task.quantity }, (_, i) => formatSerial(i + 1));
+  const groups: string[][] = [];
+  for (let i = 0; i < allSerials.length; i += CHUNK_SIZE) {
+    groups.push(allSerials.slice(i, i + CHUNK_SIZE));
+  }
+
+  // First group expanded by default
+  const [expandedGroups, setExpandedGroups] = useState<Set<number>>(new Set([0]));
+  function toggleGroup(idx: number) {
+    setExpandedGroups(prev => {
+      const next = new Set(prev);
+      if (next.has(idx)) next.delete(idx);
+      else next.add(idx);
+      return next;
+    });
+  }
 
   return (
     <div
@@ -143,16 +189,7 @@ export default function ViewSerialsPage() {
 
         {/* ── Serial details section ─────────────────────────────────────────── */}
         <div style={{ display: "flex", flexDirection: "column" }}>
-
-          {/* Section header row */}
-          <div
-            style={{
-              display:       "flex",
-              flexDirection: "column",
-              paddingLeft:   tokens.spacing[4],
-              paddingRight:  tokens.spacing[4],
-            }}
-          >
+          <div style={{ paddingLeft: tokens.spacing[4], paddingRight: tokens.spacing[4] }}>
             <div
               style={{
                 display:        "flex",
@@ -165,7 +202,6 @@ export default function ViewSerialsPage() {
               <span style={{ ...tokens.typography.bodyM, color: tokens.color.fg.primary }}>
                 Serial details
               </span>
-
               <button
                 onClick={() => setDetailsExpanded(e => !e)}
                 style={{
@@ -179,58 +215,26 @@ export default function ViewSerialsPage() {
                 }}
               >
                 {detailsExpanded
-                  ? <ChevronUpIcon color={tokens.color.fg.blue} />
-                  : <ChevronDownIcon color={tokens.color.fg.blue} />
+                  ? <MaskIcon url={menuIcons[ICON_CHEVRON_DOWN]} color={tokens.color.fg.blue} size={16} fallback={<ChevronUpFallback color={tokens.color.fg.blue} />} />
+                  : <MaskIcon url={menuIcons[ICON_CHEVRON_DOWN]} color={tokens.color.fg.blue} size={16} fallback={<ChevronDownFallback color={tokens.color.fg.blue} />} />
                 }
                 <span style={{ ...tokens.typography.bodyM, color: tokens.color.fg.blue }}>
                   {detailsExpanded ? "Collapse" : "View details"}
                 </span>
               </button>
             </div>
-
             <div style={{ height: "1px", background: tokens.color.divider.border }} />
           </div>
 
-          {/* Expandable detail rows */}
           {detailsExpanded && (
             <div style={{ background: tokens.color.base.white }}>
               {STATIC_DETAILS.map(({ label, value }) => (
-                <div
-                  key={label}
-                  style={{
-                    display:       "flex",
-                    flexDirection: "column",
-                    paddingLeft:   tokens.spacing[4],
-                    paddingRight:  tokens.spacing[4],
-                  }}
-                >
-                  <div
-                    style={{
-                      display:    "flex",
-                      alignItems: "flex-start",
-                      paddingTop:    "14px",
-                      paddingBottom: "13px",
-                      gap:           tokens.spacing[3],
-                    }}
-                  >
-                    <span
-                      style={{
-                        ...tokens.typography.bodyM,
-                        color:      tokens.color.fg.support,
-                        width:      "128px",
-                        flexShrink: 0,
-                      }}
-                    >
+                <div key={label} style={{ paddingLeft: tokens.spacing[4], paddingRight: tokens.spacing[4] }}>
+                  <div style={{ display: "flex", alignItems: "flex-start", paddingTop: "14px", paddingBottom: "13px", gap: tokens.spacing[3] }}>
+                    <span style={{ ...tokens.typography.bodyM, color: tokens.color.fg.support, width: "128px", flexShrink: 0 }}>
                       {label}
                     </span>
-                    <span
-                      style={{
-                        ...tokens.typography.bodyR,
-                        color:   tokens.color.fg.primary,
-                        flex:    "1 0 0",
-                        minWidth: 0,
-                      }}
-                    >
+                    <span style={{ ...tokens.typography.bodyR, color: tokens.color.fg.primary, flex: "1 0 0", minWidth: 0 }}>
                       {value}
                     </span>
                   </div>
@@ -241,195 +245,132 @@ export default function ViewSerialsPage() {
           )}
         </div>
 
-        {/* ── Product info + serial list ──────────────────────────────────────── */}
-        <div
-          style={{
-            display:       "flex",
-            flexDirection: "column",
-            gap:           tokens.spacing[2],
-            paddingBottom: tokens.spacing[4],
-            borderBottom:  `1px solid ${tokens.color.divider.border}`,
-          }}
-        >
-          {/* Product row */}
-          <div style={{ display: "flex", flexDirection: "column", paddingLeft: tokens.spacing[4], paddingRight: tokens.spacing[4] }}>
-            <div
-              style={{
-                display:    "flex",
-                alignItems: "center",
-                gap:        tokens.spacing[4],
-                paddingTop: tokens.spacing[2],
-                paddingBottom: tokens.spacing[2],
-              }}
-            >
-              {/* Product image placeholder */}
-              <div
-                style={{
-                  width:           "56px",
-                  height:          "56px",
-                  flexShrink:      0,
-                  background:      tokens.color.bg.bg,
-                  borderRadius:    tokens.borderRadius.md,
-                  display:         "flex",
-                  alignItems:      "center",
-                  justifyContent:  "center",
-                }}
-              >
-                <CameraIcon color={tokens.color.fg.disabled} />
-              </div>
-
-              {/* Name + brand/sku */}
-              <div
-                style={{
-                  flex:          "1 0 0",
-                  minWidth:      0,
-                  display:       "flex",
-                  flexDirection: "column",
-                  gap:           tokens.spacing[1],
-                }}
-              >
-                <span
-                  style={{
-                    ...tokens.typography.bodyM,
-                    color:        tokens.color.fg.primary,
-                    overflow:     "hidden",
-                    textOverflow: "ellipsis",
-                    whiteSpace:   "nowrap",
-                  }}
-                >
-                  {task.product}
-                </span>
-                <div style={{ display: "flex", alignItems: "center", gap: tokens.spacing[1] }}>
-                  <span style={{ ...tokens.typography.smallBodyR, color: tokens.color.fg.support }}>
-                    {task.brand}
-                  </span>
-                  <span
-                    aria-hidden
-                    style={{
-                      display:    "inline-block",
-                      width:      "1px",
-                      alignSelf:  "stretch",
-                      background: tokens.color.divider.frame,
-                      flexShrink: 0,
-                    }}
-                  />
-                  <span style={{ ...tokens.typography.smallBodyR, color: tokens.color.fg.support }}>
-                    {task.sku}
-                  </span>
-                </div>
-              </div>
-            </div>
-
-            {/* Serial quantity row */}
-            <div
-              style={{
-                display:       "flex",
-                gap:           tokens.spacing[1],
-                paddingTop:    tokens.spacing[2],
-                paddingBottom: tokens.spacing[2],
-              }}
-            >
-              <span style={{ ...tokens.typography.bodyM, color: tokens.color.fg.support }}>
-                Serial quantity:
-              </span>
-              <span style={{ ...tokens.typography.bodyM, color: tokens.color.fg.primary }}>
-                {task.quantity}
-              </span>
-            </div>
-          </div>
-
-          {/* Search + sort row */}
+        {/* ── Product info card ──────────────────────────────────────────────── */}
+        <div style={{ paddingLeft: tokens.spacing[4], paddingRight: tokens.spacing[4] }}>
           <div
             style={{
-              display:     "flex",
-              alignItems:  "center",
-              gap:         tokens.spacing[3],
-              paddingLeft: tokens.spacing[4],
-              paddingRight: tokens.spacing[4],
-            }}
-          >
-            {/* Search input */}
-            <div
-              style={{
-                flex:         "1 0 0",
-                display:      "flex",
-                alignItems:   "center",
-                gap:          tokens.spacing[2],
-                background:   tokens.color.base.white,
-                border:       `1px solid ${tokens.color.divider.frame}`,
-                borderRadius: tokens.borderRadius.md,
-                padding:      `${tokens.spacing[2]} ${tokens.spacing[2.5]}`,
-                boxShadow:    "0px 1px 4px 0px rgba(0,0,0,0.05)",
-              }}
-            >
-              <SearchIcon color={tokens.color.fg.disabled} />
-              <span style={{ ...tokens.typography.bodyR, color: tokens.color.fg.disabled, flex: "1 0 0" }}>
-                Search serial number...
-              </span>
-            </div>
-
-            {/* Sort button */}
-            <button
-              style={{
-                display:      "flex",
-                alignItems:   "center",
-                justifyContent: "center",
-                background:   tokens.color.base.white,
-                border:       `1px solid ${tokens.color.divider.frame}`,
-                borderRadius: tokens.borderRadius.md,
-                padding:      tokens.spacing[1],
-                cursor:       "pointer",
-                flexShrink:   0,
-              }}
-            >
-              <SortIcon color={tokens.color.fg.primary} />
-            </button>
-          </div>
-
-          {/* Serial number badge grid */}
-          <div
-            style={{
-              display:    "flex",
-              flexWrap:   "wrap",
-              gap:        tokens.spacing[2],
-              alignItems: "center",
-              paddingLeft: tokens.spacing[4],
-              paddingRight: tokens.spacing[4],
-              paddingTop: tokens.spacing[2],
+              display:       "flex",
+              alignItems:    "center",
+              gap:           tokens.spacing[4],
+              paddingTop:    tokens.spacing[2],
               paddingBottom: tokens.spacing[2],
             }}
           >
-            {serials.map((serial) => (
-              <span
-                key={serial}
-                style={{
-                  ...tokens.typography.smallBodySB,
-                  color:         tokens.color.fg.primary,
-                  background:    tokens.color.bg.bg,
-                  borderRadius:  tokens.borderRadius.full,
-                  paddingTop:    tokens.spacing[0.5],
-                  paddingBottom: tokens.spacing[0.5],
-                  paddingLeft:   tokens.spacing[2],
-                  paddingRight:  tokens.spacing[2],
-                  flexShrink:    0,
-                }}
-              >
-                {serial}
-              </span>
-            ))}
+            <div
+              style={{
+                width:          "56px",
+                height:         "56px",
+                flexShrink:     0,
+                background:     tokens.color.bg.bg,
+                borderRadius:   tokens.borderRadius.md,
+                display:        "flex",
+                alignItems:     "center",
+                justifyContent: "center",
+              }}
+            >
+              <CameraIcon color={tokens.color.fg.disabled} />
+            </div>
+
+            <div style={{ flex: "1 0 0", minWidth: 0, display: "flex", alignItems: "center", justifyContent: "space-between", gap: tokens.spacing[2] }}>
+              <div style={{ display: "flex", flexDirection: "column", gap: tokens.spacing[1], minWidth: 0 }}>
+                <span style={{ ...tokens.typography.bodyM, color: tokens.color.fg.primary, overflow: "hidden", textOverflow: "ellipsis", whiteSpace: "nowrap" }}>
+                  {task.product}
+                </span>
+                <span style={{ ...tokens.typography.smallBodyR, color: tokens.color.fg.support }}>{task.sku}</span>
+              </div>
+              <span style={{ ...tokens.typography.smallBodyR, color: tokens.color.fg.support, flexShrink: 0 }}>{task.count}</span>
+            </div>
           </div>
+          <div style={{ height: "1px", background: tokens.color.divider.border }} />
+        </div>
+
+        {/* ── Search bar ─────────────────────────────────────────────────────── */}
+        <div style={{ padding: `${tokens.spacing[3]} ${tokens.spacing[4]}` }}>
+          <div
+            style={{
+              display:      "flex",
+              alignItems:   "center",
+              gap:          tokens.spacing[2],
+              background:   tokens.color.base.white,
+              border:       `1px solid ${tokens.color.divider.frame}`,
+              borderRadius: tokens.borderRadius.md,
+              padding:      `${tokens.spacing[2]} ${tokens.spacing[2.5]}`,
+              boxShadow:    "0px 1px 4px 0px rgba(0,0,0,0.05)",
+            }}
+          >
+            <SearchIcon color={tokens.color.fg.disabled} />
+            <span style={{ ...tokens.typography.bodyR, color: tokens.color.fg.disabled, flex: "1 0 0" }}>
+              Search serial number...
+            </span>
+          </div>
+        </div>
+
+        {/* ── Serial groups ──────────────────────────────────────────────────── */}
+        <div style={{ display: "flex", flexDirection: "column", gap: tokens.spacing[4], paddingBottom: tokens.spacing[4] }}>
+          {groups.map((group, idx) => {
+            const isExpanded = expandedGroups.has(idx);
+            const first = group[0];
+            const last  = group[group.length - 1];
+            return (
+              <div key={idx} style={{ display: "flex", flexDirection: "column", gap: tokens.spacing[4], paddingLeft: tokens.spacing[4], paddingRight: tokens.spacing[4], borderBottom: isExpanded ? `1px solid ${tokens.color.divider.border}` : "none", paddingBottom: isExpanded ? tokens.spacing[4] : 0 }}>
+
+                {/* Group header row: chevron | range | count */}
+                <button
+                  onClick={() => toggleGroup(idx)}
+                  style={{
+                    display:      "flex",
+                    alignItems:   "center",
+                    gap:          tokens.spacing[4],
+                    width:        "100%",
+                    background:   "transparent",
+                    border:       "none",
+                    borderBottom: isExpanded ? "none" : `1px solid ${tokens.color.divider.border}`,
+                    cursor:       "pointer",
+                    textAlign:    "left",
+                    padding:      `0 0 ${tokens.spacing[2]} 0`,
+                    boxSizing:    "border-box",
+                  }}
+                >
+                  {isExpanded
+                    ? <ChevronUpFallback color={tokens.color.fg.support} />
+                    : <ChevronDownFallback color={tokens.color.fg.support} />
+                  }
+                  <div style={{ flex: "1 0 0", display: "flex", alignItems: "center", gap: tokens.spacing[1.5], flexWrap: "wrap" }}>
+                    <span style={{ ...tokens.typography.bodyR, color: tokens.color.fg.support }}>{first}</span>
+                    <span style={{ ...tokens.typography.bodyR, color: tokens.color.fg.support }}>-</span>
+                    <span style={{ ...tokens.typography.bodyR, color: tokens.color.fg.support }}>{last}</span>
+                  </div>
+                  <span style={{ ...tokens.typography.bodyR, color: tokens.color.fg.support, flexShrink: 0 }}>
+                    ({group.length})
+                  </span>
+                </button>
+
+                {/* Serial pill badges */}
+                {isExpanded && (
+                  <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: "10px", justifyItems: "start" }}>
+                    {group.map((serial) => (
+                      <Badge
+                        key={serial}
+                        color="gray"
+                        label={serial}
+                        icon={
+                          menuIcons[ICON_NFC_TAG]
+                            ? <img src={menuIcons[ICON_NFC_TAG]} width={16} height={16} alt="" aria-hidden />
+                            : <NfcTagIcon />
+                        }
+                        iconPosition="leading"
+                      />
+                    ))}
+                  </div>
+                )}
+              </div>
+            );
+          })}
         </div>
       </div>
 
       {/* ── Options button ───────────────────────────────────────────────────── */}
-      <div
-        style={{
-          background:  tokens.color.base.white,
-          borderTop:   `1px solid ${tokens.color.divider.border}`,
-          padding:     tokens.spacing[4],
-          flexShrink:  0,
-        }}
-      >
+      <div style={{ background: tokens.color.base.white, borderTop: `1px solid ${tokens.color.divider.border}`, padding: tokens.spacing[4], flexShrink: 0 }}>
         <button
           onClick={() => setOptionsOpen(true)}
           style={{
@@ -444,19 +385,12 @@ export default function ViewSerialsPage() {
             cursor:         "pointer",
           }}
         >
-          <span style={{ ...tokens.typography.bodyM, color: tokens.color.fg.primary }}>
-            Options
-          </span>
+          <span style={{ ...tokens.typography.bodyM, color: tokens.color.fg.primary }}>Options</span>
         </button>
       </div>
 
       {/* ── Options bottom sheet ─────────────────────────────────────────────── */}
-      <BottomSheet
-        variant="bottom-sheet-mobile"
-        open={optionsOpen}
-        onClose={() => setOptionsOpen(false)}
-        contained
-      >
+      <BottomSheet variant="bottom-sheet-mobile" open={optionsOpen} onClose={() => setOptionsOpen(false)} contained>
         <div style={{ paddingTop: tokens.spacing[2], paddingBottom: tokens.spacing[4] }}>
           {task.menuVariant === "generated" && (
             <>
@@ -476,13 +410,7 @@ export default function ViewSerialsPage() {
           )}
           {task.menuVariant === "captured-close" && (
             <>
-              <ContextMenuItem
-                label="Open to serial capture"
-                iconUrl={menuIcons[ICON_CAPTURE_SER]}
-                trailing="toggle"
-                toggleChecked={captureOpen}
-                onToggleChange={setCaptureOpen}
-              />
+              <ContextMenuItem label="Open to serial capture" iconUrl={menuIcons[ICON_CAPTURE_SER]} trailing="toggle" toggleChecked={captureOpen} onToggleChange={setCaptureOpen} />
               <ContextMenuItem label="Copy ID" iconUrl={menuIcons[ICON_COPY]} onClick={() => setOptionsOpen(false)} />
               <ContextMenuItem label="Print labels" iconUrl={menuIcons[ICON_PRINT_LABEL]} onClick={() => { setOptionsOpen(false); router.push("/mobile/print-labels"); }} />
               <ContextMenuItem label="Reload" iconUrl={menuIcons[ICON_REFRESH]} divider onClick={() => setOptionsOpen(false)} />

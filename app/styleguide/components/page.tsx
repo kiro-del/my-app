@@ -69,6 +69,8 @@ const ICON_NODE_IDS = {
   pli_bin_24:            "49:967",      // bin/trash 24px — ProductListItem delete button
   pli_add_16:            "2064:1089",   // add/plus 16px — ProductListItem action link
   pli_info_16:           "148:862",     // info circle 16px — ProductListItem indicator
+  badge_leading:         "2284:3120",   // success 16px — Badge leading icon demo
+  badge_trailing:        "2284:3139",   // error 16px — Badge trailing icon demo
 };
 
 // ---------------------------------------------------------------------------
@@ -1303,25 +1305,11 @@ function SelectionCardTab() {
 // ---------------------------------------------------------------------------
 // BadgeTab
 // ---------------------------------------------------------------------------
-function BadgeTab() {
+function BadgeTab({ svgs }: { svgs: Record<string, string> }) {
   const colors: BadgeColor[] = ["green", "red", "blue", "yellow", "gray", "lime"];
 
-  // Simple check icon for demo purposes
-  const CheckIcon = ({ color }: { color: string }) => (
-    <svg width="14" height="14" viewBox="0 0 14 14" fill="none" aria-hidden>
-      <circle cx="7" cy="7" r="7" fill={color} />
-      <path d="M4 7L6.5 9.5L10 4.5" stroke="white" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round" />
-    </svg>
-  );
-
-  const dotColors: Record<BadgeColor, string> = {
-    green:  tokens.color.bg.green,
-    red:    tokens.color.bg.red,
-    blue:   tokens.color.bg.blue,
-    yellow: tokens.color.bg.amber,
-    gray:   tokens.color.fg.disabled,
-    lime:   tokens.color.brand.darkPurple,
-  };
+  const leadingIcon  = <FigmaIcon svgUrl={svgs[ICON_NODE_IDS.badge_leading]}  size={16} alt="check" />;
+  const trailingIcon = <FigmaIcon svgUrl={svgs[ICON_NODE_IDS.badge_trailing]} size={16} alt="close" />;
 
   return (
     <div style={{ display: "flex", flexDirection: "column", gap: "40px" }}>
@@ -1350,7 +1338,7 @@ function BadgeTab() {
           <div style={{ display: "flex", flexWrap: "wrap", gap: "8px", alignItems: "center" }}>
             {colors.map(c => (
               <Badge key={c} color={c} label={c.charAt(0).toUpperCase() + c.slice(1)}
-                icon={<CheckIcon color={dotColors[c]} />} iconPosition="leading" />
+                icon={leadingIcon} iconPosition="leading" />
             ))}
           </div>
         </Row>
@@ -1362,7 +1350,7 @@ function BadgeTab() {
           <div style={{ display: "flex", flexWrap: "wrap", gap: "8px", alignItems: "center" }}>
             {colors.map(c => (
               <Badge key={c} color={c} label={c.charAt(0).toUpperCase() + c.slice(1)}
-                icon={<CheckIcon color={dotColors[c]} />} iconPosition="tail" />
+                icon={trailingIcon} iconPosition="tail" />
             ))}
           </div>
         </Row>
@@ -3800,7 +3788,7 @@ export default function ComponentsPage() {
         {activeTab === "radio"           && <RadioTab />}
         {activeTab === "checkbox"       && <CheckboxTab />}
         {activeTab === "selection-card" && <SelectionCardTab />}
-        {activeTab === "badge"            && <BadgeTab />}
+        {activeTab === "badge"            && <BadgeTab svgs={svgs} />}
         {activeTab === "badge-actionable" && <BadgeActionableTab />}
         {activeTab === "sidebar"          && <SidebarTab />}
         {activeTab === "toast"          && <ToastTab />}
