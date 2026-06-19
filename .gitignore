@@ -39,3 +39,9 @@ yarn-error.log*
 # typescript
 *.tsbuildinfo
 next-env.d.ts
+
+# design-sync (generated artifacts — keep only .design-sync/config.json and .design-sync/previews/)
+.ds-sync/
+ds-bundle/
+.design-sync/.cache/
+.design-sync/node_modules/
