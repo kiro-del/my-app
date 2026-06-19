@@ -6,6 +6,7 @@
   "entry": "./.ds-build-entry.tsx",
   "srcDir": "/Users/kirozhang/my-app/components/ui",
   "tsconfig": "/Users/kirozhang/my-app/tsconfig.json",
+  "readmeHeader": ".design-sync/conventions.md",
   "overrides": {
     "MobileAppBar": { "cardMode": "column" },
     "ModalHeader": { "cardMode": "column" }
