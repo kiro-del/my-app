@@ -368,7 +368,7 @@ export default function ViewSerialRunPage() {
 
                   {serial.claimed && (
                     <div style={{ background: tokens.color.tint.green, borderRadius: tokens.borderRadius.full, padding: "2px 8px", flexShrink: 0 }}>
-                      <span style={{ fontFamily: tokens.fontFamily.sans, fontSize: "12px", fontWeight: tokens.fontWeight.semibold, lineHeight: "16px", color: tokens.color.fg.green }}>
+                      <span style={{ fontFamily: tokens.fontFamily.sans, fontSize: "12px", fontWeight: tokens.fontWeight.semiBold, lineHeight: "16px", color: tokens.color.fg.green }}>
                         Claimed
                       </span>
                     </div>
