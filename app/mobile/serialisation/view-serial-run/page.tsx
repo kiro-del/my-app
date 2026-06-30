@@ -359,6 +359,32 @@ export default function ViewSerialRunPage() {
                   </span>
                 </div>
               )}
+
+              {/* Three-dot menu button */}
+              <button
+                type="button"
+                aria-label="More options"
+                style={{
+                  display:        "flex",
+                  alignItems:     "center",
+                  justifyContent: "center",
+                  width:          32,
+                  height:         32,
+                  flexShrink:     0,
+                  marginLeft:     tokens.spacing[2],
+                  background:     "none",
+                  border:         "none",
+                  cursor:         "pointer",
+                  borderRadius:   tokens.borderRadius.md,
+                  padding:        tokens.spacing[1],
+                }}
+              >
+                <svg width="24" height="24" viewBox="0 0 24 24" fill="none" aria-hidden>
+                  <circle cx="5"  cy="12" r="1.5" fill={tokens.color.fg.support} />
+                  <circle cx="12" cy="12" r="1.5" fill={tokens.color.fg.support} />
+                  <circle cx="19" cy="12" r="1.5" fill={tokens.color.fg.support} />
+                </svg>
+              </button>
             </div>
           ))}
         </div>
