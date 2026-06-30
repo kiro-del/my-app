@@ -3,7 +3,7 @@
 // app/mobile/cut-rope-lengths-v2/page.tsx
 // Figma: nodes 263:60201, 263:60124, 263:60925, 263:60840, 263:60884, 263:62442, 263:60954, 263:60968
 
-import React, { useState, useEffect, Suspense } from "react";
+import React, { useState, useEffect, useRef, Suspense } from "react";
 import { useFigmaIcons } from "@/hooks/useFigmaIcons";
 import { useRouter, useSearchParams } from "next/navigation";
 import { getReels } from "@/lib/reels-store";
@@ -480,6 +480,7 @@ function CutRopeLengthsV2Inner() {
   const expandIconUrl   = figmaIcons[EXPAND_ICON_ID];
   const addIconUrl      = figmaIcons[ADD_ICON_ID];
 
+  const scrollRef                          = useRef<HTMLDivElement>(null);
   const [step, setStep]                   = useState<Step>("select");
   const [selectedReel, setSelectedReel]   = useState<Reel | null>(null);
   const [scanOpen, setScanOpen]           = useState(false);
@@ -597,7 +598,7 @@ function CutRopeLengthsV2Inner() {
       />
 
       {/* Scrollable content */}
-      <div style={{ flex: "1 1 0", overflowY: "auto", overflowX: "hidden" }}>
+      <div ref={scrollRef} style={{ flex: "1 1 0", overflowY: "auto", overflowX: "hidden" }}>
 
         {/* ── STEP 1: SELECT SOURCE REEL ──────────────────────────────────── */}
         {step === "select" && (
@@ -1054,7 +1055,7 @@ function CutRopeLengthsV2Inner() {
             ) : viewAllFiltered.map(config => (
               <button
                 key={config.id}
-                onClick={() => { setSelectedConfigId(config.id); setViewAllSheetOpen(false); }}
+                onClick={() => { setSelectedConfigId(config.id); setViewAllSheetOpen(false); scrollRef.current?.scrollTo({ top: 0 }); }}
                 style={{
                   display:      "flex",
                   alignItems:   "flex-start",
