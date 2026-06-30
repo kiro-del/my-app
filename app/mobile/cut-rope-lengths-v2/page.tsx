@@ -483,6 +483,19 @@ function CutRopeLengthsV2Inner() {
   const [step, setStep]                   = useState<Step>("select");
   const [selectedReel, setSelectedReel]   = useState<Reel | null>(null);
   const [scanOpen, setScanOpen]           = useState(false);
+  const [myReels, setMyReels]             = useState<Reel[]>([]);
+
+  function loadReels() {
+    setMyReels(getReels().map(r => ({ id: r.id, name: r.name, brand: r.brand, barcode: r.sku, serial: `#${r.serial}`, image: r.image })));
+  }
+
+  useEffect(() => {
+    loadReels();
+    const onVisibility = () => { if (document.visibilityState === "visible") loadReels(); };
+    document.addEventListener("visibilitychange", onVisibility);
+    return () => document.removeEventListener("visibilitychange", onVisibility);
+  // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, []);
 
   useEffect(() => {
     const reelId = searchParams.get("reelId");
@@ -652,7 +665,7 @@ function CutRopeLengthsV2Inner() {
 
             {/* Individual reel cards */}
             <div style={{ display: "flex", flexDirection: "column", gap: tokens.spacing[3] }}>
-              {REELS.map(reel => (
+              {myReels.map(reel => (
                 <div
                   key={reel.id}
                   style={{

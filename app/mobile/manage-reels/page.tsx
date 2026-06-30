@@ -159,7 +159,7 @@ export default function ManageReelsPage() {
         gap:        tokens.spacing[2],
       }}>
         <button
-          onClick={() => router.back()}
+          onClick={() => router.push("/mobile/cut-rope-lengths-v2")}
           aria-label="Back"
           style={{
             display: "flex", alignItems: "center", justifyContent: "center",
