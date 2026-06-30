@@ -13,14 +13,15 @@ import { MobileButton as Button } from "@/components/ui/mobile/Button";
 import { ScanInput } from "@/components/ui/InputScan";
 
 // ── DS icon node IDs (design system file j8hy0yzSKPyh1yRKOh4tuU) ─────────────
-const SORT_ICON_ID = "55:223";   // switch-vertical / sort icon
-const NFC_ICON_ID  = "3550:863"; // NFC tag icon
+const SORT_ICON_ID     = "55:223";    // switch-vertical / sort icon
+const NFC_ICON_ID      = "3550:863";  // NFC tag icon
+const ICON_MENU_HORIZ  = "154:1415";  // three-dot menu horizontal
 const ICON_COPY        = "149:364";   // Copy
 const ICON_EDIT        = "46:2933";   // Edit / pencil
 const ICON_PRINT_LABEL = "6040:1824"; // Printer label
 const ICON_BIN         = "49:967";    // Bin / Delete
 
-const ALL_ICON_IDS = [SORT_ICON_ID, NFC_ICON_ID, ICON_COPY, ICON_EDIT, ICON_PRINT_LABEL, ICON_BIN];
+const ALL_ICON_IDS = [SORT_ICON_ID, NFC_ICON_ID, ICON_MENU_HORIZ, ICON_COPY, ICON_EDIT, ICON_PRINT_LABEL, ICON_BIN];
 
 // ── Static data ────────────────────────────────────────────────────────────────
 
@@ -379,11 +380,32 @@ export default function ViewSerialRunPage() {
                   padding:        tokens.spacing[1],
                 }}
               >
-                <svg width="24" height="24" viewBox="0 0 24 24" fill="none" aria-hidden>
-                  <circle cx="5"  cy="12" r="1.5" fill={tokens.color.fg.support} />
-                  <circle cx="12" cy="12" r="1.5" fill={tokens.color.fg.support} />
-                  <circle cx="19" cy="12" r="1.5" fill={tokens.color.fg.support} />
-                </svg>
+                {icons[ICON_MENU_HORIZ] ? (
+                  <span
+                    aria-hidden
+                    style={{
+                      display:            "block",
+                      width:              24,
+                      height:             24,
+                      flexShrink:         0,
+                      background:         tokens.color.fg.primary,
+                      maskImage:          `url(${icons[ICON_MENU_HORIZ]})`,
+                      maskSize:           "contain",
+                      maskRepeat:         "no-repeat",
+                      maskPosition:       "center",
+                      WebkitMaskImage:    `url(${icons[ICON_MENU_HORIZ]})`,
+                      WebkitMaskSize:     "contain",
+                      WebkitMaskRepeat:   "no-repeat",
+                      WebkitMaskPosition: "center",
+                    } as React.CSSProperties}
+                  />
+                ) : (
+                  <svg width="24" height="24" viewBox="0 0 24 24" fill="none" aria-hidden>
+                    <circle cx="5"  cy="12" r="1.5" fill={tokens.color.fg.primary} />
+                    <circle cx="12" cy="12" r="1.5" fill={tokens.color.fg.primary} />
+                    <circle cx="19" cy="12" r="1.5" fill={tokens.color.fg.primary} />
+                  </svg>
+                )}
               </button>
             </div>
           ))}
