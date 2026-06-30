@@ -339,40 +339,24 @@ export default function ViewSerialRunPage() {
                 borderBottom: `1px solid ${tokens.color.divider.border}`,
               }}
             >
-              {/* Serial number */}
-              <span style={{ ...tokens.typography.bodyM, color: tokens.color.fg.primary, flex: "1 0 0", minWidth: 0 }}>
-                {serial.number}
-              </span>
+              {/* Serial number + NFC icon inline */}
+              <div style={{ display: "flex", alignItems: "center", gap: tokens.spacing[1], flex: "1 0 0", minWidth: 0 }}>
+                <span style={{ ...tokens.typography.bodyM, color: tokens.color.fg.primary, minWidth: 0 }}>
+                  {serial.number}
+                </span>
+                {serial.nfcAdded && (
+                  icons[NFC_ICON_ID]
+                    ? <img src={icons[NFC_ICON_ID]} alt="NFC added" width={16} height={16} style={{ display: "block", flexShrink: 0 }} />
+                    : <NfcIconFallback />
+                )}
+              </div>
 
-              {/* Badge area: fixed width so NFC always starts at the same column */}
-              {(serial.nfcAdded || serial.claimed) && (
-                <div
-                  style={{
-                    display:     "flex",
-                    alignItems:  "center",
-                    gap:         tokens.spacing[4],
-                    marginLeft:  tokens.spacing[4],
-                    width:       180,
-                    flexShrink:  0,
-                  }}
-                >
-                  {serial.nfcAdded && (
-                    <div style={{ display: "flex", alignItems: "center", gap: tokens.spacing[1], flexShrink: 0 }}>
-                      {icons[NFC_ICON_ID]
-                        ? <img src={icons[NFC_ICON_ID]} alt="" aria-hidden width={16} height={16} style={{ display: "block", flexShrink: 0 }} />
-                        : <NfcIconFallback />
-                      }
-                      <span style={{ ...tokens.typography.bodyR, color: tokens.color.fg.support }}>NFC added</span>
-                    </div>
-                  )}
-
-                  {serial.claimed && (
-                    <div style={{ background: tokens.color.tint.green, borderRadius: tokens.borderRadius.full, padding: "2px 8px", flexShrink: 0 }}>
-                      <span style={{ fontFamily: tokens.fontFamily.sans, fontSize: "12px", fontWeight: tokens.fontWeight.semiBold, lineHeight: "16px", color: tokens.color.fg.green }}>
-                        Claimed
-                      </span>
-                    </div>
-                  )}
+              {/* Claimed badge */}
+              {serial.claimed && (
+                <div style={{ background: tokens.color.tint.green, borderRadius: tokens.borderRadius.full, padding: "2px 8px", flexShrink: 0, marginLeft: tokens.spacing[2] }}>
+                  <span style={{ fontFamily: tokens.fontFamily.sans, fontSize: "12px", fontWeight: tokens.fontWeight.semiBold, lineHeight: "16px", color: tokens.color.fg.green }}>
+                    Claimed
+                  </span>
                 </div>
               )}
             </div>
