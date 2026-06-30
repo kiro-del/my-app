@@ -3264,7 +3264,7 @@ function ProductListItemTab({ svgs }: { svgs: Record<string, string> }) {
           <div>
             <p style={{ fontSize: "12px", color: tokens.color.fg.disabled, fontFamily: "monospace", marginBottom: "8px" }}>action</p>
             <div style={{ border: `1px solid ${tokens.color.divider.border}`, borderRadius: tokens.borderRadius.lg, overflow: "hidden" }}>
-              <ProductListItem label="NFC" variant="action" actionIcon={Img(add16, 16)} noDivider />
+              <ProductListItem label="NFC" variant="action" actionLabel="Add" noDivider />
             </div>
           </div>
 
