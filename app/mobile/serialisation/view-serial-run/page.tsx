@@ -21,7 +21,7 @@ const ICON_EDIT        = "46:2933";   // Edit / pencil
 const ICON_PRINT_LABEL = "46:2944"; // Printer / print icon
 const ICON_BIN         = "49:967";    // Bin / Delete
 
-const ALL_ICON_IDS = [SORT_ICON_ID, NFC_ICON_ID, ICON_MENU_HORIZ, ICON_COPY, ICON_EDIT, ICON_PRINT_LABEL, ICON_BIN];
+const ALL_ICON_IDS = [SORT_ICON_ID, NFC_ICON_ID, ICON_MENU_HORIZ, ICON_EDIT, ICON_PRINT_LABEL, ICON_BIN];
 
 // ── Static data ────────────────────────────────────────────────────────────────
 
@@ -432,7 +432,6 @@ export default function ViewSerialRunPage() {
         contained
       >
         <div style={{ paddingTop: tokens.spacing[2], paddingBottom: tokens.spacing[4] }}>
-          <ContextMenuItem label="Copy url for preview" iconUrl={icons[ICON_COPY]} onClick={() => setOptionsSheetOpen(false)} />
           <ContextMenuItem label="Edit order details"   iconUrl={icons[ICON_EDIT]} onClick={() => setOptionsSheetOpen(false)} />
           <ContextMenuItem label="Print labels"         iconUrl={icons[ICON_PRINT_LABEL]} divider onClick={() => setOptionsSheetOpen(false)} />
           <ContextMenuItem label="Delete serials"       iconUrl={icons[ICON_BIN]} state="destructive" onClick={() => setOptionsSheetOpen(false)} />
