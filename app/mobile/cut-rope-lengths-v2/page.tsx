@@ -507,6 +507,7 @@ function CutRopeLengthsV2Inner() {
     setStep("details");
   }, [searchParams]);
   const [selectedConfigId, setSelectedConfigId] = useState<string>("");
+  const [floatSelected,    setFloatSelected]    = useState(false);
   const [quantity, setQuantity]           = useState(1);
   const [showAll, setShowAll]             = useState(false);
   const [filterSheetOpen, setFilterSheetOpen] = useState(false);
@@ -546,11 +547,10 @@ function CutRopeLengthsV2Inner() {
   });
   const visibleConfigs = showAll ? filteredConfigs : filteredConfigs.slice(0, 3);
 
-  // Selected config floats to top of the main step-3 card
-  const mainCardConfigs = [
-    ...CUT_CONFIGS.filter(c => c.id === selectedConfigId),
-    ...CUT_CONFIGS.filter(c => c.id !== selectedConfigId),
-  ].slice(0, 2);
+  // Selected config floats to top only when chosen from View all sheet
+  const mainCardConfigs = floatSelected
+    ? [...CUT_CONFIGS.filter(c => c.id === selectedConfigId), ...CUT_CONFIGS.filter(c => c.id !== selectedConfigId)].slice(0, 2)
+    : CUT_CONFIGS.slice(0, 2);
 
   const viewAllFiltered = CUT_CONFIGS.filter(c => {
     const lengthMatch = viewAllLengths.length === 0 || viewAllLengths.includes(c.length);
@@ -820,7 +820,7 @@ function CutRopeLengthsV2Inner() {
                     config={config}
                     selected={selectedConfigId === config.id}
                     divider={i < mainCardConfigs.length - 1}
-                    onClick={() => setSelectedConfigId(config.id)}
+                    onClick={() => { setSelectedConfigId(config.id); setFloatSelected(false); }}
                   />
                 ))}
 
@@ -1055,7 +1055,7 @@ function CutRopeLengthsV2Inner() {
             ) : viewAllFiltered.map(config => (
               <button
                 key={config.id}
-                onClick={() => { setSelectedConfigId(config.id); setViewAllSheetOpen(false); scrollRef.current?.scrollTo({ top: 0 }); }}
+                onClick={() => { setSelectedConfigId(config.id); setFloatSelected(true); setViewAllSheetOpen(false); scrollRef.current?.scrollTo({ top: 0 }); }}
                 style={{
                   display:      "flex",
                   alignItems:   "flex-start",
