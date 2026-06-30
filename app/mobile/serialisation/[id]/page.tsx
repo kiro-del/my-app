@@ -15,7 +15,7 @@ import { useFigmaIcons } from "@/hooks/useFigmaIcons";
 // ── DS icon node IDs (design system file j8hy0yzSKPyh1yRKOh4tuU) ─────────────
 const ICON_CAPTURE_SER   = "6258:3868";
 const ICON_COPY          = "149:364";
-const ICON_PRINT_LABEL   = "6040:1824";
+const ICON_PRINT_LABEL   = "46:2944"; // Printer / print icon
 const ICON_REFRESH       = "46:2937";
 const ICON_BIN           = "49:967";
 const ICON_CHEVRON_DOWN  = "144:817";

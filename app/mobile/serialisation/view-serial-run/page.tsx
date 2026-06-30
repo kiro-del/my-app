@@ -18,7 +18,7 @@ const NFC_ICON_ID      = "3550:863";  // NFC tag icon
 const ICON_MENU_HORIZ  = "154:1415";  // three-dot menu horizontal
 const ICON_COPY        = "149:364";   // Copy
 const ICON_EDIT        = "46:2933";   // Edit / pencil
-const ICON_PRINT_LABEL = "6040:1824"; // Printer label
+const ICON_PRINT_LABEL = "46:2944"; // Printer / print icon
 const ICON_BIN         = "49:967";    // Bin / Delete
 
 const ALL_ICON_IDS = [SORT_ICON_ID, NFC_ICON_ID, ICON_MENU_HORIZ, ICON_COPY, ICON_EDIT, ICON_PRINT_LABEL, ICON_BIN];

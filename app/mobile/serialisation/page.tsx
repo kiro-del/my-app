@@ -33,7 +33,7 @@ const ICON_ROPE_SER     = "6458:905";  // Create cut rope serials
 // Context-menu icons
 const ICON_COPY         = "149:364";   // Copy
 const ICON_EDIT         = "46:2933";   // Edit / pencil
-const ICON_PRINT_LABEL  = "6040:1824"; // Printer label
+const ICON_PRINT_LABEL  = "46:2944"; // Printer / print icon
 const ICON_REFRESH      = "46:2937";   // Refresh / Reload
 const ICON_BIN          = "49:967";    // Bin / Delete
 
