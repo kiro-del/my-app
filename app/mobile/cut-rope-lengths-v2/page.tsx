@@ -558,7 +558,7 @@ function CutRopeLengthsV2Inner() {
   });
 
   function goBack() {
-    if (step === "select")  router.back();
+    if (step === "select")  router.push("/mobile/serials-home");
     if (step === "details") setStep("select");
     if (step === "cut")     setStep("details");
     if (step === "order")   setStep("cut");
