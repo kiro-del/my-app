@@ -15,7 +15,7 @@ import { useFigmaIcons } from "@/hooks/useFigmaIcons";
 import { ApplyToProduct, type SelectedProductItem, type CatalogueProduct } from "@/components/ui/ApplyToProduct";
 import { ProductImg } from "@/components/ui/ProductImg";
 import { Alert } from "@/components/ui/Alert";
-import { ScanInput } from "@/components/ui/ScanInput";
+import { ScanInput } from "@/components/ui/InputScan";
 
 // ---------------------------------------------------------------------------
 // Sidebar icon ids

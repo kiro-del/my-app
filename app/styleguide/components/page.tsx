@@ -23,7 +23,7 @@ import { GloryItem } from "@/components/ui/GloryItems";
 import { ModalFooter } from "@/components/ui/ModalFooter";
 import { ModalHeader } from "@/components/ui/ModalHeader";
 import { ActionCard, ActionCardGroup } from "@/components/ui/ActionCard";
-import { CalendarIcon } from "@/components/ui/Input";
+import { CalendarIcon } from "@/components/ui/InputCalendar";
 import { ProductImg, CameraIcon } from "@/components/ui/ProductImg";
 import { Breadcrumb } from "@/components/ui/Breadcrumb";
 import { AppBar } from "@/components/ui/AppBar";
@@ -31,16 +31,15 @@ import { DashboardStatCard, DashboardStatStrip } from "@/components/ui/Dashboard
 import { ListViewItem } from "@/components/ui/ListViewItem";
 import { DataTable } from "@/components/ui/DataTable";
 import { Pagination, TableFooter } from "@/components/ui/Pagination";
-import { ApplyToProduct, type CatalogueProduct, type SelectedProductItem } from "@/components/ui/ApplyToProduct";
 import { SearchDropdown, type SearchDropdownItem } from "@/components/ui/SearchDropdown";
 import { Tabs, type TabItem } from "@/components/ui/Tabs";
 import { ProductListItem } from "@/components/ui/ProductListItem";
 import { ViewItemPageImg, type ViewItemPageImgPlatform } from "@/components/ui/ViewItemPageImg";
 import { EmptyState } from "@/components/ui/EmptyState";
 import { Steps, type StepsVariant } from "@/components/ui/Steps";
-import { SelectInput } from "@/components/ui/SelectInput";
-import { CompositeInput } from "@/components/ui/CompositeInput";
-import { ScanInput } from "@/components/ui/ScanInput";
+import { SelectInput } from "@/components/ui/InputSelect";
+import { CompositeInput } from "@/components/ui/InputComposite";
+import { ScanInput } from "@/components/ui/InputScan";
 import tokens from "@/styles/design-tokens";
 
 const FILE_KEY = "j8hy0yzSKPyh1yRKOh4tuU";
@@ -307,6 +306,22 @@ function ButtonTab({ svgs }: { svgs: Record<string, string> }) {
         { prop: "label",    type: "string",                     def: '"Button"',  desc: "Button label text" },
         { prop: "type",     type: '"button"|"submit"|"reset"',  def: '"button"',  desc: "HTML button type attribute" },
       ]} />
+
+      <Section title="Glory Button">
+        <div style={{ background: tokens.color.base.white, border: `1px solid ${tokens.color.divider.border}`, borderRadius: tokens.borderRadius.lg, padding: "24px" }}>
+          <Row label="button — larger pill (3px gradient border, px-16 py-8)">
+            <GloryItem type="button" label="Glory feature" />
+            <GloryItem type="button" label="New" />
+            <GloryItem type="button" label="AI powered" />
+          </Row>
+        </div>
+        <PropsTable rows={[
+          { prop: "type",    type: '"button" | "chip"',  def: '"button"',  desc: 'Use "button" for this larger CTA variant; "chip" belongs in Badge' },
+          { prop: "label",   type: "string",              def: '"Glory"',   desc: "Text label next to the sparkle star icon" },
+          { prop: "onClick", type: "() => void",          def: "undefined", desc: "Makes the pill interactive with pointer cursor" },
+          { prop: "style",   type: "React.CSSProperties", def: "undefined", desc: "Extra inline styles on the outer container" },
+        ]} />
+      </Section>
     </div>
   );
 }
@@ -341,7 +356,8 @@ function CalendarDateDemo() {
 
   const codeSnippet =
 `import { useRef, useState } from "react";
-import { Input, CalendarIcon } from "@/components/ui/Input";
+import { Input } from "@/components/ui/Input";
+import { CalendarIcon } from "@/components/ui/InputCalendar";
 
 const domRef = useRef<HTMLInputElement>(null);
 const [date, setDate] = useState("");
@@ -602,10 +618,23 @@ function InputTab({ svgs }: { svgs: Record<string, string> }) {
         { prop: "disabled",        type: "boolean",           def: "false",         desc: "gray-50 bg, gray-400 text, not interactive" },
       ]} />
 
-      {/* Calendar / date variant */}
-      <Section title="Tailing icon — Calendar (date input pattern)">
-        <CalendarDateDemo />
-      </Section>
+    </div>
+  );
+}
+
+// ---------------------------------------------------------------------------
+// Calendar Input tab (extracted from Input)
+// ---------------------------------------------------------------------------
+function CalendarInputTab() {
+  return (
+    <div>
+      <div style={{ marginBottom: "8px" }}>
+        <code style={{ fontSize: "12px", fontFamily: "monospace", background: tokens.color.bg.darkBg, padding: "2px 8px", borderRadius: tokens.borderRadius.sm, color: tokens.color.fg.support }}>components/ui/InputCalendar.tsx · CalendarIcon</code>
+      </div>
+      <p style={{ fontSize: "14px", color: tokens.color.fg.support, marginBottom: "32px", fontFamily: tokens.fontFamily.sans }}>
+        Native date picker via hidden <code style={{ fontFamily: "monospace" }}>{"<input type=\"date\">"}</code> + <code style={{ fontFamily: "monospace" }}>showPicker()</code> triggered from a <code style={{ fontFamily: "monospace" }}>CalendarIcon</code> tailing button. No date-input chrome visible.
+      </p>
+      <CalendarDateDemo />
     </div>
   );
 }
@@ -1383,6 +1412,23 @@ function BadgeTab({ svgs }: { svgs: Record<string, string> }) {
         { prop: "icon",         type: "React.ReactNode",                                     def: "—",       desc: "16px icon element" },
         { prop: "iconPosition", type: "none | leading | tail",                               def: "none",    desc: "Where to place the icon (ignored when withDot is true)" },
       ]} />
+
+      <Section title="Glory Chip">
+        <div style={{ background: tokens.color.base.white, border: `1px solid ${tokens.color.divider.border}`, borderRadius: tokens.borderRadius.lg, padding: "24px" }}>
+          <Row label="chip — smaller pill (2px gradient border, px-8 py-2)">
+            <GloryItem type="chip" label="New" />
+            <GloryItem type="chip" label="Beta" />
+            <GloryItem type="chip" label="Preview" />
+            <GloryItem type="chip" label="AI" />
+          </Row>
+        </div>
+        <PropsTable rows={[
+          { prop: "type",    type: '"button" | "chip"',  def: '"button"',  desc: 'Use "chip" for this badge-sized variant; "button" belongs in Button' },
+          { prop: "label",   type: "string",              def: '"Glory"',   desc: "Text label next to the sparkle star icon" },
+          { prop: "onClick", type: "() => void",          def: "undefined", desc: "Makes the chip interactive with pointer cursor" },
+          { prop: "style",   type: "React.CSSProperties", def: "undefined", desc: "Extra inline styles on the outer container" },
+        ]} />
+      </Section>
     </div>
   );
 }
@@ -2320,41 +2366,6 @@ function SectionHeaderTab() {
 }
 
 // ---------------------------------------------------------------------------
-// GloryItems tab
-// ---------------------------------------------------------------------------
-function GloryItemsTab() {
-  return (
-    <div>
-      <div style={{ marginBottom: "8px" }}>
-        <code style={{ fontSize: "12px", fontFamily: "monospace", background: tokens.color.bg.darkBg, padding: "2px 8px", borderRadius: tokens.borderRadius.sm, color: tokens.color.fg.support }}>components/ui/GloryItems.tsx</code>
-        <span style={{ fontSize: "12px", color: tokens.color.fg.disabled, marginLeft: "8px" }}>Figma node 3450:9507</span>
-      </div>
-      <p style={{ fontSize: "14px", color: tokens.color.fg.support, marginBottom: "32px", fontFamily: tokens.fontFamily.sans }}>Decorative pill with pink gradient border and sparkle star icon — button (larger) and chip (smaller) variants</p>
-
-      <Section title="Variants">
-        <Row label="button — larger pill (3px border, px-16 py-8)">
-          <GloryItem type="button" label="Glory feature" />
-          <GloryItem type="button" label="New" />
-          <GloryItem type="button" label="AI powered" />
-        </Row>
-        <Row label="chip — smaller pill (2px border, px-8 py-2)">
-          <GloryItem type="chip" label="New" />
-          <GloryItem type="chip" label="Beta" />
-          <GloryItem type="chip" label="Preview" />
-        </Row>
-      </Section>
-
-      <PropsTable rows={[
-        { prop: "type",   type: '"button" | "chip"',  def: '"button"', desc: "button = larger pill with 3px border; chip = smaller pill with 2px border" },
-        { prop: "label",  type: "string",              def: '"Glory"',  desc: "Text label displayed next to the sparkle star icon" },
-        { prop: "onClick",type: "() => void",           def: "undefined",desc: "Makes the pill interactive with pointer cursor" },
-        { prop: "style",  type: "React.CSSProperties", def: "undefined",desc: "Extra inline styles on the outer container" },
-      ]} />
-    </div>
-  );
-}
-
-// ---------------------------------------------------------------------------
 // Modal tab (ModalHeader + ModalFooter)
 // ---------------------------------------------------------------------------
 function ModalTab() {
@@ -2988,51 +2999,6 @@ function PaginationTab() {
 }
 
 // ---------------------------------------------------------------------------
-// ---------------------------------------------------------------------------
-// ApplyToProduct tab
-// ---------------------------------------------------------------------------
-function ApplyToProductTab() {
-  const CATALOGUE: CatalogueProduct[] = [
-    { id: "1", name: "Ultra O Locksafe",  sku: "DMM | A327MG" },
-    { id: "2", name: "Sender 9.9",        sku: "Mammut | 2310-01160" },
-    { id: "3", name: "Grigri+",           sku: "Petzl | D100A001" },
-    { id: "4", name: "Reverso 4",         sku: "Petzl | D017AA00" },
-    { id: "5", name: "ATC Guide",         sku: "Black Diamond | BD625100" },
-  ];
-  const [selected, setSelected] = useState<SelectedProductItem[]>([]);
-
-  return (
-    <div>
-      <div style={{ marginBottom: "8px" }}>
-        <code style={{ fontSize: "12px", fontFamily: "monospace", background: tokens.color.bg.darkBg, padding: "2px 8px", borderRadius: tokens.borderRadius.sm, color: tokens.color.fg.support }}>components/ui/ApplyToProduct.tsx</code>
-      </div>
-      <p style={{ fontSize: "14px", color: tokens.color.fg.support, marginBottom: "32px", fontFamily: tokens.fontFamily.sans }}>Search, select, and quantify products — used in create-serials and capture-serials flows</p>
-
-      <Section title="Live demo">
-        <div style={{ maxWidth: "560px", background: tokens.color.base.white, border: `1px solid ${tokens.color.divider.border}`, borderRadius: tokens.borderRadius.lg, padding: tokens.spacing[6] }}>
-          <ApplyToProduct
-            catalogue={CATALOGUE}
-            selectedProducts={selected}
-            onProductsChange={setSelected}
-            defaultQuantity={0}
-            quantityLabel="Quantity of serials"
-          />
-        </div>
-      </Section>
-
-      <PropsTable rows={[
-        { prop: "catalogue",        type: "CatalogueProduct[]",      def: "—",               desc: "Full searchable product list — already-selected items are filtered out" },
-        { prop: "selectedProducts", type: "SelectedProductItem[]",   def: "—",               desc: "Controlled list of selected products with quantities" },
-        { prop: "onProductsChange", type: "(products) => void",      def: "—",               desc: "Called whenever selection or quantity changes" },
-        { prop: "defaultQuantity",  type: "number",                  def: "0",               desc: "Quantity assigned when a product is first added" },
-        { prop: "quantityLabel",    type: "string",                  def: '"Quantity of serials"', desc: "Label above each quantity input" },
-        { prop: "binIconUrl",       type: "string",                  def: "—",               desc: "Figma icon URL for the remove button (node 49:967)" },
-      ]} />
-    </div>
-  );
-}
-
-// ---------------------------------------------------------------------------
 // SearchDropdown tab
 // ---------------------------------------------------------------------------
 function SearchDropdownTab() {
@@ -3275,7 +3241,7 @@ function ProductListItemTab({ svgs }: { svgs: Record<string, string> }) {
               value={"value" in item ? item.value : undefined}
               badgeText={"badgeText" in item ? item.badgeText : undefined}
               noDivider={"noDivider" in item ? item.noDivider : false}
-              actionIcon={Img(add16, 16)}
+
               addIcon={Img(add24)}
               deleteIcon={Img(bin24)}
               indicatorIcon={Img(info16, 16)}
@@ -3330,9 +3296,8 @@ function ProductListItemTab({ svgs }: { svgs: Record<string, string> }) {
         { prop: "label",          type: "string",                                                                          def: "—",           desc: "Fixed 128px left column label" },
         { prop: "variant",        type: '"text" | "action" | "text+buttons" | "text+indicator+buttons" | "badge"',        def: "—",           desc: "Which variant to render" },
         { prop: "value",          type: "string",                                                                          def: "undefined",   desc: "Text value shown in text / text+buttons / text+indicator+buttons" },
-        { prop: "actionLabel",    type: "string",                                                                          def: '"+ Add NFC"', desc: "Label for the action button (action variant)" },
-        { prop: "actionIcon",     type: "ReactNode",                                                                       def: "undefined",   desc: "16px icon shown left of actionLabel" },
-        { prop: "onAction",       type: "() => void",                                                                     def: "undefined",   desc: "Click handler for the action button" },
+        { prop: "actionLabel",    type: "string",      def: '"Add NFC"',  desc: "Label for the action button — always renders with a built-in + icon (tertiary variant)" },
+        { prop: "onAction",       type: "() => void", def: "undefined",  desc: "Click handler for the action button" },
         { prop: "addIcon",        type: "ReactNode",                                                                       def: "undefined",   desc: "24px icon for the add icon-button" },
         { prop: "deleteIcon",     type: "ReactNode",                                                                       def: "undefined",   desc: "24px icon for the delete icon-button" },
         { prop: "onAdd",          type: "() => void",                                                                     def: "undefined",   desc: "Click handler for add button" },
@@ -3665,7 +3630,7 @@ function ScanInputTab() {
         </div>
       </Section>
 
-      <CodeSnippet code={`import { ScanInput } from "@/components/ui/ScanInput";
+      <CodeSnippet code={`import { ScanInput } from "@/components/ui/InputScan";
 
 <ScanInput
   label="Serial number"
@@ -3698,39 +3663,46 @@ function ScanInputTab() {
 }
 
 const COMPONENT_TABS = [
-  { id: "button",          label: "Button" },
-  { id: "input",           label: "Input" },
-  { id: "select-input",    label: "Select Input" },
-  { id: "composite-input", label: "Composite Input" },
-  { id: "scan-input",      label: "Scan Input" },
-  { id: "radio",           label: "Radio" },
-  { id: "checkbox",       label: "Checkbox" },
-  { id: "selection-card", label: "Selection Card" },
+  // Actions
+  { id: "button",           label: "Button" },
+  // Inputs
+  { id: "input",            label: "Input" },
+  { id: "calendar-input",   label: "Calendar Input" },
+  { id: "select-input",     label: "Select Input" },
+  { id: "composite-input",  label: "Composite Input" },
+  { id: "scan-input",       label: "Scan Input" },
+  // Selection
+  { id: "radio",            label: "Radio" },
+  { id: "checkbox",         label: "Checkbox" },
+  { id: "selection-card",   label: "Selection Card" },
+  { id: "toggle",           label: "Toggle" },
+  // Feedback
   { id: "badge",            label: "Badge" },
   { id: "badge-actionable", label: "Badge Actionable" },
+  { id: "alert",            label: "Alert" },
+  { id: "toast",            label: "Toast" },
+  // Navigation
+  { id: "tabs",             label: "Tabs" },
+  { id: "breadcrumb",       label: "Breadcrumb" },
   { id: "sidebar",          label: "Sidebar" },
-  { id: "toast",          label: "Toast" },
-  { id: "toggle",         label: "Toggle" },
-  { id: "context-item",   label: "Context Menu Item" },
-  { id: "alert",          label: "Alert" },
-  { id: "section-header", label: "Section Header" },
-  { id: "glory-items",    label: "Glory Items" },
-  { id: "modal",          label: "Modal" },
-  { id: "action-card",    label: "Action Card" },
-  { id: "product-img",    label: "Product Image" },
-  { id: "breadcrumb",     label: "Breadcrumb" },
-  { id: "appbar",         label: "App Bar" },
-  { id: "stat-card",      label: "Stat Card" },
-  { id: "list-view-item", label: "List View Item" },
-  { id: "data-table",     label: "Data Table" },
-  { id: "pagination",     label: "Pagination" },
-  { id: "apply-to-product",   label: "Apply to Product"  },
-  { id: "search-dropdown",    label: "Search Dropdown"   },
-  { id: "tabs",               label: "Tabs"              },
-  { id: "product-list-item",  label: "Product List Item"  },
-  { id: "view-item-img",      label: "View Item Img"      },
-  { id: "empty-state",        label: "Empty State"        },
-  { id: "steps",              label: "Steps"              },
+  { id: "appbar",           label: "App Bar" },
+  // Layout / Overlays
+  { id: "modal",            label: "Modal" },
+  { id: "context-item",     label: "Context Menu Item" },
+  { id: "action-card",      label: "Action Card" },
+  { id: "section-header",   label: "Section Header" },
+  { id: "steps",            label: "Steps" },
+  { id: "empty-state",      label: "Empty State" },
+  // Data
+  { id: "data-table",       label: "Data Table" },
+  { id: "pagination",       label: "Pagination" },
+  { id: "list-view-item",   label: "List View Item" },
+  { id: "stat-card",        label: "Stat Card" },
+  { id: "search-dropdown",  label: "Search Dropdown" },
+  // Product
+  { id: "product-img",      label: "Product Image" },
+  { id: "product-list-item",label: "Product List Item" },
+  { id: "view-item-img",    label: "View Item Img" },
 ];
 
 export default function ComponentsPage() {
@@ -3781,39 +3753,46 @@ export default function ComponentsPage() {
           ))}
         </div>
 
-        {activeTab === "button"          && <ButtonTab svgs={svgs} />}
-        {activeTab === "input"           && <InputTab  svgs={svgs} />}
-        {activeTab === "select-input"    && <SelectInputTab />}
-        {activeTab === "composite-input" && <CompositeInputTab />}
-        {activeTab === "radio"           && <RadioTab />}
-        {activeTab === "checkbox"       && <CheckboxTab />}
-        {activeTab === "selection-card" && <SelectionCardTab />}
+        {/* Actions */}
+        {activeTab === "button"           && <ButtonTab svgs={svgs} />}
+        {/* Inputs */}
+        {activeTab === "input"            && <InputTab svgs={svgs} />}
+        {activeTab === "calendar-input"   && <CalendarInputTab />}
+        {activeTab === "select-input"     && <SelectInputTab />}
+        {activeTab === "composite-input"  && <CompositeInputTab />}
+        {activeTab === "scan-input"       && <ScanInputTab />}
+        {/* Selection */}
+        {activeTab === "radio"            && <RadioTab />}
+        {activeTab === "checkbox"         && <CheckboxTab />}
+        {activeTab === "selection-card"   && <SelectionCardTab />}
+        {activeTab === "toggle"           && <ToggleTab />}
+        {/* Feedback */}
         {activeTab === "badge"            && <BadgeTab svgs={svgs} />}
         {activeTab === "badge-actionable" && <BadgeActionableTab />}
-        {activeTab === "sidebar"          && <SidebarTab />}
-        {activeTab === "toast"          && <ToastTab />}
-        {activeTab === "toggle"         && <ToggleTab />}
-        {activeTab === "context-item"   && <ContextMenuItemTab />}
-        {activeTab === "alert"          && <AlertTab />}
-        {activeTab === "section-header" && <SectionHeaderTab />}
-        {activeTab === "glory-items"    && <GloryItemsTab />}
-        {activeTab === "modal"          && <ModalTab />}
-        {activeTab === "action-card"    && <ActionCardTab />}
-        {activeTab === "product-img"      && <ProductImgTab />}
+        {activeTab === "alert"            && <AlertTab />}
+        {activeTab === "toast"            && <ToastTab />}
+        {/* Navigation */}
+        {activeTab === "tabs"             && <TabsTab svgs={svgs} />}
         {activeTab === "breadcrumb"       && <BreadcrumbTab />}
+        {activeTab === "sidebar"          && <SidebarTab />}
         {activeTab === "appbar"           && <AppBarTab />}
-        {activeTab === "stat-card"        && <DashboardStatCardTab />}
-        {activeTab === "list-view-item"   && <ListViewItemTab />}
+        {/* Layout / Overlays */}
+        {activeTab === "modal"            && <ModalTab />}
+        {activeTab === "context-item"     && <ContextMenuItemTab />}
+        {activeTab === "action-card"      && <ActionCardTab />}
+        {activeTab === "section-header"   && <SectionHeaderTab />}
+        {activeTab === "steps"            && <StepsTab />}
+        {activeTab === "empty-state"      && <EmptyStateTab />}
+        {/* Data */}
         {activeTab === "data-table"       && <DataTableTab />}
         {activeTab === "pagination"       && <PaginationTab />}
-        {activeTab === "apply-to-product" && <ApplyToProductTab />}
+        {activeTab === "list-view-item"   && <ListViewItemTab />}
+        {activeTab === "stat-card"        && <DashboardStatCardTab />}
         {activeTab === "search-dropdown"  && <SearchDropdownTab />}
-        {activeTab === "tabs"             && <TabsTab svgs={svgs} />}
-        {activeTab === "product-list-item" && <ProductListItemTab svgs={svgs} />}
-        {activeTab === "view-item-img"     && <ViewItemPageImgTab />}
-        {activeTab === "empty-state"       && <EmptyStateTab />}
-        {activeTab === "steps"             && <StepsTab />}
-        {activeTab === "scan-input"        && <ScanInputTab />}
+        {/* Product */}
+        {activeTab === "product-img"      && <ProductImgTab />}
+        {activeTab === "product-list-item"&& <ProductListItemTab svgs={svgs} />}
+        {activeTab === "view-item-img"    && <ViewItemPageImgTab />}
 
         <div style={{ borderTop: `1px solid ${tokens.color.divider.frame}`, paddingTop: "24px", marginTop: "48px", display: "flex", justifyContent: "space-between" }}>
           <a href="/styleguide" style={{ fontSize: tokens.fontSize.bodySmall, color: tokens.color.fg.support, fontFamily: tokens.fontFamily.sans, textDecoration: "none" }}>← Design Tokens</a>

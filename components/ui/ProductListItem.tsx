@@ -24,9 +24,7 @@ export interface ProductListItemProps {
   value?:     string;
 
   // action variant
-  /** Defaults to "Add NFC" — the "+" comes from the icon */
   actionLabel?: string;
-  actionIcon?:  React.ReactNode; // 16px add icon
   onAction?:    () => void;
 
   // text+buttons / text+indicator+buttons
@@ -53,7 +51,6 @@ export function ProductListItem({
   variant,
   value,
   actionLabel = "Add NFC",
-  actionIcon,
   onAction,
   addIcon,
   deleteIcon,
@@ -110,27 +107,17 @@ export function ProductListItem({
 
           {/* action ─────────────────────────────────────────────── */}
           {variant === "action" && (
-            <button
+            <Button
+              variant="tertiary"
+              withIcon="heading"
+              icon={
+                <svg width="16" height="16" viewBox="0 0 16 16" fill="none" aria-hidden>
+                  <path d="M8 3v10M3 8h10" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round"/>
+                </svg>
+              }
+              label={actionLabel}
               onClick={onAction}
-              style={{
-                display:    "flex",
-                alignItems: "center",
-                gap:        tokens.spacing[1],
-                background: "transparent",
-                border:     "none",
-                padding:    `${tokens.spacing[2.5]} 0`,
-                cursor:     "pointer",
-              }}
-            >
-              {actionIcon && (
-                <span style={{ display: "flex", alignItems: "center", flexShrink: 0 }}>
-                  {actionIcon}
-                </span>
-              )}
-              <span style={{ ...tokens.typography.bodyM, color: tokens.color.fg.blue }}>
-                {actionLabel}
-              </span>
-            </button>
+            />
           )}
 
           {/* text+buttons ───────────────────────────────────────── */}

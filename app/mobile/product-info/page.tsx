@@ -9,15 +9,22 @@ import { MobileAppBar } from "@/components/ui/MobileAppBar";
 import { ViewItemPageImg } from "@/components/ui/ViewItemPageImg";
 import { Tabs, type TabItem } from "@/components/ui/Tabs";
 import { ProductListItem } from "@/components/ui/ProductListItem";
-import { Button } from "@/components/ui/Button";
+import { MobileButton as Button } from "@/components/ui/mobile/Button";
 import { useFigmaIcons } from "@/hooks/useFigmaIcons";
 import { ContextMenu } from "@/components/patterns/ContextMenu";
 import { ContextMenuItem } from "@/components/ui/ContextMenuItem";
 import { Toast } from "@/components/ui/Toast";
+import { SearchScanSheet } from "@/components/patterns/SearchScanSheet";
 
 // ── DS icon node IDs ───────────────────────────────────────────────────────────
 const FINGERPRINT_ID = "71:1447"; // DS Tab icon — finger print
 const SPECS_ID       = "92:2266"; // DS Tab icon — specs / list
+const HISTORY_ID     = "92:2293"; // DS Tab icon — history
+// Options menu icons
+const ICON_NFC       = "2115:3933"; // NFC wave
+const ICON_INSPECT   = "92:1150";   // Inspection / clipboard
+const ICON_SHARE     = "135:813";   // Link / share
+const ICON_INVENTORY = "46:2937";   // Refresh / add to inventory
 
 // ── iOS status bar ─────────────────────────────────────────────────────────────
 
@@ -25,7 +32,7 @@ function StatusBar() {
   return (
     <div style={{ height: "54px", display: "flex", alignItems: "flex-end", paddingBottom: "8px", paddingLeft: "16px", paddingRight: "16px", flexShrink: 0 }}>
       <div style={{ display: "flex", width: "100%", alignItems: "center", justifyContent: "space-between" }}>
-        <span style={{ color: "white", fontFamily: tokens.fontFamily.sans, fontSize: "17px", fontWeight: 600, lineHeight: "22px" }}>
+        <span style={{ color: "white", fontFamily: tokens.fontFamily.sans, fontSize: "17px", fontWeight: 500, lineHeight: "22px" }}>
           9:41
         </span>
         <div style={{ display: "flex", alignItems: "center", gap: "7px" }}>
@@ -58,9 +65,11 @@ function StatusBar() {
 // ── Info rows ──────────────────────────────────────────────────────────────────
 
 const INFO_ROWS = [
-  { label: "Name",         value: "Ultra O Locksafe" },
-  { label: "Manufacturer", value: "DMM"              },
-  { label: "Part number",  value: "A327MG"           },
+  { label: "Serial number", value: "132241154A"     },
+  { label: "Name",          value: "Ultra O Locksafe" },
+  { label: "Manufacturer",  value: "DMM"              },
+  { label: "Part number",   value: "A327"             },
+  { label: "Batch number",  value: "A327"             },
 ];
 
 // ── Page ───────────────────────────────────────────────────────────────────────
@@ -69,9 +78,10 @@ export default function ProductInfoPage() {
   const [activeTab,         setActiveTab]         = useState("info");
   const [showOptions,       setShowOptions]       = useState(false);
   const [showSuccessBanner, setShowSuccessBanner] = useState(false);
+  const [inspectScanOpen,   setInspectScanOpen]   = useState(false);
 
   const router     = useRouter();
-  const figmaIcons = useFigmaIcons([FINGERPRINT_ID, SPECS_ID]);
+  const figmaIcons = useFigmaIcons([FINGERPRINT_ID, SPECS_ID, HISTORY_ID, ICON_NFC, ICON_INSPECT, ICON_SHARE, ICON_INVENTORY]);
 
   // Detect ?success=serials param on mount
   useEffect(() => {
@@ -116,6 +126,17 @@ export default function ProductInfoPage() {
         </svg>
       ) : undefined,
     },
+    {
+      id:      "history",
+      label:   "History",
+      iconUrl: figmaIcons[HISTORY_ID],
+      icon: !figmaIcons[HISTORY_ID] ? (
+        <svg width="24" height="24" viewBox="0 0 24 24" fill="none" aria-hidden>
+          <path d="M12 8v4l3 3" stroke="black" strokeWidth="1.6" strokeLinecap="round" strokeLinejoin="round" />
+          <path d="M3.05 11a9 9 0 1 1 .5 4M3 15v-4H7" stroke="black" strokeWidth="1.6" strokeLinecap="round" strokeLinejoin="round" />
+        </svg>
+      ) : undefined,
+    },
   ];
 
   return (
@@ -127,12 +148,13 @@ export default function ProductInfoPage() {
       overflow:        "hidden",
       position:        "relative",
     }}>
-      {/* DS MobileAppBar — task variant, transparent so gradient shows through */}
+      {/* DS MobileAppBar — main variant, transparent, back arrow on left */}
       <MobileAppBar
-        page="task"
+        page="main"
         transparent
+        withBackIcon
         title="Ultra O Locksafe"
-        onClose={() => router.push("/")}
+        onBack={() => router.back()}
       />
 
       {/* White content card */}
@@ -168,6 +190,11 @@ export default function ProductInfoPage() {
           {activeTab === "specs" && (
             <div style={{ display: "flex", alignItems: "center", justifyContent: "center", padding: tokens.spacing[8], color: tokens.color.fg.disabled, fontFamily: tokens.fontFamily.sans, fontSize: tokens.fontSize.body }}>
               Specs coming soon
+            </div>
+          )}
+          {activeTab === "history" && (
+            <div style={{ display: "flex", alignItems: "center", justifyContent: "center", padding: tokens.spacing[8], color: tokens.color.fg.disabled, fontFamily: tokens.fontFamily.sans, fontSize: tokens.fontSize.body }}>
+              History coming soon
             </div>
           )}
         </div>
@@ -206,20 +233,24 @@ export default function ProductInfoPage() {
         onClose={() => setShowOptions(false)}
         contained
       >
-        <div style={{ padding: `0 ${tokens.spacing[2]} ${tokens.spacing[4]}` }}>
-          <ContextMenuItem
-            label="Capture serials"
-            onClick={() => {
-              setShowOptions(false);
-              router.push("/mobile/capture-serials");
-            }}
-          />
-          <ContextMenuItem
-            label="Add to inventory"
-            onClick={() => setShowOptions(false)}
-          />
+        <div style={{ paddingTop: tokens.spacing[2], paddingBottom: tokens.spacing[4] }}>
+          <ContextMenuItem label="Add NFC"           iconUrl={figmaIcons[ICON_NFC]}       onClick={() => setShowOptions(false)} />
+          <ContextMenuItem label="Inspect"           iconUrl={figmaIcons[ICON_INSPECT]}   onClick={() => { setShowOptions(false); setTimeout(() => setInspectScanOpen(true), 300); }} />
+          <ContextMenuItem label="Share"             iconUrl={figmaIcons[ICON_SHARE]}     onClick={() => setShowOptions(false)} />
+          <ContextMenuItem label="Add to inventory"  iconUrl={figmaIcons[ICON_INVENTORY]} onClick={() => setShowOptions(false)} />
         </div>
       </ContextMenu>
+
+      {/* Inspect scan sheet */}
+      <SearchScanSheet
+        open={inspectScanOpen}
+        onClose={() => setInspectScanOpen(false)}
+        contained
+        onScanDetected={() => {
+          setInspectScanOpen(false);
+          router.push("/mobile/inspect");
+        }}
+      />
     </div>
   );
 }

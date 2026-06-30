@@ -12,17 +12,18 @@ import React, { useState, useRef, useEffect } from "react";
 import { useRouter } from "next/navigation";
 import tokens from "@/styles/design-tokens";
 import { AppShell } from "@/components/ui/AppShell";
-import { Input, CalendarIcon } from "@/components/ui/Input";
+import { Input } from "@/components/ui/Input";
+import { CalendarIcon } from "@/components/ui/InputCalendar";
 import { RadioIndicator, RadioInput } from "@/components/ui/Radio";
 import { ProductImg } from "@/components/ui/ProductImg";
 import { ListViewItem } from "@/components/ui/ListViewItem";
 import { Button } from "@/components/ui/Button";
 import { SearchDropdown, type SearchDropdownItem } from "@/components/ui/SearchDropdown";
-import { CompositeInput, type UnitOption } from "@/components/ui/CompositeInput";
-import { SelectInput, type SelectOption } from "@/components/ui/SelectInput";
+import { CompositeInput, type UnitOption } from "@/components/ui/InputComposite";
+import { SelectInput, type SelectOption } from "@/components/ui/InputSelect";
 import { useFigmaIcons } from "@/hooks/useFigmaIcons";
 import { Steps } from "@/components/ui/Steps";
-import { ScanInput } from "@/components/ui/ScanInput";
+import { ScanInput } from "@/components/ui/InputScan";
 
 // ---------------------------------------------------------------------------
 // Icons

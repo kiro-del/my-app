@@ -4,6 +4,11 @@
 import { useState } from "react";
 import { MobileAppBar, type MobileAppBarPage } from "@/components/ui/MobileAppBar";
 import { MobileBottomNav, type BottomNavItemDef } from "@/components/ui/MobileBottomNav";
+import { Input } from "@/components/ui/mobile/Input";
+import { InputCalendar } from "@/components/ui/mobile/InputCalendar";
+import { SelectInput } from "@/components/ui/mobile/InputSelect";
+import { ScanInput } from "@/components/ui/mobile/InputScan";
+import { useFigmaIcons } from "@/hooks/useFigmaIcons";
 import tokens from "@/styles/design-tokens";
 
 // Figma node IDs for bottom nav icons (24px)
@@ -195,11 +200,415 @@ const items = [
 }
 
 // ---------------------------------------------------------------------------
+// Mobile button specimens
+// ---------------------------------------------------------------------------
+
+// DS icon node ID for phone-scan (24px, DS file j8hy0yzSKPyh1yRKOh4tuU)
+const PHONE_SCAN_ID = "4094:8844";
+
+// Fallback shown while the DS icon URL is loading
+function PhoneScanFallback() {
+  return (
+    <svg width="24" height="24" viewBox="0 0 24 24" fill="none" aria-hidden>
+      <rect x="6" y="2.5" width="12" height="19" rx="3" stroke={tokens.color.fg.primary} strokeWidth="2" />
+      <line x1="0" y1="9"  x2="5" y2="9"  stroke={tokens.color.fg.primary} strokeWidth="1.5" strokeLinecap="round" />
+      <line x1="0" y1="14" x2="4" y2="14" stroke={tokens.color.fg.primary} strokeWidth="1.5" strokeLinecap="round" />
+    </svg>
+  );
+}
+
+function PlusIcon({ size = 16 }: { size?: number }) {
+  const h = size / 2;
+  return (
+    <svg width={size} height={size} viewBox={`0 0 ${size} ${size}`} fill="none" aria-hidden>
+      <line x1={h} y1={2}      x2={h}       y2={size - 2} stroke={tokens.color.fg.primary} strokeWidth={size === 16 ? 1.5 : 2} strokeLinecap="round" />
+      <line x1={2} y1={h}      x2={size - 2} y2={h}        stroke={tokens.color.fg.primary} strokeWidth={size === 16 ? 1.5 : 2} strokeLinecap="round" />
+    </svg>
+  );
+}
+
+function getBtnSpecimens(phoneScanUrl?: string) { return [
+  {
+    name: "Primary",
+    figmaNode: "275:62713",
+    description: "Full-width lime action button. Default CTA for mobile task flows.",
+    preview: (
+      <button style={{
+        display: "flex", alignItems: "center", justifyContent: "center",
+        width: "100%", height: "54px",
+        background: tokens.color.brand.lime, borderRadius: "8px", border: "none",
+        fontFamily: tokens.fontFamily.sans, fontSize: "16px", fontWeight: 500,
+        color: tokens.color.fg.primary, cursor: "pointer",
+        paddingLeft: "16px", paddingRight: "16px",
+      }}>
+        Continue to cut rope
+      </button>
+    ),
+    code: `<button style={{
+  display: "flex", alignItems: "center", justifyContent: "center",
+  width: "100%", height: "54px",
+  background: tokens.color.brand.lime,
+  borderRadius: "8px", border: "none",
+  fontSize: "16px", fontWeight: 500,
+  color: tokens.color.fg.primary,
+}}>
+  Continue to cut rope
+</button>`,
+  },
+  {
+    name: "Outline",
+    figmaNode: "275:62738",
+    description: "Secondary action button — white bg with dark border. Use for secondary CTAs alongside a Primary.",
+    preview: (
+      <button style={{
+        display: "flex", alignItems: "center", justifyContent: "center",
+        gap: "4px", width: "100%", height: "54px",
+        background: tokens.color.base.white,
+        border: `1px solid ${tokens.color.fg.primary}`,
+        borderRadius: "8px",
+        fontFamily: tokens.fontFamily.sans, fontSize: "16px", fontWeight: 500,
+        color: tokens.color.fg.primary, cursor: "pointer",
+        paddingLeft: "12px", paddingRight: "16px",
+      }}>
+        <PlusIcon size={16} />
+        Create Item
+      </button>
+    ),
+    code: `<button style={{
+  display: "flex", alignItems: "center", justifyContent: "center",
+  gap: "4px", width: "100%", height: "54px",
+  background: tokens.color.base.white,
+  border: \`1px solid \${tokens.color.fg.primary}\`,
+  borderRadius: "8px",
+  fontSize: "16px", fontWeight: 500,
+  color: tokens.color.fg.primary,
+  paddingLeft: "12px", paddingRight: "16px",
+}}>
+  <PlusIcon size={16} />
+  Create Item
+</button>`,
+  },
+  {
+    name: "Scan (Pill)",
+    figmaNode: "275:62715",
+    description: "Lime pill button for scan actions. Hugs content width — don't stretch full-width.",
+    preview: (
+      <button style={{
+        display: "inline-flex", alignItems: "center", justifyContent: "center",
+        gap: "8px", height: "54px",
+        background: tokens.color.brand.lime,
+        borderRadius: "999px", border: "none",
+        fontFamily: tokens.fontFamily.sans, fontSize: "16px", fontWeight: 500,
+        color: tokens.color.fg.primary, cursor: "pointer",
+        paddingLeft: "28px", paddingRight: "28px",
+      }}>
+        {phoneScanUrl
+          ? <img src={phoneScanUrl} width={24} height={24} alt="" aria-hidden />
+          : <PhoneScanFallback />}
+        Scan reel code
+      </button>
+    ),
+    code: `<button style={{
+  display: "inline-flex", alignItems: "center",
+  gap: "8px", height: "54px",
+  background: tokens.color.brand.lime,
+  borderRadius: "999px", border: "none",
+  fontSize: "16px", fontWeight: 500,
+  color: tokens.color.fg.primary,
+  paddingLeft: "28px", paddingRight: "28px",
+}}>
+  <PhoneScanIcon />
+  Scan reel code
+</button>`,
+  },
+  {
+    name: "Card",
+    figmaNode: "275:62731",
+    description: "Dashed-border card button for create/add flows. Full width, 16px radius.",
+    preview: (
+      <button style={{
+        display: "flex", alignItems: "center",
+        gap: "8px", width: "100%",
+        background: tokens.color.base.white,
+        border: `1px dashed ${tokens.color.divider.border}`,
+        borderRadius: "16px", cursor: "pointer",
+        padding: "16px",
+        fontFamily: tokens.fontFamily.sans,
+      }}>
+        <div style={{
+          width: "40px", height: "40px", flexShrink: 0,
+          background: tokens.color.bg.bg,
+          borderRadius: "8px",
+          display: "flex", alignItems: "center", justifyContent: "center",
+        }}>
+          <PlusIcon size={24} />
+        </div>
+        <span style={{ fontSize: "14px", fontWeight: 500, color: tokens.color.fg.primary }}>
+          make a custom one
+        </span>
+      </button>
+    ),
+    code: `<button style={{
+  display: "flex", alignItems: "center",
+  gap: "8px", width: "100%",
+  background: tokens.color.base.white,
+  border: \`1px dashed \${tokens.color.divider.border}\`,
+  borderRadius: "16px", padding: "16px",
+}}>
+  <div style={{
+    width: "40px", height: "40px",
+    background: tokens.color.bg.bg, borderRadius: "8px",
+    display: "flex", alignItems: "center", justifyContent: "center",
+  }}>
+    <PlusIcon size={24} />
+  </div>
+  <span style={{ fontSize: "14px", fontWeight: 500 }}>
+    make a custom one
+  </span>
+</button>`,
+  },
+];
+}
+
+function ButtonsTab() {
+  const icons = useFigmaIcons([PHONE_SCAN_ID]);
+  const specimens = getBtnSpecimens(icons[PHONE_SCAN_ID]);
+
+  return (
+    <>
+      <Section title="Mobile Buttons">
+        <p style={{ fontSize: "14px", color: tokens.color.fg.support, marginBottom: "32px", fontFamily: tokens.fontFamily.sans }}>
+          Temp button patterns from the cut-rope flow — not yet in the main DS.
+          Figma file: <a href="https://www.figma.com/design/5HgljtpzsvLhHfJVDgabGq" target="_blank" rel="noreferrer" style={{ color: tokens.color.fg.blue }}>temp mobile components</a>
+        </p>
+
+        <div style={{ display: "flex", flexDirection: "column", gap: "40px" }}>
+          {specimens.map(({ name, figmaNode, description, preview, code }) => (
+            <div key={name} style={{ background: tokens.color.base.white, border: `1px solid ${tokens.color.divider.border}`, borderRadius: tokens.borderRadius.lg, overflow: "hidden" }}>
+              {/* Header */}
+              <div style={{ padding: "16px 20px 12px", borderBottom: `1px solid ${tokens.color.divider.border}`, display: "flex", alignItems: "baseline", gap: "12px" }}>
+                <span style={{ fontSize: "14px", fontWeight: 600, color: tokens.color.fg.primary, fontFamily: tokens.fontFamily.sans }}>{name}</span>
+                <code style={{ fontSize: "11px", color: tokens.color.fg.disabled, fontFamily: "monospace" }}>Figma {figmaNode}</code>
+              </div>
+              {/* Preview */}
+              <div style={{ padding: "24px 20px", background: tokens.color.bg.lightBg, display: "flex", alignItems: "center", justifyContent: "flex-start" }}>
+                <div style={{ width: "361px" }}>
+                  {preview}
+                </div>
+              </div>
+              {/* Description */}
+              <div style={{ padding: "12px 20px", borderTop: `1px solid ${tokens.color.divider.border}` }}>
+                <p style={{ fontSize: "13px", color: tokens.color.fg.support, margin: 0, fontFamily: tokens.fontFamily.sans }}>{description}</p>
+              </div>
+              {/* Code */}
+              <div style={{ background: tokens.color.brand.darkGrey, borderTop: `1px solid ${tokens.color.divider.border}` }}>
+                <pre style={{ fontSize: "11px", fontFamily: "monospace", color: tokens.color.brand.lime, margin: 0, padding: "12px 20px", whiteSpace: "pre-wrap" as const, lineHeight: "1.6" }}>{code}</pre>
+              </div>
+            </div>
+          ))}
+        </div>
+      </Section>
+    </>
+  );
+}
+
+// ---------------------------------------------------------------------------
+// Mobile Inputs tab
+// ---------------------------------------------------------------------------
+
+const SELECT_OPTIONS = [
+  { value: "standard", label: "Standard" },
+  { value: "spool",    label: "Full spool" },
+  { value: "custom",   label: "Custom length" },
+];
+
+function InputsTab() {
+  const [textVal,    setTextVal]    = useState("");
+  const [dateVal,    setDateVal]    = useState("");
+  const [selectVal,  setSelectVal]  = useState("");
+  const [scanVal,    setScanVal]    = useState("");
+  const [showError,  setShowError]  = useState(false);
+  const [isDisabled, setIsDisabled] = useState(false);
+
+  const errorMsg = showError ? "This field is required" : undefined;
+
+  return (
+    <>
+      <Section title="Mobile Inputs">
+        <div style={{ marginBottom: "8px", display: "flex", flexWrap: "wrap" as const, gap: "8px", alignItems: "center" }}>
+          <code style={{ fontSize: "12px", fontFamily: "monospace", background: tokens.color.bg.darkBg, padding: "2px 8px", borderRadius: tokens.borderRadius.sm, color: tokens.color.fg.support }}>
+            components/ui/mobile/Input.tsx · InputCalendar.tsx · InputSelect.tsx · InputScan.tsx
+          </code>
+          <span style={{ fontSize: "12px", color: tokens.color.fg.disabled }}>Figma node 295-49244</span>
+        </div>
+        <p style={{ fontSize: "14px", color: tokens.color.fg.support, marginBottom: "24px", fontFamily: tokens.fontFamily.sans }}>
+          Mobile-specific inputs — 48px height (padding-driven), 8px border-radius. Separate from the DS components; mobile sizing is baked in with no extra props needed.
+        </p>
+
+        {/* Controls */}
+        <div style={{ display: "flex", gap: "8px", marginBottom: "20px", flexWrap: "wrap" as const }}>
+          <Toggle active={showError}  label="Error state" onClick={() => setShowError(b => !b)} />
+          <Toggle active={isDisabled} label="Disabled"    onClick={() => setIsDisabled(b => !b)} />
+        </div>
+
+        {/* Live preview — 393px form */}
+        <div style={{ width: "393px", background: tokens.color.base.white, border: `1px solid ${tokens.color.divider.frame}`, borderRadius: tokens.borderRadius.lg, boxShadow: tokens.shadows.lg, overflow: "hidden" }}>
+          <div style={{ padding: "20px 16px", display: "flex", flexDirection: "column", gap: "16px" }}>
+            <Input
+                           label="Batch number"
+              placeholder="e.g. B32042000470"
+              value={textVal}
+              onChange={e => setTextVal(e.target.value)}
+              errorMessage={errorMsg}
+              disabled={isDisabled}
+            />
+            <ScanInput
+                           label="Serial number"
+              placeholder="Scan or type serial"
+              value={scanVal}
+              onChange={e => setScanVal(e.target.value)}
+              disabled={isDisabled}
+            />
+            <InputCalendar
+              label="Date of manufacture"
+              placeholder="Select date"
+              value={dateVal}
+              onChange={setDateVal}
+              errorMessage={errorMsg}
+              disabled={isDisabled}
+            />
+            <SelectInput
+                           label="Serial format"
+              placeholder="Choose format…"
+              options={SELECT_OPTIONS}
+              value={selectVal}
+              onChange={setSelectVal}
+              errorMessage={errorMsg}
+              disabled={isDisabled}
+            />
+          </div>
+        </div>
+
+        <CodeSnippet code={`import { Input }         from "@/components/ui/mobile/Input";
+import { InputCalendar } from "@/components/ui/mobile/InputCalendar";
+import { SelectInput }   from "@/components/ui/mobile/InputSelect";
+import { ScanInput }     from "@/components/ui/mobile/InputScan";
+
+// Plain text — 48px, 8px radius
+<Input label="Batch number" placeholder="…" />
+
+// Scan + button — 48px, 8px radius baked in
+<ScanInput label="Serial number" placeholder="…" />
+
+// Date picker — 48px (py=12px + 24px icon), 8px radius
+<InputCalendar label="Date of manufacture" />
+
+// Dropdown — 48px, 8px radius baked in
+<SelectInput label="Format" options={OPTIONS} />`} />
+
+        <PropsTable rows={[
+          { prop: "label",        type: "string",  def: "—",     desc: "Field label rendered above the input." },
+          { prop: "errorMessage", type: "string",  def: "—",     desc: "Turns border red and shows the message below." },
+          { prop: "disabled",     type: "boolean", def: "false", desc: "Lightens border + background, prevents interaction." },
+        ]} />
+      </Section>
+
+      {/* ── Per-component specimens ── */}
+      <Section title="Specimens">
+        <div style={{ display: "flex", flexDirection: "column", gap: "32px" }}>
+
+          {/* Input */}
+          {[
+            { label: "Default (empty)",  value: "",               disabled: false, error: undefined },
+            { label: "Filled",           value: "B32042000470",   disabled: false, error: undefined },
+            { label: "Error",            value: "",               disabled: false, error: "This field is required" },
+            { label: "Disabled",         value: "B32042000470",   disabled: true,  error: undefined },
+          ].map(({ label, value, disabled, error }) => (
+            <div key={`input-${label}`} style={{ background: tokens.color.base.white, border: `1px solid ${tokens.color.divider.border}`, borderRadius: tokens.borderRadius.lg, overflow: "hidden" }}>
+              <div style={{ padding: "12px 20px", borderBottom: `1px solid ${tokens.color.divider.border}`, display: "flex", alignItems: "baseline", gap: "12px" }}>
+                <span style={{ fontSize: "13px", fontWeight: 600, color: tokens.color.fg.primary, fontFamily: tokens.fontFamily.sans }}>Input — {label}</span>
+                <code style={{ fontSize: "11px", color: tokens.color.fg.disabled, fontFamily: "monospace" }}>mobile/Input</code>
+              </div>
+              <div style={{ padding: "20px", background: tokens.color.bg.lightBg }}>
+                <div style={{ width: "361px" }}>
+                  <Input label="Batch number" placeholder="e.g. B32042000470" value={value} disabled={disabled} errorMessage={error} onChange={() => {}} />
+                </div>
+              </div>
+            </div>
+          ))}
+
+          {/* ScanInput */}
+          {[
+            { label: "Default (empty)",  value: "",             disabled: false },
+            { label: "Filled",           value: "#593-4890",    disabled: false },
+            { label: "Disabled",         value: "#593-4890",    disabled: true  },
+          ].map(({ label, value, disabled }) => (
+            <div key={`scan-${label}`} style={{ background: tokens.color.base.white, border: `1px solid ${tokens.color.divider.border}`, borderRadius: tokens.borderRadius.lg, overflow: "hidden" }}>
+              <div style={{ padding: "12px 20px", borderBottom: `1px solid ${tokens.color.divider.border}`, display: "flex", alignItems: "baseline", gap: "12px" }}>
+                <span style={{ fontSize: "13px", fontWeight: 600, color: tokens.color.fg.primary, fontFamily: tokens.fontFamily.sans }}>ScanInput — {label}</span>
+                <code style={{ fontSize: "11px", color: tokens.color.fg.disabled, fontFamily: "monospace" }}>mobile/InputScan</code>
+              </div>
+              <div style={{ padding: "20px", background: tokens.color.bg.lightBg }}>
+                <div style={{ width: "361px" }}>
+                  <ScanInput label="Serial number" placeholder="Scan or type serial" value={value} disabled={disabled} onChange={() => {}} />
+                </div>
+              </div>
+            </div>
+          ))}
+
+          {/* InputCalendar */}
+          {[
+            { label: "Empty",    value: "",           disabled: false },
+            { label: "Filled",   value: "2026-04-10", disabled: false },
+            { label: "Disabled", value: "2026-04-10", disabled: true  },
+          ].map(({ label, value, disabled }) => (
+            <div key={`cal-${label}`} style={{ background: tokens.color.base.white, border: `1px solid ${tokens.color.divider.border}`, borderRadius: tokens.borderRadius.lg, overflow: "hidden" }}>
+              <div style={{ padding: "12px 20px", borderBottom: `1px solid ${tokens.color.divider.border}`, display: "flex", alignItems: "baseline", gap: "12px" }}>
+                <span style={{ fontSize: "13px", fontWeight: 600, color: tokens.color.fg.primary, fontFamily: tokens.fontFamily.sans }}>InputCalendar — {label}</span>
+                <code style={{ fontSize: "11px", color: tokens.color.fg.disabled, fontFamily: "monospace" }}>mobile/InputCalendar</code>
+              </div>
+              <div style={{ padding: "20px", background: tokens.color.bg.lightBg }}>
+                <div style={{ width: "361px" }}>
+                  <InputCalendar label="Date of manufacture" placeholder="Select date" value={value} disabled={disabled} onChange={v => {}} />
+                </div>
+              </div>
+            </div>
+          ))}
+
+          {/* SelectInput */}
+          {[
+            { label: "Empty",    value: "",         disabled: false },
+            { label: "Filled",   value: "standard", disabled: false },
+            { label: "Disabled", value: "standard", disabled: true  },
+            { label: "Error",    value: "",         disabled: false, error: "Please select a format" },
+          ].map(({ label, value, disabled, error }) => (
+            <div key={`sel-${label}`} style={{ background: tokens.color.base.white, border: `1px solid ${tokens.color.divider.border}`, borderRadius: tokens.borderRadius.lg, overflow: "hidden" }}>
+              <div style={{ padding: "12px 20px", borderBottom: `1px solid ${tokens.color.divider.border}`, display: "flex", alignItems: "baseline", gap: "12px" }}>
+                <span style={{ fontSize: "13px", fontWeight: 600, color: tokens.color.fg.primary, fontFamily: tokens.fontFamily.sans }}>SelectInput — {label}</span>
+                <code style={{ fontSize: "11px", color: tokens.color.fg.disabled, fontFamily: "monospace" }}>mobile/InputSelect</code>
+              </div>
+              <div style={{ padding: "20px", background: tokens.color.bg.lightBg }}>
+                <div style={{ width: "361px" }}>
+                  <SelectInput label="Serial format" placeholder="Choose format…" options={SELECT_OPTIONS} value={value} disabled={disabled} errorMessage={error} onChange={() => {}} />
+                </div>
+              </div>
+            </div>
+          ))}
+
+        </div>
+      </Section>
+    </>
+  );
+}
+
+// ---------------------------------------------------------------------------
 // Tab definitions
 // ---------------------------------------------------------------------------
 const MOBILE_TABS = [
   { id: "app-bar",    label: "App Bar" },
   { id: "bottom-nav", label: "Bottom Nav" },
+  { id: "buttons",    label: "Buttons" },
+  { id: "inputs",     label: "Inputs" },
 ];
 
 // ---------------------------------------------------------------------------
@@ -351,6 +760,8 @@ export default function MobileStyleguidePage() {
 
         {activeTab === "app-bar"    && <AppBarTab />}
         {activeTab === "bottom-nav" && <BottomNavSection />}
+        {activeTab === "buttons"    && <ButtonsTab />}
+        {activeTab === "inputs"     && <InputsTab />}
 
         <div style={{ borderTop: `1px solid ${tokens.color.divider.frame}`, paddingTop: "24px", marginTop: "48px", display: "flex", justifyContent: "space-between" }}>
           <a href="/styleguide/patterns" style={{ fontSize: tokens.fontSize.bodySmall, color: tokens.color.fg.support, fontFamily: tokens.fontFamily.sans, textDecoration: "none" }}>← Patterns</a>

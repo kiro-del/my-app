@@ -8,10 +8,11 @@ import tokens from "@/styles/design-tokens";
 import { useFigmaIcons } from "@/hooks/useFigmaIcons";
 import { MobileAppBar } from "@/components/ui/MobileAppBar";
 import { SelectionCard } from "@/components/ui/SelectionCard";
-import { Input } from "@/components/ui/Input";
-import { ScanInput } from "@/components/ui/ScanInput";
+import { Input } from "@/components/ui/mobile/Input";
+import { ScanInput } from "@/components/ui/mobile/InputScan";
+import { InputCalendar } from "@/components/ui/mobile/InputCalendar";
 import { ProductImg } from "@/components/ui/ProductImg";
-import { Button } from "@/components/ui/Button";
+import { MobileButton as Button } from "@/components/ui/mobile/Button";
 import { EmptyState } from "@/components/ui/EmptyState";
 import { GloryItem } from "@/components/ui/GloryItems";
 import { BottomSheet } from "@/components/ui/BottomSheet";
@@ -32,7 +33,11 @@ const SCAN_ID     = "3953:13529"; // 16px — mask
 const NFC_ADD_ID  = "2064:1089";  // 16px — mask
 const BIN_ID      = "49:967";     // 24px — mask red
 const TRASH_ID    = "49:967";     // same, used for product remove
-const CALENDAR_ID = "2150:1814";  // 20px — mask
+
+function formatDate(raw: string) {
+  if (!raw) return "";
+  return new Date(raw + "T00:00:00").toLocaleDateString("en-US", { month: "short", day: "numeric", year: "numeric" });
+}
 
 type Scene = "details" | "capture";
 
@@ -71,14 +76,6 @@ const BinFallback = () => (
   </svg>
 );
 
-const CalendarFallback = () => (
-  <svg width="20" height="20" viewBox="0 0 18 18" fill="none" aria-hidden>
-    <rect x="1" y="1" width="16" height="16" rx="1" stroke={tokens.color.fg.support} strokeWidth="1.3"/>
-    <path d="M0 5h18" stroke={tokens.color.fg.support} strokeWidth="1.3"/>
-    <path d="M5 0v4M13 0v4" stroke={tokens.color.fg.support} strokeWidth="1.3" strokeLinecap="round"/>
-  </svg>
-);
-
 const ScanNfcFallback = () => (
   <svg width="64" height="64" viewBox="0 0 64 64" fill="none" aria-hidden>
     <rect x="20" y="8" width="24" height="40" rx="4" stroke={tokens.color.fg.disabled} strokeWidth="2"/>
@@ -111,9 +108,9 @@ function TextInput({ value, onChange, placeholder = "" }: { value: string; onCha
     <input value={value} onChange={e => onChange?.(e.target.value)} placeholder={placeholder}
       onFocus={() => setFocused(true)} onBlur={() => setFocused(false)}
       style={{
-        width: "100%", padding: `${tokens.spacing[2.5]} ${tokens.spacing[3]}`,
+        width: "100%", paddingTop: "14px", paddingBottom: "14px", paddingLeft: tokens.spacing[3], paddingRight: tokens.spacing[3],
         border: `${focused ? 2 : 1}px solid ${focused ? "#6366f1" : tokens.color.divider.frame}`,
-        borderRadius: tokens.borderRadius.md, fontFamily: tokens.fontFamily.sans,
+        borderRadius: tokens.borderRadius.lg, fontFamily: tokens.fontFamily.sans,
         fontSize: tokens.fontSize.body, lineHeight: tokens.lineHeight.body,
         color: tokens.color.fg.primary, background: tokens.color.base.white,
         outline: "none", boxSizing: "border-box",
@@ -175,18 +172,20 @@ function CaptureSerialsMobilePageInner() {
   const isLinkMode    = searchParams.get("mode") === "link";
   const isCaptureMode = searchParams.get("mode") === "capture";
   const taskName      = searchParams.get("task") ?? "";
-  const icons    = useFigmaIcons([SCAN_NFC_ID, SCAN_ID, NFC_ADD_ID, BIN_ID, TRASH_ID, CALENDAR_ID]);
-  const dateRef  = useRef<HTMLInputElement>(null);
+  const icons    = useFigmaIcons([SCAN_NFC_ID, SCAN_ID, NFC_ADD_ID, BIN_ID, TRASH_ID]);
   const serialRef = useRef<HTMLInputElement>(null);
 
   const [scene, setScene] = useState<Scene>((isLinkMode || isCaptureMode) ? "capture" : "details");
 
   // Phase 1 state
   const [selectedFormat,   setSelectedFormat]   = useState<string | null>(null);
-  const [purchaseOrder,    setPurchaseOrder]    = useState("Black");
+  const [purchaseOrder,    setPurchaseOrder]    = useState("PO-30333u3");
   const [orderNumber,      setOrderNumber]      = useState("B213456");
   const [customerRef,      setCustomerRef]      = useState("");
   const [batchNumber,      setBatchNumber]      = useState("");
+  const [dateOfManufacture, setDateOfManufacture] = useState("");
+  const [supplier,         setSupplier]         = useState("");
+  const [supplierSheetOpen, setSupplierSheetOpen] = useState(false);
   const [selectedProduct,  setSelectedProduct]  = useState<SelectedProduct | null>(null);
   const [batchScanOpen,    setBatchScanOpen]    = useState(false);
   const [productScanOpen,  setProductScanOpen]  = useState(false);
@@ -256,17 +255,11 @@ function CaptureSerialsMobilePageInner() {
     flexShrink: 0, background: tokens.color.base.white,
   };
 
-  const CalendarTailingIcon = (
-    <MaskIcon url={icons[CALENDAR_ID]} color={tokens.color.fg.support} size={20} fallback={<CalendarFallback />} />
-  );
-
   // ── Phase 1: Serial details ──────────────────────────────────────────────────
 
   if (scene === "details") {
     return (
       <div style={pageWrapper}>
-        <style>{`input[type="date"]::-webkit-calendar-picker-indicator { position:absolute;right:0;width:40px;height:100%;opacity:0;cursor:pointer; }`}</style>
-
         <MobileAppBar
           page="task"
           title={isLinkMode ? "Link serials" : "Capture serials"}
@@ -275,9 +268,9 @@ function CaptureSerialsMobilePageInner() {
 
         <div style={{ flex: "1 0 0", minHeight: 0, overflowY: "auto", padding: `${tokens.spacing[4]} ${tokens.spacing[4]} ${tokens.spacing[6]}` }}>
 
-          {/* Serial details heading */}
+          {/* Order details heading */}
           <h2 style={{ fontFamily: tokens.fontFamily.sans, fontSize: tokens.fontSize.h4, fontWeight: tokens.fontWeight.semiBold, lineHeight: tokens.lineHeight.h4, color: tokens.color.fg.primary, margin: `0 0 ${tokens.spacing[4]}` }}>
-            Serial details
+            Order details
           </h2>
 
           {/* Purchase order */}
@@ -305,9 +298,54 @@ function CaptureSerialsMobilePageInner() {
           </div>
 
           {/* Date of manufacture */}
-          <div style={{ display: "flex", flexDirection: "column", gap: tokens.spacing[1.5], marginBottom: tokens.spacing[2], position: "relative" }}>
+          <div style={{ display: "flex", flexDirection: "column", gap: tokens.spacing[1.5], marginBottom: tokens.spacing[2] }}>
             <FieldLabel text="Date of manufacture" />
-            <Input ref={dateRef} type="date" placeholder="--/--/--" tailingIcon={CalendarTailingIcon} />
+            <InputCalendar
+              value={dateOfManufacture}
+              onChange={setDateOfManufacture}
+              placeholder="Select date"
+            />
+          </div>
+
+          {/* Supplier */}
+          <div style={{ display: "flex", flexDirection: "column", gap: tokens.spacing[1], marginBottom: tokens.spacing[4] }}>
+            <FieldLabel text="Supplier" />
+            <button
+              type="button"
+              onClick={() => setSupplierSheetOpen(true)}
+              style={{
+                display: "flex", alignItems: "center", justifyContent: "space-between",
+                width: "100%", padding: `10px ${tokens.spacing[3]}`,
+                border: `1px solid ${tokens.color.divider.frame}`,
+                borderRadius: tokens.borderRadius.md,
+                background: tokens.color.base.white,
+                cursor: "pointer", boxSizing: "border-box",
+                boxShadow: tokens.shadows.sm,
+              } as React.CSSProperties}
+            >
+              <span style={{
+                fontFamily: tokens.fontFamily.sans, fontSize: tokens.fontSize.body,
+                lineHeight: tokens.lineHeight.body,
+                color: supplier ? tokens.color.fg.primary : tokens.color.fg.disabled,
+              }}>
+                {supplier || "Select a supplier"}
+              </span>
+              <div style={{ display: "flex", alignItems: "center", gap: tokens.spacing[2], flexShrink: 0 }}>
+                <div style={{ width: 1, alignSelf: "stretch", background: tokens.color.divider.border }} />
+                <svg width="16" height="16" viewBox="0 0 16 16" fill="none" aria-hidden>
+                  <path d="M4 6l4 4 4-4" stroke={tokens.color.fg.primary} strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round" />
+                </svg>
+              </div>
+            </button>
+            <span style={{
+              fontFamily: tokens.fontFamily.sans,
+              fontSize: "12px",
+              fontWeight: 400,
+              lineHeight: "16px",
+              color: tokens.color.fg.support,
+            }}>
+              The supplier will find this in their account to carry out the task
+            </span>
           </div>
 
           <SectionDivider />
@@ -337,14 +375,47 @@ function CaptureSerialsMobilePageInner() {
 
         {/* CTA */}
         <div style={footerStyle}>
-          <button type="button" onClick={() => setScene("capture")} style={{ width: "100%", height: "44px", display: "flex", alignItems: "center", justifyContent: "center", background: tokens.color.brand.lime, border: `1px solid ${tokens.color.divider.lime}`, borderRadius: tokens.borderRadius.md, fontFamily: tokens.fontFamily.sans, fontSize: tokens.fontSize.body, fontWeight: tokens.fontWeight.semiBold, color: tokens.color.fg.primary, cursor: "pointer" }}>
-            Continue to capture
-          </button>
+          <Button
+            variant="primary"
+            label={supplier ? "Create task" : "Continue to capture"}
+            style={{ width: "100%" }}
+            onClick={() => {
+              if (supplier) {
+                localStorage.setItem("orderSaved", "1");
+                router.push("/mobile/serialisation");
+              } else {
+                setScene("capture");
+              }
+            }}
+          />
         </div>
 
         {/* Batch scan */}
         <ScanSimulationSheet open={batchScanOpen} onClose={() => setBatchScanOpen(false)}
           onDetected={v => { setBatchNumber(v); setBatchScanOpen(false); }} contained />
+
+        {/* Supplier picker */}
+        <BottomSheet variant="bottom-sheet-mobile" open={supplierSheetOpen} onClose={() => setSupplierSheetOpen(false)} contained>
+          <div style={{ paddingBottom: tokens.spacing[2] }}>
+            {["Factory AAA", "Factory BBB"].map(option => (
+              <button
+                key={option}
+                type="button"
+                onClick={() => { setSupplier(option); setSupplierSheetOpen(false); }}
+                style={{
+                  display: "block", width: "100%", padding: `${tokens.spacing[3]} ${tokens.spacing[4]}`,
+                  background: "none", border: "none", cursor: "pointer", textAlign: "left",
+                  fontFamily: tokens.fontFamily.sans, fontSize: tokens.fontSize.body,
+                  lineHeight: tokens.lineHeight.body,
+                  color: supplier === option ? tokens.color.fg.blue : tokens.color.fg.primary,
+                  fontWeight: supplier === option ? tokens.fontWeight.medium : tokens.fontWeight.regular,
+                }}
+              >
+                {option}
+              </button>
+            ))}
+          </div>
+        </BottomSheet>
 
         {/* Product search/scan */}
         <SearchScanSheet open={productScanOpen} onClose={() => setProductScanOpen(false)}
@@ -465,7 +536,8 @@ function CaptureSerialsMobilePageInner() {
       {/* Footer — two stacked CTAs */}
       <div style={{ ...footerStyle, display: "flex", flexDirection: "column", gap: tokens.spacing[2] }}>
         <Button
-          variant={captureEnabled ? "primary" : "disabled"}
+          variant="primary"
+          disabled={!captureEnabled}
           label={isLinkMode ? "Complete linking" : "Complete capturing"}
           style={{ width: "100%" }}
           onClick={() => { if (captureEnabled) handleComplete(); }}

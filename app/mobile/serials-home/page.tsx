@@ -1,66 +1,40 @@
 "use client";
 // @refresh reset
 // app/mobile/serials-home/page.tsx
-// Figma: Serials file — node 68:6713 (MF - Home)
+// Figma: MF-serialisations node 315-16537
 
-import React, { useState } from "react";
+import React, { useState, useEffect } from "react";
 import { useRouter } from "next/navigation";
 import tokens from "@/styles/design-tokens";
 import { useFigmaIcons } from "@/hooks/useFigmaIcons";
 import { MobileBottomNav } from "@/components/ui/MobileBottomNav";
-import { BottomSheet } from "@/components/ui/BottomSheet";
-import { ContextMenuItem } from "@/components/ui/ContextMenuItem";
 import { SearchScanSheet } from "@/components/patterns/SearchScanSheet";
+import { Toast } from "@/components/ui/Toast";
 import type { BottomNavItemDef } from "@/components/ui/MobileBottomNav";
 
 // ── DS icon node IDs (design system file j8hy0yzSKPyh1yRKOh4tuU) ───────────────
 const SQUIRCLE_ID      = "2307:2312"; // Scannable squircle brand logo 24px
 const SELECTOR_ID      = "46:2945";   // Org selector — up/down arrows 24px
 const BELL_ID          = "92:1260";   // Notifications bell
-const CHEVRON_RIGHT_ID = "46:2941";   // Chevron right — stat card nav 24px
-const ARROW_UP_ID      = "151:1503";  // Arrow up — trend indicator 16px
+const BOOK_ICON_ID     = "220:2722";  // Book icon — Tips and Guides
 const INSPECT_ID       = "92:1150";   // Quick action — Inspect
-const CREATE_SER_ID    = "94:554";    // Quick action — Create serials
-const PRINT_LABELS_ID  = "2171:2524"; // Quick action — Print labels
 const ICON_CAPTURE_SER = "6258:3868"; // Quick action — Capture serials
-const ISSUE_RECALL_ID  = "6040:1824"; // Quick action — Issue Recall
-const ICON_ROPE_SER    = "2119:4324"; // Quick action — Cut rope lengths
+const ICON_ROPE_SER    = "6458:905";  // Quick action — Cut rope lengths
 const HOME_ID          = "2307:2449"; // Bottom nav — Home
-const SERIALS_ID       = "94:553";    // Bottom nav — Serial runs
-const PRODUCTS_ID      = "3628:9949"; // Bottom nav — Products
+const INVENTORY_ID     = "92:2266";   // Bottom nav — inventory (specs icon)
+const SERIALS_ID       = "94:553";    // Bottom nav — Serialisations
 const ME_ID            = "1613:107";  // Bottom nav — Me
 
 const ALL_ICON_IDS = [
-  SQUIRCLE_ID, SELECTOR_ID, BELL_ID, CHEVRON_RIGHT_ID, ARROW_UP_ID,
-  INSPECT_ID, CREATE_SER_ID, PRINT_LABELS_ID,
-  ICON_CAPTURE_SER, ISSUE_RECALL_ID, ICON_ROPE_SER,
-  HOME_ID, SERIALS_ID, PRODUCTS_ID, ME_ID,
-];
-
-// ── Static data ────────────────────────────────────────────────────────────────
-
-interface StatCard {
-  id:      string;
-  label:   string;
-  value:   string;
-  trend?:  { value: string; label: string };
-  chevron?: boolean;
-}
-
-const STAT_CARDS: StatCard[] = [
-  { id: "ppe-produced", label: "Smart PPE produced", value: "12345", trend: { value: "765", label: "last week" }, chevron: true },
-  { id: "ppe-claimed",  label: "Smart PPE claimed",  value: "1543",  trend: { value: "69",  label: "last week" } },
-  { id: "scans",        label: "Scans",              value: "6557",  trend: { value: "21",  label: "last week" } },
-  { id: "recalls",      label: "Active recalls",     value: "3" },
+  SQUIRCLE_ID, SELECTOR_ID, BELL_ID, BOOK_ICON_ID,
+  INSPECT_ID, ICON_CAPTURE_SER, ICON_ROPE_SER,
+  HOME_ID, INVENTORY_ID, SERIALS_ID, ME_ID,
 ];
 
 const QUICK_ACTIONS: { id: string; label: string; iconId: string }[] = [
-  { id: "rope",           label: "Cut rope\nlengths",   iconId: ICON_ROPE_SER    },
-  { id: "capture-serial", label: "Capture serials",     iconId: ICON_CAPTURE_SER },
-  { id: "create-serial",  label: "Create serials",      iconId: CREATE_SER_ID    },
-  { id: "inspect",        label: "Inspect",             iconId: INSPECT_ID       },
-  { id: "print",          label: "Print labels",        iconId: ISSUE_RECALL_ID  },
-  { id: "recall",         label: "Issue Recall",        iconId: PRINT_LABELS_ID  },
+  { id: "rope",           label: "Cut rope\nlengths", iconId: ICON_ROPE_SER    },
+  { id: "capture-serial", label: "Capture serials",   iconId: ICON_CAPTURE_SER },
+  { id: "inspect",        label: "Inspect",           iconId: INSPECT_ID       },
 ];
 
 // ── Helpers ────────────────────────────────────────────────────────────────────
@@ -99,51 +73,30 @@ function MaskIcon({
   );
 }
 
-function ChevronRightIcon({ url, color }: { url?: string; color: string }) {
-  if (!url) return (
-    <svg width="24" height="24" viewBox="0 0 24 24" fill="none" aria-hidden>
-      <path d="M9 6l6 6-6 6" stroke={color} strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round" />
-    </svg>
-  );
-  return (
-    <span aria-hidden style={{
-      display: "inline-block", width: 24, height: 24, flexShrink: 0,
-      background: color,
-      maskImage: `url(${url})`, maskSize: "contain", maskRepeat: "no-repeat", maskPosition: "center",
-      WebkitMaskImage: `url(${url})`, WebkitMaskSize: "contain", WebkitMaskRepeat: "no-repeat", WebkitMaskPosition: "center",
-    } as React.CSSProperties} />
-  );
-}
-
-function ArrowUpIcon({ url, color }: { url?: string; color: string }) {
-  if (!url) return (
-    <svg width="16" height="16" viewBox="0 0 16 16" fill="none" aria-hidden>
-      <path d="M8 12V4M4.5 7.5L8 4l3.5 3.5" stroke={color} strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round" />
-    </svg>
-  );
-  return (
-    <span aria-hidden style={{
-      display: "inline-block", width: 16, height: 16, flexShrink: 0,
-      background: color,
-      maskImage: `url(${url})`, maskSize: "contain", maskRepeat: "no-repeat", maskPosition: "center",
-      WebkitMaskImage: `url(${url})`, WebkitMaskSize: "contain", WebkitMaskRepeat: "no-repeat", WebkitMaskPosition: "center",
-    } as React.CSSProperties} />
-  );
-}
-
 // ── Page ───────────────────────────────────────────────────────────────────────
 
 export default function SerialsHomePage() {
   const router = useRouter();
   const icons  = useFigmaIcons(ALL_ICON_IDS);
-  const [addMenuOpen,   setAddMenuOpen]   = useState(false);
-  const [scanSheetOpen, setScanSheetOpen] = useState(false);
+  const [scanSheetOpen,    setScanSheetOpen]    = useState(false);
+  const [inspectScanOpen,  setInspectScanOpen]  = useState(false);
+  const [showInspectedBanner, setShowInspectedBanner] = useState(false);
+
+  useEffect(() => {
+    const params = new URLSearchParams(window.location.search);
+    if (params.get("success") === "inspected") {
+      setShowInspectedBanner(true);
+      window.history.replaceState({}, "", window.location.pathname);
+      const t = setTimeout(() => setShowInspectedBanner(false), 4000);
+      return () => clearTimeout(t);
+    }
+  }, []);
 
   const bottomNavItems: [BottomNavItemDef, BottomNavItemDef, BottomNavItemDef, BottomNavItemDef] = [
-    { id: "home",     label: "Home",        iconNodeId: HOME_ID,     state: "selected"                                   },
-    { id: "serials",  label: "Serial runs", iconNodeId: SERIALS_ID,  onClick: () => router.push("/mobile/serialisation") },
-    { id: "products", label: "Products",    iconNodeId: PRODUCTS_ID                                                      },
-    { id: "me",       label: "Me",          iconNodeId: ME_ID                                                            },
+    { id: "home",            label: "Home",           iconNodeId: HOME_ID,      state: "selected"                                    },
+    { id: "inventory",       label: "inventory",      iconNodeId: INVENTORY_ID                                                       },
+    { id: "serialisations",  label: "Serialisations", iconNodeId: SERIALS_ID,   onClick: () => router.push("/mobile/serialisation") },
+    { id: "me",              label: "Me",             iconNodeId: ME_ID                                                               },
   ];
 
   return (
@@ -152,12 +105,11 @@ export default function SerialsHomePage() {
         height:        "100dvh",
         display:       "flex",
         flexDirection: "column",
-        background:    "linear-gradient(149.26deg, #332562 11.24%, #171717 97.76%)",
+        background:    tokens.color.bg.linearBg,
         overflow:      "hidden",
         position:      "relative",
       }}
     >
-
       {/* ── Top bar ────────────────────────────────────────────────────────── */}
       <div
         style={{
@@ -168,7 +120,6 @@ export default function SerialsHomePage() {
           flexShrink: 0,
         }}
       >
-        {/* Left: squircle + org name + selector chevron */}
         <div
           style={{
             display:    "flex",
@@ -221,7 +172,6 @@ export default function SerialsHomePage() {
           />
         </div>
 
-        {/* Right: notifications bell */}
         <button
           type="button"
           aria-label="Notifications"
@@ -252,95 +202,65 @@ export default function SerialsHomePage() {
         </button>
       </div>
 
-      {/* ── Scrollable content area ───────────────────────────────────────── */}
+      {/* ── Content area — pushes to bottom ──────────────────────────────────── */}
       <div
         style={{
-          flex:          "1 0 0",
-          minHeight:     0,
-          overflowY:     "auto",
-          display:       "flex",
-          flexDirection: "column",
-          gap:           tokens.spacing[6],
-          padding:       `0 ${tokens.spacing[4]} ${tokens.spacing[4]}`,
+          flex:           "1 0 0",
+          minHeight:      0,
+          overflowY:      "auto",
+          display:        "flex",
+          flexDirection:  "column",
+          justifyContent: "flex-end",
+          gap:            tokens.spacing[6],
+          padding:        `0 ${tokens.spacing[4]} ${tokens.spacing[10]}`,
         }}
       >
-
-        {/* ── Stats 2×2 grid ───────────────────────────────────────────────── */}
+        {/* ── Tips and Guides banner ─────────────────────────────────────────── */}
         <div
           style={{
-            display:             "grid",
-            gridTemplateColumns: "minmax(0,1fr) minmax(0,1fr)",
-            gap:                 tokens.spacing[4],
+            background:    tokens.color.brand.darkGrey,
+            borderRadius:  tokens.borderRadius["2xl"],
+            padding:       "20px",
+            display:       "flex",
+            alignItems:    "center",
+            gap:           tokens.spacing[4],
           }}
         >
-          {STAT_CARDS.map((card) => (
-            <div
-              key={card.id}
-              style={{
-                background:    "rgba(255,255,255,0.05)",
-                borderRadius:  tokens.borderRadius.lg,
-                padding:       "12px 10px 12px 16px",
-                display:       "flex",
-                flexDirection: "column",
-                gap:           "10px",
-              }}
-            >
-              {/* Label */}
-              <span style={{ ...tokens.typography.bodyR, color: tokens.color.fgReverse.primary }}>
-                {card.label}
-              </span>
-
-              {/* Value + trend group */}
-              <div style={{ display: "flex", flexDirection: "column", gap: "2px" }}>
-                {/* Number row */}
-                <div style={{ display: "flex", alignItems: "center", gap: "4px" }}>
-                  <span style={{
-                    fontFamily:    tokens.fontFamily.sans,
-                    fontSize:      "24px",
-                    fontWeight:    tokens.fontWeight.medium,
-                    lineHeight:    "1.4",
-                    letterSpacing: "0.03em",
-                    color:         tokens.color.fgReverse.primary,
-                    flex:          "1 0 0",
-                    minWidth:      0,
-                  }}>
-                    {card.value}
-                  </span>
-                  {card.chevron && (
-                    <MaskIcon url={icons[CHEVRON_RIGHT_ID]} color={tokens.color.fgReverse.support} size={16} fallback={
-                      <svg width="16" height="16" viewBox="0 0 16 16" fill="none" aria-hidden>
-                        <path d="M6 4l4 4-4 4" stroke={tokens.color.fgReverse.support} strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round" />
-                      </svg>
-                    } />
-                  )}
-                </div>
-
-                {/* Trend row (optional) */}
-                {card.trend && (
-                  <div style={{ display: "flex", alignItems: "center", gap: "4px" }}>
-                    <span style={{
-                      fontFamily: tokens.fontFamily.sans,
-                      fontSize:   tokens.fontSize.body,
-                      fontWeight: tokens.fontWeight.semiBold,
-                      lineHeight: tokens.lineHeight.body,
-                      color:      "#a5b4fc",
-                    }}>
-                      {card.trend.value}
-                    </span>
-                    <span style={{
-                      fontFamily: tokens.fontFamily.sans,
-                      fontSize:   tokens.fontSize.bodySmall,
-                      fontWeight: tokens.fontWeight.regular,
-                      lineHeight: "16px",
-                      color:      tokens.color.fgReverse.support,
-                    }}>
-                      {card.trend.label}
-                    </span>
-                  </div>
-                )}
-              </div>
-            </div>
-          ))}
+          <div
+            style={{
+              width:          40,
+              height:         40,
+              borderRadius:   tokens.borderRadius.lg,
+              background:     tokens.color.brand.lime,
+              display:        "flex",
+              alignItems:     "center",
+              justifyContent: "center",
+              flexShrink:     0,
+            }}
+          >
+            <MaskIcon
+              url={icons[BOOK_ICON_ID]}
+              color={tokens.color.brand.darkGrey}
+              size={24}
+              fallback={
+                <svg width="24" height="24" viewBox="0 0 24 24" fill="none" aria-hidden>
+                  <path d="M4 19.5A2.5 2.5 0 016.5 17H20" stroke={tokens.color.brand.darkGrey} strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round" />
+                  <path d="M6.5 2H20v20H6.5A2.5 2.5 0 014 19.5v-15A2.5 2.5 0 016.5 2z" stroke={tokens.color.brand.darkGrey} strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round" />
+                </svg>
+              }
+            />
+          </div>
+          <div style={{ flex: 1, minWidth: 0, display: "flex", flexDirection: "column", gap: "2px" }}>
+            <span style={{ fontFamily: tokens.fontFamily.sans, fontSize: "14px", fontWeight: 500, lineHeight: "20px", color: tokens.color.base.white }}>
+              Tips and Guides
+            </span>
+            <span style={{ fontFamily: tokens.fontFamily.sans, fontSize: "14px", fontWeight: 400, lineHeight: "20px", color: tokens.color.fgReverse.support }}>
+              Learn how to use Scannable
+            </span>
+          </div>
+          <svg width="16" height="16" viewBox="0 0 16 16" fill="none" aria-hidden style={{ flexShrink: 0 }}>
+            <path d="M6 4l4 4-4 4" stroke={tokens.color.fgReverse.support} strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round" />
+          </svg>
         </div>
 
         {/* ── Quick actions ─────────────────────────────────────────────────── */}
@@ -353,8 +273,13 @@ export default function SerialsHomePage() {
         >
           <span
             style={{
-              ...tokens.typography.bodyR,
-              color: tokens.color.fgReverse.primary,
+              fontFamily:    tokens.fontFamily.sans,
+              fontSize:      "12px",
+              fontWeight:    500,
+              lineHeight:    "16px",
+              color:         tokens.color.fg.support,
+              textTransform: "uppercase" as const,
+              letterSpacing: "0.04em",
             }}
           >
             Quick actions
@@ -363,7 +288,7 @@ export default function SerialsHomePage() {
             style={{
               display:             "grid",
               gridTemplateColumns: "minmax(0,1fr) minmax(0,1fr) minmax(0,1fr)",
-              gap:                 tokens.spacing[4],
+              gap:                 tokens.spacing[3],
             }}
           >
             {QUICK_ACTIONS.map((action) => (
@@ -371,9 +296,9 @@ export default function SerialsHomePage() {
                 key={action.id}
                 type="button"
                 onClick={
-                  action.id === "rope"           ? () => router.push("/mobile/cut-rope-lengths")
+                  action.id === "rope"           ? () => router.push("/mobile/cut-rope-lengths-v2")
                   : action.id === "capture-serial" ? () => router.push("/mobile/capture-serials")
-                  : action.id === "create-serial"  ? () => router.push("/mobile/create-serials")
+                  : action.id === "inspect"        ? () => setInspectScanOpen(true)
                   : undefined
                 }
                 style={{
@@ -383,8 +308,8 @@ export default function SerialsHomePage() {
                   justifyContent: "center",
                   gap:            tokens.spacing[2],
                   padding:        tokens.spacing[4],
-                  background:     "rgba(255,255,255,0.5)",
-                  borderRadius:   tokens.borderRadius.lg,
+                  background:     "rgba(46,38,71,0.7)",
+                  borderRadius:   tokens.borderRadius.xl,
                   border:         "none",
                   cursor:         "pointer",
                   minHeight:      "96px",
@@ -392,26 +317,29 @@ export default function SerialsHomePage() {
               >
                 <MaskIcon
                   url={icons[action.iconId]}
-                  color={tokens.color.brand.darkPurple}
+                  color={tokens.color.brand.lime}
                   size={24}
                   fallback={
                     <div
                       style={{
                         width:        24,
                         height:       24,
-                        background:   tokens.color.brand.darkPurple,
+                        background:   tokens.color.brand.lime,
                         borderRadius: tokens.borderRadius.sm,
-                        opacity:      0.3,
+                        opacity:      0.4,
                       }}
                     />
                   }
                 />
                 <span
                   style={{
-                    ...tokens.typography.smallBodyM,
-                    color:     tokens.color.brand.darkPurple,
-                    textAlign: "center",
-                    whiteSpace: "pre-line",
+                    fontFamily:  tokens.fontFamily.sans,
+                    fontSize:    "14px",
+                    fontWeight:  500,
+                    lineHeight:  "20px",
+                    color:       tokens.color.fgReverse.primary,
+                    textAlign:   "center",
+                    whiteSpace:  "pre-line",
                   }}
                 >
                   {action.label}
@@ -420,48 +348,40 @@ export default function SerialsHomePage() {
             ))}
           </div>
         </div>
-
       </div>
 
       {/* ── Bottom nav ───────────────────────────────────────────────────────── */}
       <MobileBottomNav items={bottomNavItems} onCentreClick={() => setScanSheetOpen(true)} />
 
-      {/* ── Add menu sheet ───────────────────────────────────────────────────── */}
-      <BottomSheet
-        variant="bottom-sheet-mobile"
-        open={addMenuOpen}
-        onClose={() => setAddMenuOpen(false)}
-        contained
-      >
-        <div style={{ paddingTop: tokens.spacing[2], paddingBottom: tokens.spacing[4] }}>
-          <ContextMenuItem
-            label="Create serials"
-            supportText="Generate serials using Scannable's sequencer."
-            iconUrl={icons[CREATE_SER_ID]}
-            divider
-            onClick={() => { setAddMenuOpen(false); router.push("/mobile/create-serials"); }}
-          />
-          <ContextMenuItem
-            label="Capture serials"
-            supportText="Capture existing serials from external sources."
-            iconUrl={icons[ICON_CAPTURE_SER]}
-            divider
-            onClick={() => { setAddMenuOpen(false); router.push("/mobile/capture-serials"); }}
-          />
-          <ContextMenuItem
-            label="Cut rope lengths"
-            supportText="Convert source reel into serialised lengths."
-            iconUrl={icons[ICON_ROPE_SER]}
-            onClick={() => setAddMenuOpen(false)}
-          />
+      {/* ── Item inspected banner ────────────────────────────────────────────── */}
+      {showInspectedBanner && (
+        <div style={{
+          position: "absolute",
+          bottom:   "80px",
+          left:     tokens.spacing[4],
+          right:    tokens.spacing[4],
+          zIndex:   30,
+        }}>
+          <Toast variant="success" message="Item inspected" />
         </div>
-      </BottomSheet>
+      )}
 
-      {/* ── Search / scan sheet ──────────────────────────────────────────────── */}
+      {/* ── Search / scan sheet (centre button) ─────────────────────────────── */}
       <SearchScanSheet
         open={scanSheetOpen}
         onClose={() => setScanSheetOpen(false)}
         contained
+      />
+
+      {/* ── Inspect scan sheet ────────────────────────────────────────────────── */}
+      <SearchScanSheet
+        open={inspectScanOpen}
+        onClose={() => setInspectScanOpen(false)}
+        contained
+        onScanDetected={() => {
+          setInspectScanOpen(false);
+          router.push("/mobile/inspect");
+        }}
       />
     </div>
   );

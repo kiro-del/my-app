@@ -17,7 +17,7 @@ import { ListViewItem } from "@/components/ui/ListViewItem";
 import { ProductListItem } from "@/components/ui/ProductListItem";
 import { SectionHeader } from "@/components/ui/SectionHeader";
 import { Toast } from "@/components/ui/Toast";
-import { SelectInput } from "@/components/ui/SelectInput";
+import { SelectInput } from "@/components/ui/InputSelect";
 import { useFigmaIcons } from "@/hooks/useFigmaIcons";
 
 // ---------------------------------------------------------------------------
@@ -1003,7 +1003,7 @@ export default function SerialisationPage() {
                   >
                     <ContextMenuItem
                       label="Create serials"
-                      supportText="Generate IDs using Scannable's sequencer."
+                      supportText="Create IDs using Scannable's sequencer."
                       iconUrl={icons[MENU_ICON_IDS.createSerials]}
                       divider
                       onClick={() => {

@@ -87,8 +87,9 @@ export const Input = forwardRef<HTMLInputElement, InputProps>(({
 }, ref) => {
   const [isFocused, setIsFocused] = useState(false);
 
-  const isDisabled = disabled;
-  const isError    = !!errorMessage;
+  const isDisabled  = disabled;
+  const isError     = !!errorMessage;
+  const isDateInput = (rest as React.InputHTMLAttributes<HTMLInputElement>).type === "date";
 
   // ---------------------------------------------------------------------------
   // Border — confirmed from Figma
@@ -105,8 +106,9 @@ export const Input = forwardRef<HTMLInputElement, InputProps>(({
     ? { border: `2px solid ${tokens.color.divider.blue}` }
     : { border: `1px solid ${tokens.color.divider.frame}` };
 
-  // Height — confirmed from Figma node 1313:2941: h-[40px] items-center
-  // large = 80px min-height, items-start (textarea-style)
+  // Height — confirmed from Figma
+  // large:   80px min-height, items-start (textarea-style)
+  // Default: 40px fixed height
   const heightStyle: React.CSSProperties = inputSize === "large"
     ? { minHeight: "80px", alignItems: "flex-start",
         paddingTop: tokens.spacing[2.5], paddingBottom: tokens.spacing[2.5] }
@@ -124,7 +126,7 @@ export const Input = forwardRef<HTMLInputElement, InputProps>(({
     paddingLeft:   tokens.spacing[2.5],     // 10px
     // No right padding when inlineButton is present — button is flush to the edge
     paddingRight:  hasInlineBtn ? 0 : tokens.spacing[2.5],
-    borderRadius:  tokens.borderRadius.md,  // 6px
+    borderRadius:  tokens.borderRadius.md,
     background:    borderStyle.background || tokens.color.base.white,
     overflow:      "hidden",
     width:         "100%",
@@ -279,7 +281,7 @@ export const Input = forwardRef<HTMLInputElement, InputProps>(({
               <IconClose size={24} color={isDisabled ? tokens.color.fg.disabled : tokens.color.fg.primary} />
             </button>
           ) : tailingIcon ? (
-            <span style={{ width: "24px", height: "24px", display: "flex", alignItems: "center", justifyContent: "center", flexShrink: 0 }} aria-hidden>
+            <span style={{ width: "24px", height: "24px", display: "flex", alignItems: "center", justifyContent: "center", flexShrink: 0, pointerEvents: isDateInput ? "none" : "auto" }} aria-hidden>
               {tailingIcon}
             </span>
           ) : null}
@@ -313,30 +315,5 @@ export const Input = forwardRef<HTMLInputElement, InputProps>(({
 });
 
 Input.displayName = "Input";
-
-// ---------------------------------------------------------------------------
-// CalendarIcon — 24px calendar SVG (Figma node 2150:1814)
-// A calendar body with two handle lines at top, a horizontal divider,
-// and a dot grid representing dates.
-// ---------------------------------------------------------------------------
-export function CalendarIcon({ color = tokens.color.fg.primary }: { color?: string }) {
-  return (
-    <svg width="24" height="24" viewBox="0 0 24 24" fill="none" aria-hidden>
-      {/* Calendar body */}
-      <rect x="3" y="5" width="18" height="16" rx="2" stroke={color} strokeWidth="1.5" />
-      {/* Handle lines (top tabs) */}
-      <path d="M8 3V7M16 3V7" stroke={color} strokeWidth="1.5" strokeLinecap="round" />
-      {/* Horizontal divider */}
-      <path d="M3 10H21" stroke={color} strokeWidth="1.5" />
-      {/* Date dot grid — 3 columns × 2 rows */}
-      <circle cx="8"  cy="14" r="1" fill={color} />
-      <circle cx="12" cy="14" r="1" fill={color} />
-      <circle cx="16" cy="14" r="1" fill={color} />
-      <circle cx="8"  cy="18" r="1" fill={color} />
-      <circle cx="12" cy="18" r="1" fill={color} />
-      <circle cx="16" cy="18" r="1" fill={color} />
-    </svg>
-  );
-}
 
 export default Input;

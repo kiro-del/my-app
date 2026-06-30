@@ -41,7 +41,7 @@ export function Tabs({ items, activeId, onChange, fullWidth = false }: TabsProps
       gap:           tokens.spacing[1],
       background:    tokens.color.base.white,
       borderBottom:  `1px solid ${tokens.color.divider.border}`,
-      paddingTop:    tokens.spacing[3],
+      paddingTop:    tokens.spacing[6],
       paddingLeft:   tokens.spacing[1],
       paddingRight:  tokens.spacing[1],
       boxSizing:     "border-box",
@@ -139,6 +139,7 @@ export function Tabs({ items, activeId, onChange, fullWidth = false }: TabsProps
 
               <span style={{
                 ...(isSelected ? tokens.typography.bodySB : tokens.typography.bodyM),
+                fontWeight: isSelected ? "600" : tokens.typography.bodyM.fontWeight,
                 color:      isSelected ? tokens.color.fg.blue : tokens.color.fg.support,
                 whiteSpace: "nowrap",
               }}>

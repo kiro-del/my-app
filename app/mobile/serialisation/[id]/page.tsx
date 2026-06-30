@@ -52,7 +52,7 @@ const STATIC_DETAILS = [
   { label: "Sales order",       value: "1234-44"     },
   { label: "Date of manufacture", value: "Apr 10, 2026" },
   { label: "Batch number",      value: "323"         },
-  { label: "Type",              value: "Generated"   },
+  { label: "Type",              value: "Created"     },
 ];
 
 const CHUNK_SIZE = 50;
@@ -278,7 +278,7 @@ export default function ViewSerialsPage() {
                 </span>
                 <span style={{ ...tokens.typography.smallBodyR, color: tokens.color.fg.support }}>{task.sku}</span>
               </div>
-              <span style={{ ...tokens.typography.smallBodyR, color: tokens.color.fg.support, flexShrink: 0 }}>{task.count}</span>
+              <span style={{ ...tokens.typography.bodyR, color: tokens.color.fg.primary, flexShrink: 0 }}>{task.count}</span>
             </div>
           </div>
           <div style={{ height: "1px", background: tokens.color.divider.border }} />

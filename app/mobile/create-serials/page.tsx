@@ -2,14 +2,14 @@
 // app/mobile/create-serials/page.tsx
 // Figma: Serials — nodes 20:8041, 56:4836, 58:7173, 58:10145, 50:3258, 56:5910, 59:10623, 60:11187
 
-import React, { useRef, useState } from "react";
+import React, { useState } from "react";
 import { useRouter } from "next/navigation";
 import tokens from "@/styles/design-tokens";
 import { useFigmaIcons } from "@/hooks/useFigmaIcons";
 import { MobileAppBar } from "@/components/ui/MobileAppBar";
 import { SelectionCard } from "@/components/ui/SelectionCard";
-import { Input } from "@/components/ui/Input";
-import { ScanInput } from "@/components/ui/ScanInput";
+import { ScanInput } from "@/components/ui/mobile/InputScan";
+import { InputCalendar } from "@/components/ui/mobile/InputCalendar";
 import { ProductImg } from "@/components/ui/ProductImg";
 import { ScanSimulationSheet } from "@/components/patterns/ScanSimulationSheet";
 import { SearchScanSheet, type ScanResult } from "@/components/patterns/SearchScanSheet";
@@ -38,8 +38,6 @@ const SERIAL_FORMATS = [
 
 // Figma DS icon node IDs
 const TRASH_ICON_ID    = "49:967";
-const CALENDAR_ICON_ID = "2150:1814";
-
 interface SelectedProduct extends ScanResult {
   quantity: number;
 }
@@ -102,16 +100,6 @@ function TrashFallback({ color }: { color: string }) {
   );
 }
 
-// Fallback calendar SVG (node 2150:1814, 18×18 canvas)
-function CalendarFallback({ color }: { color: string }) {
-  return (
-    <svg width="20" height="20" viewBox="0 0 18 18" fill="none" aria-hidden>
-      <rect x="1" y="1" width="16" height="16" rx="1" stroke={color} strokeWidth="1.3"/>
-      <path d="M0 5h18" stroke={color} strokeWidth="1.3"/>
-      <path d="M5 0v4M13 0v4" stroke={color} strokeWidth="1.3" strokeLinecap="round"/>
-    </svg>
-  );
-}
 
 // ── Shared sub-components ──────────────────────────────────────────────────────
 
@@ -368,9 +356,8 @@ function SelectedProductRow({
 
 export default function CreateSerialsPage() {
   const router  = useRouter();
-  const icons   = useFigmaIcons([TRASH_ICON_ID, CALENDAR_ICON_ID]);
-  const dateRef = useRef<HTMLInputElement>(null);
-
+  const icons   = useFigmaIcons([TRASH_ICON_ID]);
+  const [dateOfManufacture, setDateOfManufacture] = useState("");
   const [selectedFormat,   setSelectedFormat]   = useState<string | null>(null);
   const [purchaseOrder,    setPurchaseOrder]    = useState("Black");
   const [orderNumber,      setOrderNumber]      = useState("B213456");
@@ -412,15 +399,6 @@ export default function CreateSerialsPage() {
     router.push("/mobile/serialisation");
   }
 
-  // Calendar icon node — use as tailingIcon in the date Input
-  const CalendarTailingIcon = (
-    <MaskIcon
-      url={icons[CALENDAR_ICON_ID]}
-      color={tokens.color.fg.support}
-      size={20}
-      fallback={<CalendarFallback color={tokens.color.fg.support} />}
-    />
-  );
 
   return (
     <div style={{
@@ -431,18 +409,6 @@ export default function CreateSerialsPage() {
       overflow:      "hidden",
       position:      "relative",
     }}>
-      {/* Hide the native date-picker calendar indicator; our icon takes its place */}
-      <style>{`
-        input[type="date"]::-webkit-calendar-picker-indicator {
-          position: absolute;
-          right: 0;
-          width: 40px;
-          height: 100%;
-          opacity: 0;
-          cursor: pointer;
-        }
-      `}</style>
-
       {/* App bar */}
       <MobileAppBar
         page="task"
@@ -519,14 +485,13 @@ export default function CreateSerialsPage() {
           />
         </div>
 
-        {/* Date of manufacture — native date picker, Figma calendar icon as tailingIcon */}
-        <div style={{ display: "flex", flexDirection: "column", gap: tokens.spacing[1.5], marginBottom: tokens.spacing[2], position: "relative" }}>
+        {/* Date of manufacture */}
+        <div style={{ display: "flex", flexDirection: "column", gap: tokens.spacing[1.5], marginBottom: tokens.spacing[2] }}>
           <FieldLabel text="Date of manufacture" />
-          <Input
-            ref={dateRef}
-            type="date"
-            placeholder="--/--/--"
-            tailingIcon={CalendarTailingIcon}
+          <InputCalendar
+            value={dateOfManufacture}
+            onChange={setDateOfManufacture}
+            placeholder="Select date"
           />
         </div>
 

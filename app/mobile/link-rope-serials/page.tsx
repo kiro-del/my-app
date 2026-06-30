@@ -8,8 +8,8 @@ import { useRouter } from "next/navigation";
 import tokens from "@/styles/design-tokens";
 import { useFigmaIcons } from "@/hooks/useFigmaIcons";
 import { MobileAppBar } from "@/components/ui/MobileAppBar";
-import { Input } from "@/components/ui/Input";
-import { Button } from "@/components/ui/Button";
+import { Input } from "@/components/ui/mobile/Input";
+import { MobileButton as Button } from "@/components/ui/mobile/Button";
 import { EmptyState } from "@/components/ui/EmptyState";
 import { GloryItem } from "@/components/ui/GloryItems";
 import { ScanSimulationSheet } from "@/components/patterns/ScanSimulationSheet";
@@ -235,7 +235,8 @@ export default function LinkRopeSerialsPage() {
       {/* Footer */}
       <div style={{ ...footerStyle, display: "flex", flexDirection: "column", gap: tokens.spacing[2] }}>
         <Button
-          variant={hasSerials ? "primary" : "disabled"}
+          variant="primary"
+          disabled={!hasSerials}
           label="Complete linking"
           style={{ width: "100%" }}
           onClick={() => { if (hasSerials) handleComplete(); }}

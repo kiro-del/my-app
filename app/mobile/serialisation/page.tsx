@@ -1,6 +1,6 @@
 "use client";
 // app/mobile/serialisation/page.tsx
-// Figma: Serials file — node 20:6473 (Mobile / Serialisation)
+// Figma: MF-Serialisations — nodes 318-23180 (Serial runs tab), 318-23279 (Serials tab)
 
 import React, { useState, useEffect } from "react";
 import { useRouter } from "next/navigation";
@@ -8,12 +8,14 @@ import tokens from "@/styles/design-tokens";
 import { useFigmaIcons } from "@/hooks/useFigmaIcons";
 import { MobileAppBar } from "@/components/ui/MobileAppBar";
 import { MobileBottomNav } from "@/components/ui/MobileBottomNav";
+import { Tabs } from "@/components/ui/Tabs";
 import { Badge } from "@/components/ui/Badge";
 import { BadgeActionable, BadgeActionableChevronIcon } from "@/components/ui/BadgeActionable";
-import { Button } from "@/components/ui/Button";
+import { MobileButton as Button } from "@/components/ui/mobile/Button";
 import { BottomSheet } from "@/components/ui/BottomSheet";
 import { ContextMenuItem } from "@/components/ui/ContextMenuItem";
 import { SearchScanSheet } from "@/components/patterns/SearchScanSheet";
+import { ScanInput } from "@/components/ui/InputScan";
 import { useToast } from "@/components/ui/Toast";
 import type { BottomNavItemDef } from "@/components/ui/MobileBottomNav";
 import type { BadgeColor } from "@/components/ui/Badge";
@@ -21,13 +23,13 @@ import type { BadgeColor } from "@/components/ui/Badge";
 // ── DS icon node IDs (design system file j8hy0yzSKPyh1yRKOh4tuU) ───────────────
 const FILTER_ICON_ID    = "148:822";   // Adjustments / filter icon
 const HOME_ID           = "2307:2449";
-const SERIALS_ID        = "94:553";
-const PRODUCTS_ID       = "3628:9949"; // Products
+const INVENTORY_ID      = "92:2266";   // inventory (specs icon)
+const SERIALS_ID        = "94:553";    // Serialisations
 const ME_ID             = "1613:107";
 // Add-menu icons
 const ICON_CREATE_SER   = "94:554";    // Create serials
 const ICON_CAPTURE_SER  = "6258:3868"; // Capture serials
-const ICON_ROPE_SER     = "2119:4324"; // Create cut rope serials
+const ICON_ROPE_SER     = "6458:905";  // Create cut rope serials
 // Context-menu icons
 const ICON_COPY         = "149:364";   // Copy
 const ICON_EDIT         = "46:2933";   // Edit / pencil
@@ -36,12 +38,30 @@ const ICON_REFRESH      = "46:2937";   // Refresh / Reload
 const ICON_BIN          = "49:967";    // Bin / Delete
 
 const ALL_ICON_IDS = [
-  FILTER_ICON_ID, HOME_ID, SERIALS_ID, PRODUCTS_ID, ME_ID,
+  FILTER_ICON_ID, HOME_ID, INVENTORY_ID, SERIALS_ID, ME_ID,
   ICON_CREATE_SER, ICON_CAPTURE_SER, ICON_ROPE_SER,
   ICON_COPY, ICON_EDIT, ICON_PRINT_LABEL, ICON_REFRESH, ICON_BIN,
 ];
 
 // ── Static data ────────────────────────────────────────────────────────────────
+
+interface SerialItem {
+  id: string;
+  name: string;
+  supplier: string;
+  sku: string;
+  serial: string;
+  img: string;
+}
+
+const SERIALS_DATA: SerialItem[] = [
+  { id: "1", name: "Coron Helmet iD/white", supplier: "DMM", sku: "A327", serial: "#132241154A", img: "/Braided Safety Blue.webp" },
+  { id: "2", name: "Coron Helmet iD/white", supplier: "DMM", sku: "A327", serial: "#132241154A", img: "/Braided Safety Blue.webp" },
+  { id: "3", name: "Coron Helmet iD/white", supplier: "DMM", sku: "A327", serial: "#132241154A", img: "/Braided Safety Blue.webp" },
+  { id: "4", name: "Coron Helmet iD/white", supplier: "DMM", sku: "A327", serial: "#132241154A", img: "/Braided Safety Blue.webp" },
+  { id: "5", name: "Coron Helmet iD/white", supplier: "DMM", sku: "A327", serial: "#132241154A", img: "/Braided Safety Blue.webp" },
+  { id: "6", name: "Coron Helmet iD/white", supplier: "DMM", sku: "A327", serial: "#132241154A", img: "/Braided Safety Blue.webp" },
+];
 
 interface SerialTask {
   id:     string;
@@ -70,7 +90,7 @@ const SERIAL_TASKS: SerialTask[] = [
     count:  "400 serials",
     badges: [
       { label: "Complete",  color: "green" },
-      { label: "Generated", color: "blue"  },
+      { label: "Created", color: "blue"  },
     ],
   },
   {
@@ -100,7 +120,7 @@ const SERIAL_TASKS: SerialTask[] = [
     date:   "Created on April 12, 2026",
     count:  "400 serials",
     badges: [
-      { label: "Generated", color: "blue" },
+      { label: "Created", color: "blue" },
     ],
   },
   {
@@ -109,7 +129,7 @@ const SERIAL_TASKS: SerialTask[] = [
     date:   "Created on April 8, 2026",
     count:  "400 serials",
     badges: [
-      { label: "Generated", color: "blue" },
+      { label: "Created", color: "blue" },
     ],
   },
 ];
@@ -173,7 +193,7 @@ type MenuVariant = "generated" | "captured-active" | "captured-close";
 
 function getMenuVariant(badges: { label: string }[]): MenuVariant {
   const labels = badges.map(b => b.label);
-  if (labels.includes("Generated"))  return "generated";
+  if (labels.includes("Created"))     return "generated";
   if (labels.includes("Active"))     return "captured-active";
   if (labels.includes("Close"))      return "captured-close";
   return "generated";
@@ -207,12 +227,23 @@ export default function SerialisationPage() {
       localStorage.removeItem("mobilePrintLabels");
       toast.show({ variant: "success", message: "Printing labels...", duration: 3000 });
     }
+    if (localStorage.getItem("orderSaved")) {
+      localStorage.removeItem("orderSaved");
+      toast.show({ variant: "success", message: "Order created and sent to supplier", duration: 3000 });
+    }
   }, []);
 
-  // Filter chip selected states
+  // Tabs
+  const [activeTab, setActiveTab] = useState<"serial-runs" | "serials">("serial-runs");
+
+  // Filter chip selected states (Serial Runs tab)
   const [printStatus, setPrintStatus] = useState(false);
   const [source,      setSource]      = useState(false);
   const [serialFmt,   setSerialFmt]   = useState(false);
+
+  // Filter chip selected states (Serials tab)
+  const [claimStatus,  setClaimStatus]  = useState(false);
+  const [productsSKUs, setProductsSKUs] = useState(false);
 
   // Add-menu sheet
   const [addMenuOpen,   setAddMenuOpen]   = useState(false);
@@ -226,10 +257,10 @@ export default function SerialisationPage() {
   const menuVariant = menuTask ? getMenuVariant(menuTask.badges) : "generated";
 
   const bottomNavItems: [BottomNavItemDef, BottomNavItemDef, BottomNavItemDef, BottomNavItemDef] = [
-    { id: "home",         label: "Home",          iconNodeId: HOME_ID,   onClick: () => router.push("/mobile/serials-home") },
-    { id: "serialisation",label: "Serial runs", iconNodeId: SERIALS_ID,  state: "selected"      },
-    { id: "products",     label: "Products",      iconNodeId: PRODUCTS_ID                              },
-    { id: "me",           label: "Me",            iconNodeId: ME_ID                                },
+    { id: "home",           label: "Home",           iconNodeId: HOME_ID,      onClick: () => router.push("/mobile/serials-home") },
+    { id: "inventory",      label: "inventory",      iconNodeId: INVENTORY_ID                                                        },
+    { id: "serialisations", label: "Serialisations", iconNodeId: SERIALS_ID,   state: "selected"                                     },
+    { id: "me",             label: "Me",             iconNodeId: ME_ID                                                                },
   ];
 
   const chevronColor = (sel: boolean) =>
@@ -269,188 +300,202 @@ export default function SerialisationPage() {
         }}
       >
 
-        {/* ── Filter bar ─────────────────────────────────────────────────────── */}
-        <div
-          style={{
-            background: tokens.color.bg.lightBg,
-            paddingTop:    tokens.spacing[6],
-            paddingBottom: tokens.spacing[4],
-            paddingLeft:   tokens.spacing[4],
-            paddingRight:  tokens.spacing[4],
-            flexShrink:    0,
-          }}
-        >
-          {/* Horizontally scrollable chip row */}
-          <div
-            style={{
-              display:    "flex",
-              alignItems: "center",
-              gap:        tokens.spacing[2],
-              overflowX:  "auto",
-              // Hide scrollbar cross-browser
-              scrollbarWidth: "none",
-              msOverflowStyle: "none",
-            } as React.CSSProperties}
-          >
-            {/* Filter chip — leading adjustments icon */}
-            <BadgeActionable
-              size="big"
-              label="Filter"
-              leadingIcon={
-                <MaskIcon
-                  url={icons[FILTER_ICON_ID]}
-                  color={tokens.color.fg.primary}
-                  size={16}
-                  fallback={<AdjustmentsFallback color={tokens.color.fg.primary} />}
-                />
-              }
-              style={{ flexShrink: 0 }}
-            />
+        {/* ── Tabs row ────────────────────────────────────────────────────────── */}
+        <Tabs
+          items={[
+            { id: "serial-runs", label: "Serial runs" },
+            { id: "serials",     label: "Serials"     },
+          ]}
+          activeId={activeTab}
+          onChange={(id) => setActiveTab(id as "serial-runs" | "serials")}
+          fullWidth
+        />
 
-            {/* Vertical divider */}
+        {/* ── Serial Runs tab content ─────────────────────────────────────────── */}
+        {activeTab === "serial-runs" && (
+          <>
+            {/* Filter chips row */}
             <div
-              aria-hidden
               style={{
-                width:      "1px",
-                height:     "20px",
-                background: tokens.color.divider.border,
-                flexShrink: 0,
-              }}
-            />
-
-            {/* Print Status ∨ */}
-            <BadgeActionable
-              size="big"
-              label="Print Status"
-              tailingIcon={<BadgeActionableChevronIcon color={chevronColor(printStatus)} />}
-              selected={printStatus}
-              dismissible
-              onClick={()   => setPrintStatus(s => !s)}
-              onDismiss={()  => setPrintStatus(false)}
-              style={{ flexShrink: 0 }}
-            />
-
-            {/* Source ∨ */}
-            <BadgeActionable
-              size="big"
-              label="Source"
-              tailingIcon={<BadgeActionableChevronIcon color={chevronColor(source)} />}
-              selected={source}
-              dismissible
-              onClick={()  => setSource(s => !s)}
-              onDismiss={()  => setSource(false)}
-              style={{ flexShrink: 0 }}
-            />
-
-            {/* Serial format ∨ */}
-            <BadgeActionable
-              size="big"
-              label="Serial format"
-              tailingIcon={<BadgeActionableChevronIcon color={chevronColor(serialFmt)} />}
-              selected={serialFmt}
-              dismissible
-              onClick={()   => setSerialFmt(s => !s)}
-              onDismiss={()  => setSerialFmt(false)}
-              style={{ flexShrink: 0 }}
-            />
-          </div>
-        </div>
-
-        {/* ── Scrollable list ─────────────────────────────────────────────────── */}
-        <div style={{ flex: "1 0 0", minHeight: 0, overflowY: "auto" }}>
-          {SERIAL_TASKS.map((task) => (
-            <div
-              key={task.id}
-              onClick={() => router.push(`/mobile/serialisation/${task.id}`)}
-              style={{
-                display:      "flex",
-                alignItems:   "center",
-                gap:          tokens.spacing[2],
-                padding:      `${tokens.spacing[3]} ${tokens.spacing[4]}`,
-                borderBottom: `1px solid ${tokens.color.divider.border}`,
-                cursor:       "pointer",
+                background:    tokens.color.bg.lightBg,
+                paddingTop:    tokens.spacing[6],
+                paddingBottom: tokens.spacing[4],
+                paddingLeft:   tokens.spacing[4],
+                paddingRight:  tokens.spacing[4],
+                flexShrink:    0,
               }}
             >
-              {/* Text block */}
               <div
                 style={{
-                  flex:          "1 0 0",
-                  minWidth:      0,
-                  display:       "flex",
-                  flexDirection: "column",
-                  gap:           tokens.spacing[1],
-                }}
+                  display:         "flex",
+                  alignItems:      "center",
+                  gap:             tokens.spacing[2],
+                  overflowX:       "auto",
+                  scrollbarWidth:  "none",
+                  msOverflowStyle: "none",
+                } as React.CSSProperties}
               >
-                {/* Title */}
-                <span
-                  style={{
-                    ...tokens.typography.bodyM,
-                    color:        tokens.color.fg.primary,
-                    overflow:     "hidden",
-                    textOverflow: "ellipsis",
-                    whiteSpace:   "nowrap",
-                  }}
-                >
-                  {task.name}
-                </span>
-
-                {/* Subtitle — date | divider | count */}
-                <div
-                  style={{
-                    display:    "flex",
-                    alignItems: "center",
-                    gap:        tokens.spacing[1],
-                  }}
-                >
-                  <span style={{ ...tokens.typography.smallBodyR, color: tokens.color.fg.support }}>
-                    {task.date}
-                  </span>
-                  <span
-                    aria-hidden
-                    style={{
-                      display:    "inline-block",
-                      width:      "1px",
-                      height:     "12px",
-                      background: tokens.color.divider.frame,
-                      flexShrink: 0,
-                    }}
-                  />
-                  <span style={{ ...tokens.typography.smallBodyR, color: tokens.color.fg.support }}>
-                    {task.count}
-                  </span>
-                </div>
-
-                {/* Badge row */}
-                <div
-                  style={{
-                    display:    "flex",
-                    flexWrap:   "wrap",
-                    gap:        tokens.spacing[1],
-                  }}
-                >
-                  {task.badges.map((badge) => (
-                    <Badge
-                      key={badge.label}
-                      label={badge.label}
-                      color={badge.color}
+                <BadgeActionable
+                  size="big"
+                  label="Filter"
+                  leadingIcon={
+                    <MaskIcon
+                      url={icons[FILTER_ICON_ID]}
+                      color={tokens.color.fg.primary}
+                      size={16}
+                      fallback={<AdjustmentsFallback color={tokens.color.fg.primary} />}
                     />
-                  ))}
-                </div>
-              </div>
-
-              {/* "..." action button */}
-              <div
-                style={{ flexShrink: 0 }}
-                onClick={(e) => { e.stopPropagation(); setMenuTaskId(task.id); }}
-              >
-                <Button
-                  variant="icon"
-                  icon={<MenuHorizIcon color={tokens.color.fg.support} />}
+                  }
+                  style={{ flexShrink: 0 }}
                 />
+                <div aria-hidden style={{ width: "1px", height: "20px", background: tokens.color.divider.border, flexShrink: 0 }} />
+                <BadgeActionable size="big" label="Print Status" tailingIcon={<BadgeActionableChevronIcon color={chevronColor(printStatus)} />} selected={printStatus} dismissible onClick={() => setPrintStatus(s => !s)} onDismiss={() => setPrintStatus(false)} style={{ flexShrink: 0 }} />
+                <BadgeActionable size="big" label="Source" tailingIcon={<BadgeActionableChevronIcon color={chevronColor(source)} />} selected={source} dismissible onClick={() => setSource(s => !s)} onDismiss={() => setSource(false)} style={{ flexShrink: 0 }} />
+                <BadgeActionable size="big" label="Serial format" tailingIcon={<BadgeActionableChevronIcon color={chevronColor(serialFmt)} />} selected={serialFmt} dismissible onClick={() => setSerialFmt(s => !s)} onDismiss={() => setSerialFmt(false)} style={{ flexShrink: 0 }} />
               </div>
             </div>
-          ))}
-        </div>
+
+            {/* Scrollable list */}
+            <div style={{ flex: "1 0 0", minHeight: 0, overflowY: "auto" }}>
+              {SERIAL_TASKS.map((task) => (
+                <div
+                  key={task.id}
+                  onClick={() => router.push("/mobile/serialisation/view-serial-run")}
+                  style={{
+                    display:      "flex",
+                    alignItems:   "center",
+                    gap:          tokens.spacing[2],
+                    padding:      `${tokens.spacing[3]} ${tokens.spacing[4]}`,
+                    borderBottom: `1px solid ${tokens.color.divider.border}`,
+                    cursor:       "pointer",
+                  }}
+                >
+                  <div style={{ flex: "1 0 0", minWidth: 0, display: "flex", flexDirection: "column", gap: tokens.spacing[1] }}>
+                    <span style={{ ...tokens.typography.bodyM, color: tokens.color.fg.primary, overflow: "hidden", textOverflow: "ellipsis", whiteSpace: "nowrap" }}>
+                      {task.name}
+                    </span>
+                    <div style={{ display: "flex", alignItems: "center", gap: tokens.spacing[1] }}>
+                      <span style={{ ...tokens.typography.smallBodyR, color: tokens.color.fg.support }}>{task.date}</span>
+                      <span aria-hidden style={{ display: "inline-block", width: "1px", height: "12px", background: tokens.color.divider.frame, flexShrink: 0 }} />
+                      <span style={{ ...tokens.typography.smallBodyR, color: tokens.color.fg.support }}>{task.count}</span>
+                    </div>
+                    <div style={{ display: "flex", flexWrap: "wrap", gap: tokens.spacing[1] }}>
+                      {task.badges.map((badge) => (
+                        <Badge key={badge.label} label={badge.label} color={badge.color} />
+                      ))}
+                    </div>
+                  </div>
+                  <div style={{ flexShrink: 0 }} onClick={(e) => { e.stopPropagation(); setMenuTaskId(task.id); }}>
+                    <button type="button" style={{ display: "flex", alignItems: "center", justifyContent: "center", background: "transparent", border: "none", cursor: "pointer", padding: tokens.spacing[1], borderRadius: tokens.borderRadius.md }}>
+                      <MenuHorizIcon color={tokens.color.fg.support} />
+                    </button>
+                  </div>
+                </div>
+              ))}
+            </div>
+          </>
+        )}
+
+        {/* ── Serials tab content ─────────────────────────────────────────────── */}
+        {activeTab === "serials" && (
+          <>
+            {/* Search + filter section */}
+            <div
+              style={{
+                background: tokens.color.bg.lightBg,
+                padding:    tokens.spacing[4],
+                display:    "flex",
+                flexDirection: "column",
+                gap:        tokens.spacing[4],
+                flexShrink: 0,
+              }}
+            >
+              {/* Search + Scan input */}
+              <ScanInput placeholder="Search items" />
+
+              {/* Filter chips */}
+              <div
+                style={{
+                  display:         "flex",
+                  alignItems:      "center",
+                  gap:             tokens.spacing[2],
+                  overflowX:       "auto",
+                  scrollbarWidth:  "none",
+                  msOverflowStyle: "none",
+                } as React.CSSProperties}
+              >
+                <BadgeActionable
+                  size="big"
+                  label="Filter"
+                  leadingIcon={
+                    <MaskIcon
+                      url={icons[FILTER_ICON_ID]}
+                      color={tokens.color.fg.primary}
+                      size={16}
+                      fallback={<AdjustmentsFallback color={tokens.color.fg.primary} />}
+                    />
+                  }
+                  style={{ flexShrink: 0 }}
+                />
+                <div aria-hidden style={{ width: "1px", height: "20px", background: tokens.color.divider.border, flexShrink: 0 }} />
+                <BadgeActionable size="big" label="Claim Status" tailingIcon={<BadgeActionableChevronIcon color={chevronColor(claimStatus)} />} selected={claimStatus} dismissible onClick={() => setClaimStatus(s => !s)} onDismiss={() => setClaimStatus(false)} style={{ flexShrink: 0 }} />
+                <BadgeActionable size="big" label="Products/SKUs" tailingIcon={<BadgeActionableChevronIcon color={chevronColor(productsSKUs)} />} selected={productsSKUs} dismissible onClick={() => setProductsSKUs(s => !s)} onDismiss={() => setProductsSKUs(false)} style={{ flexShrink: 0 }} />
+              </div>
+            </div>
+
+            {/* Scrollable product list */}
+            <div style={{ flex: "1 0 0", minHeight: 0, overflowY: "auto" }}>
+              {SERIALS_DATA.map((item) => (
+                <div
+                  key={item.id}
+                  onClick={() => router.push("/mobile/product-info")}
+                  style={{
+                    display:      "flex",
+                    alignItems:   "center",
+                    gap:          tokens.spacing[4],
+                    padding:      `${tokens.spacing[2]} ${tokens.spacing[4]}`,
+                    borderBottom: `1px solid ${tokens.color.divider.border}`,
+                    cursor:       "pointer",
+                  }}
+                >
+                  {/* Product image */}
+                  <div
+                    style={{
+                      width:        56,
+                      height:       56,
+                      borderRadius: tokens.borderRadius.md,
+                      border:       `1px solid ${tokens.color.divider.border}`,
+                      overflow:     "hidden",
+                      flexShrink:   0,
+                      background:   tokens.color.base.white,
+                    }}
+                  >
+                    <img
+                      src={item.img}
+                      alt={item.name}
+                      style={{ width: "100%", height: "100%", objectFit: "cover" }}
+                    />
+                  </div>
+
+                  {/* Text */}
+                  <div style={{ display: "flex", flexDirection: "column", gap: "4px", flex: "1 0 0", minWidth: 0 }}>
+                    <span style={{ ...tokens.typography.bodyM, color: tokens.color.fg.primary, whiteSpace: "nowrap", overflow: "hidden", textOverflow: "ellipsis" }}>
+                      {item.name}
+                    </span>
+                    <div style={{ display: "flex", alignItems: "center", gap: tokens.spacing[1] }}>
+                      <span style={{ ...tokens.typography.smallBodyR, color: tokens.color.fg.support }}>{item.supplier}</span>
+                      <span aria-hidden style={{ display: "inline-block", width: "1px", height: "10px", background: tokens.color.divider.frame, flexShrink: 0 }} />
+                      <span style={{ ...tokens.typography.smallBodyR, color: tokens.color.fg.support }}>{item.sku}</span>
+                    </div>
+                    <span style={{ ...tokens.typography.smallBodyR, color: tokens.color.fg.primary, textDecoration: "underline" }}>
+                      {item.serial}
+                    </span>
+                  </div>
+                </div>
+              ))}
+            </div>
+          </>
+        )}
       </div>
 
       {/* ── Bottom nav ───────────────────────────────────────────────────────── */}
@@ -466,7 +511,7 @@ export default function SerialisationPage() {
         <div style={{ paddingTop: tokens.spacing[2], paddingBottom: tokens.spacing[4] }}>
           <ContextMenuItem
             label="Create serials"
-            supportText="Generate serials using Scannable's sequencer."
+            supportText="Create serials using Scannable's sequencer."
             iconUrl={icons[ICON_CREATE_SER]}
             divider
             onClick={() => { setAddMenuOpen(false); router.push("/mobile/create-serials"); }}
@@ -482,7 +527,7 @@ export default function SerialisationPage() {
             label="Cut rope lengths"
             supportText="Convert source reel into serialised lengths."
             iconUrl={icons[ICON_ROPE_SER]}
-            onClick={() => { setAddMenuOpen(false); router.push("/mobile/cut-rope-lengths"); }}
+            onClick={() => { setAddMenuOpen(false); router.push("/mobile/cut-rope-lengths-v2"); }}
           />
         </div>
       </BottomSheet>
@@ -574,7 +619,7 @@ export default function SerialisationPage() {
           </div>
 
           <h2 style={{ margin: 0, ...tokens.typography.h3, color: tokens.color.fg.primary, textAlign: "center" }}>
-            Serials generated!
+            Serials created!
           </h2>
 
           <div style={{ display: "flex", flexDirection: "column", gap: tokens.spacing[2] }}>

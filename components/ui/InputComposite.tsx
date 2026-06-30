@@ -1,5 +1,5 @@
 "use client";
-// components/ui/CompositeInput.tsx
+// components/ui/InputComposite.tsx
 // Figma: Scannable Design System — node 52:1355 / 5837:15854 (Composite / unit input)
 // Text input + inline unit selector — no divider between them.
 

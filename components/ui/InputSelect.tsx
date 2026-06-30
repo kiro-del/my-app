@@ -1,5 +1,5 @@
 "use client";
-// components/ui/SelectInput.tsx
+// components/ui/InputSelect.tsx
 // Figma: Scannable Design System — node 51:1093 (Dropdown / Select)
 // Shares border-state logic with Input.tsx — all values from design-tokens.
 
@@ -137,7 +137,7 @@ export function SelectInput({
             display:       "flex",
             alignItems:    "center",
             width:         "100%",
-            height:        "40px",
+            height: "40px",
             paddingLeft:   tokens.spacing[2.5],
             paddingRight:  0,
             background:    (borderStyle.background as string) || tokens.color.base.white,

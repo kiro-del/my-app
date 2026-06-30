@@ -22,16 +22,18 @@ export const colorFgReverse = {
   primary: "#f9fafb",
   support: "#9ca3af",
   blue: "#a5b4fc",
+  success: "#4ade80",
 } as const;
 
 export const colorBg = {
-  bg: "#f3f4f6",
+  bg: "#f5f7fa",
   lightBg: "#f9fafb",
   darkBg: "#e5e7eb",
   blue: "#6366f1",
   red: "#ef4444",
   amber: "#f59e0b",
   green: "#22c55e",
+  linearBg: "linear-gradient(149.26deg, #332562 11.24%, #171717 97.76%)",
 } as const;
 
 export const colorBrand = {
@@ -47,6 +49,8 @@ export const colorDivider = {
   blue: "#6366f1",
   red: "#ef4444",
   lime: "#c1eb00",
+  gradientDark: "linear-gradient(135.85deg, #ccff00 7.36%, #2e225b 49.74%, #ff4ccf 94.05%)",
+  gradient: "linear-gradient(224.50deg, #ccff00 9.46%, #ad9aff 52.09%, #ff4ccf 90.84%)",
 } as const;
 
 export const colorTint = {
@@ -123,9 +127,9 @@ export const fontFamily = {
 } as const;
 
 export const fontWeight = {
-  regular: "400",
-  medium: "500",
-  semiBold: "600",
+  regular: "300",
+  medium: "400",
+  semiBold: "500",
 } as const;
 
 export const fontSize = {
@@ -139,21 +143,21 @@ export const lineHeight = {
 } as const;
 
 export const typography = {
-  display: { fontSize: "32px", fontWeight: "500", lineHeight: "140%", fontFamily: "Inter, ui-sans-serif, system-ui, -apple-system, sans-serif" },
-  h1:      { fontSize: "28px", fontWeight: "600", lineHeight: "140%", fontFamily: "Inter, ui-sans-serif, system-ui, -apple-system, sans-serif" },
-  h2:      { fontSize: "24px", fontWeight: "500", lineHeight: "140%", letterSpacing: "0.03em", fontFamily: "Inter, ui-sans-serif, system-ui, -apple-system, sans-serif" },
-  h3:      { fontSize: "20px", fontWeight: "500", lineHeight: "28px", fontFamily: "Inter, ui-sans-serif, system-ui, -apple-system, sans-serif" },
-  h4:      { fontSize: "18px", fontWeight: "500", lineHeight: "24px", fontFamily: "Inter, ui-sans-serif, system-ui, -apple-system, sans-serif" },
-  h5:      { fontSize: "16px", fontWeight: "500", lineHeight: "22px", fontFamily: "Inter, ui-sans-serif, system-ui, -apple-system, sans-serif" },
-  bodySB:  { fontSize: "14px", fontWeight: "600", lineHeight: "20px", fontFamily: "Inter, ui-sans-serif, system-ui, -apple-system, sans-serif" },
-  bodyM:   { fontSize: "14px", fontWeight: "500", lineHeight: "20px", fontFamily: "Inter, ui-sans-serif, system-ui, -apple-system, sans-serif" },
-  bodyR:   { fontSize: "14px", fontWeight: "400", lineHeight: "20px", fontFamily: "Inter, ui-sans-serif, system-ui, -apple-system, sans-serif" },
-  smallBodySB: { fontSize: "12px", fontWeight: "600", lineHeight: "16px", fontFamily: "Inter, ui-sans-serif, system-ui, -apple-system, sans-serif" },
-  smallBodyM:  { fontSize: "12px", fontWeight: "500", lineHeight: "16px", fontFamily: "Inter, ui-sans-serif, system-ui, -apple-system, sans-serif" },
-  smallBodyR:  { fontSize: "12px", fontWeight: "400", lineHeight: "16px", fontFamily: "Inter, ui-sans-serif, system-ui, -apple-system, sans-serif" },
-  linkM:       { fontSize: "14px", fontWeight: "500", lineHeight: "20px", fontFamily: "Inter, ui-sans-serif, system-ui, -apple-system, sans-serif", textDecoration: "underline" },
-  linkSmallM:  { fontSize: "12px", fontWeight: "500", lineHeight: "18px", fontFamily: "Inter, ui-sans-serif, system-ui, -apple-system, sans-serif", textDecoration: "underline" },
-  linkSmallR:  { fontSize: "12px", fontWeight: "400", lineHeight: "18px", fontFamily: "Inter, ui-sans-serif, system-ui, -apple-system, sans-serif", textDecoration: "underline" },
+  display: { fontSize: "32px", fontWeight: "400", lineHeight: "140%", fontFamily: "Inter, ui-sans-serif, system-ui, -apple-system, sans-serif" },
+  h1:      { fontSize: "28px", fontWeight: "400", lineHeight: "140%", letterSpacing: "0.04em", fontFamily: "Inter, ui-sans-serif, system-ui, -apple-system, sans-serif" },
+  h2:      { fontSize: "24px", fontWeight: "400", lineHeight: "140%", letterSpacing: "0.03em", fontFamily: "Inter, ui-sans-serif, system-ui, -apple-system, sans-serif" },
+  h3:      { fontSize: "20px", fontWeight: "400", lineHeight: "28px", fontFamily: "Inter, ui-sans-serif, system-ui, -apple-system, sans-serif" },
+  h4:      { fontSize: "18px", fontWeight: "400", lineHeight: "24px", fontFamily: "Inter, ui-sans-serif, system-ui, -apple-system, sans-serif" },
+  h5:      { fontSize: "16px", fontWeight: "400", lineHeight: "22px", fontFamily: "Inter, ui-sans-serif, system-ui, -apple-system, sans-serif" },
+  bodySB:  { fontSize: "14px", fontWeight: "500", lineHeight: "20px", fontFamily: "Inter, ui-sans-serif, system-ui, -apple-system, sans-serif" },
+  bodyM:   { fontSize: "14px", fontWeight: "400", lineHeight: "20px", fontFamily: "Inter, ui-sans-serif, system-ui, -apple-system, sans-serif" },
+  bodyR:   { fontSize: "14px", fontWeight: "300", lineHeight: "20px", fontFamily: "Inter, ui-sans-serif, system-ui, -apple-system, sans-serif" },
+  smallBodySB: { fontSize: "12px", fontWeight: "500", lineHeight: "16px", fontFamily: "Inter, ui-sans-serif, system-ui, -apple-system, sans-serif" },
+  smallBodyM:  { fontSize: "12px", fontWeight: "400", lineHeight: "16px", fontFamily: "Inter, ui-sans-serif, system-ui, -apple-system, sans-serif" },
+  smallBodyR:  { fontSize: "12px", fontWeight: "300", lineHeight: "16px", fontFamily: "Inter, ui-sans-serif, system-ui, -apple-system, sans-serif" },
+  linkM:       { fontSize: "14px", fontWeight: "400", lineHeight: "20px", fontFamily: "Inter, ui-sans-serif, system-ui, -apple-system, sans-serif", textDecoration: "underline" },
+  linkSmallM:  { fontSize: "12px", fontWeight: "400", lineHeight: "18px", fontFamily: "Inter, ui-sans-serif, system-ui, -apple-system, sans-serif", textDecoration: "underline" },
+  linkSmallR:  { fontSize: "12px", fontWeight: "300", lineHeight: "18px", fontFamily: "Inter, ui-sans-serif, system-ui, -apple-system, sans-serif", textDecoration: "underline" },
 } as const;
 
 // ------------------------------------------------------------
@@ -174,12 +178,14 @@ export const spacing = {
 // ------------------------------------------------------------
 
 export const borderRadius = {
+  none: "0px",
   sm: "4px",
   md: "6px",
   lg: "8px",
+  xl: "12px",
   "2xl": "16px",
   "3xl": "24px",
-  full: "9999px",
+  full: "999px",
 } as const;
 
 // ------------------------------------------------------------

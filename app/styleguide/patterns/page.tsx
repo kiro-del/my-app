@@ -12,7 +12,8 @@ import { ContextMenuItem } from "@/components/ui/ContextMenuItem";
 import { ScanSimulation, ScanOverlay } from "@/components/patterns/ScanSimulation";
 import { ScanSimulationSheet, ScanButton } from "@/components/patterns/ScanSimulationSheet";
 import { SearchScanSheet } from "@/components/patterns/SearchScanSheet";
-import { ScanInput } from "@/components/ui/ScanInput";
+import { ScanInput } from "@/components/ui/InputScan";
+import { ApplyToProduct, type CatalogueProduct, type SelectedProductItem } from "@/components/ui/ApplyToProduct";
 import { useFigmaIcons } from "@/hooks/useFigmaIcons";
 import tokens from "@/styles/design-tokens";
 
@@ -1152,6 +1153,58 @@ const [scanSheetOpen, setScanSheetOpen] = useState(false);
 }
 
 // ---------------------------------------------------------------------------
+// Apply to Product pattern
+// ---------------------------------------------------------------------------
+function ApplyToProductPattern() {
+  const CATALOGUE: CatalogueProduct[] = [
+    { id: "1", name: "Ultra O Locksafe",  sku: "DMM | A327MG" },
+    { id: "2", name: "Sender 9.9",        sku: "Mammut | 2310-01160" },
+    { id: "3", name: "Grigri+",           sku: "Petzl | D100A001" },
+    { id: "4", name: "Reverso 4",         sku: "Petzl | D017AA00" },
+    { id: "5", name: "ATC Guide",         sku: "Black Diamond | BD625100" },
+  ];
+  const [selected, setSelected] = useState<SelectedProductItem[]>([]);
+
+  return (
+    <div>
+      <div style={{ marginBottom: "8px" }}>
+        <code style={{ fontSize: "12px", fontFamily: "monospace", background: tokens.color.bg.darkBg, padding: "2px 8px", borderRadius: tokens.borderRadius.sm, color: tokens.color.fg.support }}>components/ui/ApplyToProduct.tsx</code>
+      </div>
+      <p style={{ fontSize: "14px", color: tokens.color.fg.support, marginBottom: "32px", fontFamily: tokens.fontFamily.sans }}>
+        Composed pattern of <code style={{ fontFamily: "monospace" }}>Input</code> + <code style={{ fontFamily: "monospace" }}>Button</code> — search, select, and quantify products. Used in create-serials and capture-serials flows.
+      </p>
+
+      <Section title="Live demo">
+        <div style={{ maxWidth: "560px", background: tokens.color.base.white, border: `1px solid ${tokens.color.divider.border}`, borderRadius: tokens.borderRadius.lg, padding: tokens.spacing[6] }}>
+          <ApplyToProduct
+            catalogue={CATALOGUE}
+            selectedProducts={selected}
+            onProductsChange={setSelected}
+            defaultQuantity={0}
+            quantityLabel="Quantity of serials"
+          />
+        </div>
+      </Section>
+
+      <BehaviourRules rules={[
+        { title: "Search filters the catalogue", description: "Typing in the search field filters products by name or SKU. Already-selected products are removed from results." },
+        { title: "Quantity defaults to 0", description: "When a product is added it gets defaultQuantity (default 0). The user must set a positive number before submitting." },
+        { title: "Remove clears the row", description: "Tapping the bin icon removes the product from selectedProducts immediately — no confirmation needed." },
+      ]} />
+
+      <PropsTable rows={[
+        { prop: "catalogue",        type: "CatalogueProduct[]",    def: "—",                    desc: "Full searchable product list — already-selected items are filtered out" },
+        { prop: "selectedProducts", type: "SelectedProductItem[]", def: "—",                    desc: "Controlled list of selected products with quantities" },
+        { prop: "onProductsChange", type: "(products) => void",    def: "—",                    desc: "Called whenever selection or quantity changes" },
+        { prop: "defaultQuantity",  type: "number",                def: "0",                    desc: "Quantity assigned when a product is first added" },
+        { prop: "quantityLabel",    type: "string",                def: '"Quantity of serials"', desc: "Label above each quantity input" },
+        { prop: "binIconUrl",       type: "string",                def: "—",                    desc: "Figma icon URL for the remove button (node 49:967)" },
+      ]} />
+    </div>
+  );
+}
+
+// ---------------------------------------------------------------------------
 // Tabs
 // ---------------------------------------------------------------------------
 const PATTERN_TABS = [
@@ -1161,7 +1214,8 @@ const PATTERN_TABS = [
   { id: "multi-step",       label: "Multi-Step Card" },
   { id: "context-menu",     label: "Context Menu" },
   { id: "scan",             label: "Scan Simulation" },
-  { id: "search-scan-sheet",label: "Search & Scan Sheet" },
+  { id: "search-scan-sheet",  label: "Search & Scan Sheet" },
+  { id: "apply-to-product",   label: "Apply to Product" },
 ];
 
 // ---------------------------------------------------------------------------
@@ -1222,6 +1276,7 @@ export default function PatternsPage() {
         {activeTab === "context-menu"      && <ContextMenuPattern />}
         {activeTab === "scan"              && <ScanSimulationPattern />}
         {activeTab === "search-scan-sheet" && <SearchScanSheetPattern />}
+        {activeTab === "apply-to-product"  && <ApplyToProductPattern />}
 
         <div style={{ borderTop: `1px solid ${tokens.color.divider.frame}`, paddingTop: "24px", marginTop: "48px", display: "flex", justifyContent: "space-between" }}>
           <a href="/styleguide/components" style={{ fontSize: tokens.fontSize.bodySmall, color: tokens.color.fg.support, fontFamily: tokens.fontFamily.sans, textDecoration: "none" }}>← Components</a>

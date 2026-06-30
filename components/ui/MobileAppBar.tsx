@@ -92,6 +92,8 @@ export interface MobileAppBarProps {
   version?:        string;
   /** Transparent background — use when floating over a dark gradient */
   transparent?:    boolean;
+  /** Use with transparent=true when the underlying bg is light (e.g. #F5F7FA) — keeps icons/text dark instead of white */
+  lightBg?:        boolean;
   /**
    * For page="task" only: swap the default × close button for a ← back arrow.
    * Default is "close".
@@ -116,6 +118,7 @@ export function MobileAppBar({
   subTextContent,
   version = "2.24.0",
   transparent = false,
+  lightBg = false,
   onBack,
   onClose,
   onAdd,
@@ -128,7 +131,7 @@ export function MobileAppBar({
   const isMain    = page === "main";
   const isTask    = page === "task";
   const isAccount = page === "account";
-  const isDark    = !isTask || transparent;  // task page has white bg unless transparent=true
+  const isDark    = (!isTask || transparent) && !lightBg;  // lightBg overrides transparent to keep dark text
 
   // ── Color palette by bg ───────────────────────────────────────────────────
   const bgColor      = transparent ? "transparent" : (isDark ? tokens.color.brand.darkGrey : tokens.color.base.white);

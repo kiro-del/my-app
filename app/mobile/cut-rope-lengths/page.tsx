@@ -7,12 +7,12 @@ import React, { useEffect, useRef, useState } from "react";
 import { useRouter } from "next/navigation";
 import tokens from "@/styles/design-tokens";
 import { MobileAppBar } from "@/components/ui/MobileAppBar";
-import { Button } from "@/components/ui/Button";
+import { MobileButton as Button } from "@/components/ui/mobile/Button";
 import { Badge } from "@/components/ui/Badge";
-import { ScanInput } from "@/components/ui/ScanInput";
-import { CompositeInput } from "@/components/ui/CompositeInput";
-import { SelectInput } from "@/components/ui/SelectInput";
-import { Input } from "@/components/ui/Input";
+import { ScanInput } from "@/components/ui/mobile/InputScan";
+import { CompositeInput } from "@/components/ui/InputComposite";
+import { SelectInput } from "@/components/ui/mobile/InputSelect";
+import { Input } from "@/components/ui/mobile/Input";
 import { ToggleInput } from "@/components/ui/Toggle";
 import { BottomSheet } from "@/components/ui/BottomSheet";
 import { ScanSimulationSheet } from "@/components/patterns/ScanSimulationSheet";
@@ -313,12 +313,13 @@ function DateInput({ label, value, onChange }: { label: string; value: string; o
       <div style={{
         display:      "flex",
         alignItems:   "center",
-        height:       "40px",
-        paddingLeft:  tokens.spacing[2.5],
-        paddingRight: tokens.spacing[2.5],
-        gap:          tokens.spacing[2],
-        background:   tokens.color.base.white,
-        borderRadius: tokens.borderRadius.md,
+        paddingTop:    "12px",
+        paddingBottom: "12px",
+        paddingLeft:   tokens.spacing[2.5],
+        paddingRight:  tokens.spacing[2.5],
+        gap:           tokens.spacing[2],
+        background:    tokens.color.base.white,
+        borderRadius:  tokens.borderRadius.lg,
         boxShadow:    tokens.shadows.sm,
         border:       `${focused ? 2 : 1}px solid ${focused ? tokens.color.divider.blue : tokens.color.divider.frame}`,
         boxSizing:    "border-box",
@@ -359,6 +360,7 @@ function TextField({ label, placeholder, value, onChange }: {
     <div style={{ display: "flex", flexDirection: "column", gap: tokens.spacing[1] }}>
       <label style={{ ...tokens.typography.bodyM, color: tokens.color.fg.primary }}>{label}</label>
       <Input
+
         placeholder={placeholder ?? label}
         value={value}
         onChange={e => onChange(e.target.value)}
@@ -416,7 +418,7 @@ function Footer({
       flexShrink: 0,
     }}>
       <Button
-        variant={disabled ? "disabled" : "primary"}
+        variant="primary"
         label={label}
         disabled={disabled}
         onClick={onClick}
@@ -788,6 +790,7 @@ export default function CutRopeLengthsPage() {
             />
 
             <ScanInput
+      
               placeholder="Search by serial, SKU name or code"
               value={searchQuery}
               onChange={e => setSearchQuery(e.target.value)}
@@ -915,6 +918,7 @@ export default function CutRopeLengthsPage() {
             })() : (
               <>
                 <ScanInput
+          
                   label="Source batch number"
                   placeholder="Search or scan batch number"
                   value={batchNumber}
@@ -1088,6 +1092,7 @@ export default function CutRopeLengthsPage() {
                       </span>
                       <TextField label="Length" value={newLength} onChange={setNewLength} />
                       <SelectInput
+
                         label="Unit"
                         options={UNIT_OPTIONS}
                         value={newLengthUnit}
@@ -1097,6 +1102,7 @@ export default function CutRopeLengthsPage() {
                       <TextField label="Part number" value={newPartNumber} onChange={setNewPartNumber} />
                       <TextField label="SKU name"    value={newSkuName}    onChange={setNewSkuName}    />
                       <SelectInput
+
                         label="Splice"
                         options={SPLICE_OPTIONS}
                         value={newSplice}
@@ -1473,6 +1479,7 @@ export default function CutRopeLengthsPage() {
                   </span>
                 </div>
                 <ScanInput
+          
                   label="Trace serial of source reel"
                   placeholder="Scan or enter serial number"
                   value={traceSerial}
@@ -1523,6 +1530,7 @@ export default function CutRopeLengthsPage() {
 
           {/* Trace serial */}
           <ScanInput
+    
             label="Trace serial of source rope"
             placeholder="Scan or enter serial number"
             value={newSpoolSerial}

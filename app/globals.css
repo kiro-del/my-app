@@ -5,6 +5,19 @@ input[type="number"]::-webkit-inner-spin-button,
 input[type="number"]::-webkit-outer-spin-button { -webkit-appearance: none; margin: 0; }
 input[type="number"] { -moz-appearance: textfield; }
 
+/* Date picker: hide native calendar indicator, overlay it transparently so clicking the
+   custom tailing icon still triggers the native date picker popup. z-index: 10 ensures
+   it sits above the tailingIcon span rendered after the input in the flex container. */
+input[type="date"]::-webkit-calendar-picker-indicator {
+  position: absolute;
+  right: 0;
+  width: 40px;
+  height: 100%;
+  opacity: 0;
+  cursor: pointer;
+  z-index: 10;
+}
+
 :root {
   --background: #ffffff;
   --foreground: #171717;
