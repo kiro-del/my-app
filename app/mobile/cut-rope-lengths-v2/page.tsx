@@ -3,7 +3,7 @@
 // app/mobile/cut-rope-lengths-v2/page.tsx
 // Figma: nodes 263:60201, 263:60124, 263:60925, 263:60840, 263:60884, 263:62442, 263:60954, 263:60968
 
-import React, { useState, useEffect } from "react";
+import React, { useState, useEffect, Suspense } from "react";
 import { useFigmaIcons } from "@/hooks/useFigmaIcons";
 import { useRouter, useSearchParams } from "next/navigation";
 import { getReels } from "@/lib/reels-store";
@@ -471,7 +471,7 @@ function QuantityStepper({ value, onChange, addIconUrl }: { value: number; onCha
 
 // ── Main page ──────────────────────────────────────────────────────────────────
 
-export default function CutRopeLengthsV2Page() {
+function CutRopeLengthsV2Inner() {
   const router = useRouter();
   const searchParams = useSearchParams();
   const figmaIcons = useFigmaIcons([SETTINGS_ICON_ID, PHONE_SCAN_ID, EXPAND_ICON_ID, ADD_ICON_ID]);
@@ -1138,5 +1138,13 @@ export default function CutRopeLengthsV2Page() {
         }}
       />
     </div>
+  );
+}
+
+export default function CutRopeLengthsV2Page() {
+  return (
+    <Suspense>
+      <CutRopeLengthsV2Inner />
+    </Suspense>
   );
 }
