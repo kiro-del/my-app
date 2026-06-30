@@ -63,6 +63,10 @@ export function addReel(reel: StoredReel): void {
   localStorage.setItem(KEY, JSON.stringify([reel, ...current]));
 }
 
+export function removeReel(id: string): void {
+  localStorage.setItem(KEY, JSON.stringify(getReels().filter(r => r.id !== id)));
+}
+
 export function resetReels(): void {
   localStorage.removeItem(KEY);
 }

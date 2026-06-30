@@ -12,7 +12,7 @@ import { BadgeActionable, BadgeActionableChevronIcon } from "@/components/ui/Bad
 import { ContextMenu } from "@/components/patterns/ContextMenu";
 import { ContextMenuItem } from "@/components/ui/ContextMenuItem";
 import { ScanSimulationSheet } from "@/components/patterns/ScanSimulationSheet";
-import { getReels, type StoredReel } from "@/lib/reels-store";
+import { getReels, removeReel, type StoredReel } from "@/lib/reels-store";
 
 const ROPE_ICON_ID  = "6458:905";
 const EDIT_ICON_ID  = "46:2933";
@@ -281,7 +281,10 @@ export default function ManageReelsPage() {
           }}
         />
         <ContextMenuItem label="Edit info"              iconUrl={editIconUrl} onClick={() => setMenuReel(null)} />
-        <ContextMenuItem label="Remove from my reels"  iconUrl={binIconUrl}  state="destructive" onClick={() => setMenuReel(null)} />
+        <ContextMenuItem label="Remove from my reels"  iconUrl={binIconUrl}  state="destructive" onClick={() => {
+          if (menuReel) { removeReel(menuReel.id); setReels(getReels()); }
+          setMenuReel(null);
+        }} />
       </ContextMenu>
 
       {/* Scan sheet */}
